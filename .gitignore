@@ -1,0 +1,24 @@
+# Carpetas de compilación de .NET (¡Lo más importante a ignorar!)
+bin/
+obj/
+TestResults/
+
+# Archivos de configuración de usuario local
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Archivos ocultos de JetBrains Rider
+.idea/
+*.sln.DotSettings.user
+
+# Archivos basura de macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+
+# Logs y cachés
+*.log
+*.cache
