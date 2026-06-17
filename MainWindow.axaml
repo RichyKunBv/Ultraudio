@@ -5,7 +5,8 @@
         Width="450" Height="250"
         CanResize="False"
         Background="#121212"
-        WindowStartupLocation="CenterScreen">
+        WindowStartupLocation="CenterScreen"
+        Icon="avares://Ultraudio/Assets/icon.ico">
 
     <StackPanel Spacing="20" Margin="30" VerticalAlignment="Center">
         <!-- Título -->
@@ -27,5 +28,12 @@
             <Button Name="BtnDetener" Content="■ Stop" Width="90" HorizontalContentAlignment="Center" Background="#C62828" Foreground="White"/>
         </StackPanel>
         
+        <!-- Versión en la esquina -->
+        <TextBlock Text="v0.1.1" 
+                   Foreground="#555555" 
+                   FontSize="10" 
+                   HorizontalAlignment="Right" 
+                   VerticalAlignment="Bottom" 
+                   Margin="0,0,10,10"/>
     </StackPanel>
 </Window>

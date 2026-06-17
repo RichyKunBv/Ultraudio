@@ -2,11 +2,26 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
+    
+    <!-- Información de la Aplicación -->
+    <Product>Ultraudio</Product>
+    <Company>EsMeSolutions</Company>
+    <Authors>RichyKunBv</Authors>
+    <Description>Reproductor Hi-Fi Bit-Perfect para formatos sin pérdida.</Description>
+    <Version>0.1.1</Version>
+
+    <!-- Para que al compilar genere el ícono a nivel sistema operativo -->
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+    
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
-
+  
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="12.0.4" />
     <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
