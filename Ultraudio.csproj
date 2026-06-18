@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
@@ -8,7 +8,7 @@
     <Company>EsMeSolutions</Company>
     <Authors>RichyKunBv</Authors>
     <Description>Reproductor Hi-Fi Bit-Perfect para formatos sin pérdida.</Description>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
 
     <!-- Para que al compilar genere el ícono a nivel sistema operativo -->
     <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
@@ -36,6 +36,16 @@
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
   </ItemGroup>
 
+  <!-- Genera Info.plist automáticamente desde el template, inyectando la versión del .csproj -->
+  <Target Name="GenerateInfoPlist" BeforeTargets="Build" Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <PropertyGroup>
+      <InfoPlistContent>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/Info.plist.template').Replace('@APP_VERSION@', '$(Version)'))</InfoPlistContent>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(OutputPath)Info.plist"
+                     Lines="$(InfoPlistContent)"
+                     Overwrite="true" />
+  </Target>
+
   <ItemGroup>
     <None Update="libbass.dylib">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -45,3 +55,4 @@
     </None>
   </ItemGroup>
 </Project>
+

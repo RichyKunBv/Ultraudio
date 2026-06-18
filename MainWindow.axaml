@@ -7,6 +7,23 @@
         Background="#121212"
         WindowStartupLocation="CenterScreen"
         Icon="avares://Ultraudio/Assets/icon.ico">
+    
+    <NativeMenu.Menu>
+        <NativeMenu>
+            <NativeMenuItem Header="Ultraudio">
+                <NativeMenu>
+                    <NativeMenuItem Header="Acerca de Ultraudio"
+                                    Click="AcercaDe_Click"/>
+
+                    <NativeMenuItemSeparator/>
+
+                    <NativeMenuItem Header="Salir"
+                                    Gesture="Meta+Q"
+                                    Click="Salir_Click"/>
+                </NativeMenu>
+            </NativeMenuItem>
+        </NativeMenu>
+    </NativeMenu.Menu>
 
     <StackPanel Spacing="20" Margin="30" VerticalAlignment="Center">
         <!-- Título -->
@@ -29,7 +46,8 @@
         </StackPanel>
         
         <!-- Versión en la esquina -->
-        <TextBlock Text="v0.1.1" 
+        <TextBlock Name="TxtVersion" 
+                   Text="" 
                    Foreground="#555555" 
                    FontSize="10" 
                    HorizontalAlignment="Right" 

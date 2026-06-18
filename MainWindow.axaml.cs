@@ -19,11 +19,16 @@ public partial class MainWindow : Window
         _audio = new AudioEngine();
         _audio.InicializarDispositivo();
 
-        // Enlazamos los eventos de los botones a sus métodos
         BtnCargar.Click += BtnCargar_Click;
         BtnReproducir.Click += BtnReproducir_Click;
         BtnDetener.Click += BtnDetener_Click;
+
+        // La versión se lee automáticamente del ensamblado (definida en .csproj)
+        TxtVersion.Text = AppInfo.VersionDisplay;
+
     }
+    
+    
 
     private async void BtnCargar_Click(object? sender, RoutedEventArgs e)
     {
@@ -90,5 +95,17 @@ public partial class MainWindow : Window
     {
         _audio.Liberar();
         base.OnClosed(e);
+    }
+    
+    private void AcercaDe_Click(object? sender, EventArgs e)
+    {
+        TxtRuta.Text = AppInfo.AboutText;
+        TxtTechInfo.Text = AppInfo.Description;
+        BorderTechInfo.IsVisible = true;
+    }
+
+    private void Salir_Click(object? sender, EventArgs e)
+    {
+        Close();
     }
 }
