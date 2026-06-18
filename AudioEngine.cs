@@ -11,11 +11,21 @@ namespace Ultraudio // Ajustado a tu nombre de proyecto
         public bool InicializarDispositivo()
         {
             bool init = Bass.Init(-1, 44100, DeviceInitFlags.Latency);
-            
+
             if (!init)
             {
-                Console.WriteLine($"Error al inicializar el hardware de audio: {Bass.LastError}");
+                // BASS devuelve Errors.Already si el dispositivo ya estaba inicializado.
+                // En ese caso considerar la inicialización como idempotente (éxito).
+                if (Bass.LastError == Errors.Already)
+                {
+                    init = true;
+                }
+                else
+                {
+                    Console.WriteLine($"Error al inicializar el hardware de audio: {Bass.LastError}");
+                }
             }
+
             return init;
         }
 

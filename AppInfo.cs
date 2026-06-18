@@ -20,7 +20,7 @@ public static class AppInfo
     public static string Version =>
         Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
-            ?.InformationalVersion ?? "0.0.0";
+            ?.InformationalVersion?.Split('+')[0] ?? "0.0.0";
 
     /// <summary>
     /// Versión con formato para UI (ej: "v0.1.1").

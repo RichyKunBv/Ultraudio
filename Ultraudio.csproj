@@ -10,6 +10,9 @@
     <Description>Reproductor Hi-Fi Bit-Perfect para formatos sin pérdida.</Description>
     <Version>0.1.2</Version>
 
+    <!-- Forzar que AssemblyInformationalVersion use solo la versión que defines arriba -->
+    <AssemblyInformationalVersion>$(Version)</AssemblyInformationalVersion>
+
     <!-- Para que al compilar genere el ícono a nivel sistema operativo -->
     <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
     
