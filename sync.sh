@@ -13,16 +13,16 @@ descargar() {
 publicar() {
     git add .
     read -p "   >> Introduce el mensaje del commit: " mensaje
-
-        git pull origin main --rebase
     
-    # Validación para evitar commits vacíos
     if [ -z "$mensaje" ]; then
         echo "El mensaje no puede estar vacío. Cancelando publicación..."
         return
     fi
     
     git commit -m "$mensaje"
+    
+    git pull origin main --rebase
+    
     git push origin main
 }
 
