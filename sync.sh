@@ -11,10 +11,10 @@ descargar() {
 }
 
 publicar() {
-    git pull origin main --rebase
-
     git add .
     read -p "   >> Introduce el mensaje del commit: " mensaje
+
+        git pull origin main --rebase
     
     # Validación para evitar commits vacíos
     if [ -z "$mensaje" ]; then
