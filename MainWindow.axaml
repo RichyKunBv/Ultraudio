@@ -2,7 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="Ultraudio.MainWindow"
         Title="Ultraudio - Pure Hi-Fi"
-        Width="450" Height="250"
+        Width="650" Height="450"
         CanResize="False"
         Background="#121212"
         WindowStartupLocation="CenterScreen"
@@ -12,46 +12,74 @@
         <NativeMenu>
             <NativeMenuItem Header="Ultraudio">
                 <NativeMenu>
-                    <NativeMenuItem Header="Acerca de Ultraudio"
-                                    Click="AcercaDe_Click"/>
-
+                    <NativeMenuItem Header="Acerca de Ultraudio" Click="AcercaDe_Click"/>
                     <NativeMenuItemSeparator/>
-
-                    <NativeMenuItem Header="Salir"
-                                    Gesture="Meta+Q"
-                                    Click="Salir_Click"/>
+                    <NativeMenuItem Header="Salir" Gesture="Meta+Q" Click="Salir_Click"/>
                 </NativeMenu>
             </NativeMenuItem>
         </NativeMenu>
     </NativeMenu.Menu>
 
-    <StackPanel Spacing="20" Margin="30" VerticalAlignment="Center">
-        <!-- Título -->
-        <TextBlock Text="Ultraudio" FontSize="28" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
-        <TextBlock Text="Bit-Perfect FLAC Player" FontSize="12" Foreground="#888888" HorizontalAlignment="Center" Margin="0,-15,0,0"/>
-        
-        <!-- Nombre del archivo cargado -->
-        <TextBlock Name="TxtRuta" Text="Ningún archivo seleccionado" Foreground="#A0A0A0" FontStyle="Italic" TextTrimming="CharacterEllipsis" HorizontalAlignment="Center"/>
-        
-        <!-- Etiqueta técnica estilo audiófilo -->
-        <Border Name="BorderTechInfo" Background="#222222" CornerRadius="4" Padding="10,4" HorizontalAlignment="Center" IsVisible="False">
-            <TextBlock Name="TxtTechInfo" Text="FLAC • 16-bit • 44.1 kHz • 900 kbps" Foreground="#4CAF50" FontSize="12" FontFamily="Monospace" HorizontalAlignment="Center"/>
+    <Grid RowDefinitions="Auto,*,Auto" Margin="20">
+        <!-- HEADER -->
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,15">
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Ultraudio" FontSize="28" FontWeight="Bold" Foreground="White"/>
+                <TextBlock Text="Pure Audio Player" FontSize="12" Foreground="#888888"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                <TextBlock Text="DAC:" Foreground="#A0A0A0" VerticalAlignment="Center"/>
+                <ComboBox Name="ComboDispositivos" Width="200" SelectionChanged="ComboDispositivos_SelectionChanged"/>
+                <ToggleButton Name="BtnRamMode" Content="RAM Load" ToolTip.Tip="Cargar en memoria antes de reproducir" Background="#333333" Foreground="White" Width="100"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- PLAYLIST -->
+        <Border Grid.Row="1" Background="#1A1A1A" CornerRadius="8" Padding="1">
+            <ListBox Name="ListaReproduccion" Background="Transparent" Foreground="White" SelectionChanged="ListaReproduccion_SelectionChanged">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding}" Padding="5"/>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </Border>
-        
-        <!-- Controles de reproducción -->
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="15" Margin="0,10,0,0">
-            <Button Name="BtnCargar" Content="📁 Cargar FLAC" Width="120" HorizontalContentAlignment="Center" Background="#333333" Foreground="White"/>
-            <Button Name="BtnReproducir" Content="▶ Play" Width="90" HorizontalContentAlignment="Center" Background="#2E7D32" Foreground="White"/>
-            <Button Name="BtnDetener" Content="■ Stop" Width="90" HorizontalContentAlignment="Center" Background="#C62828" Foreground="White"/>
+
+        <!-- CONTROLS & INFO -->
+        <StackPanel Grid.Row="2" Margin="0,15,0,0" Spacing="10">
+            <!-- Track Info -->
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Grid.Column="0" Name="TxtRuta" Text="Ningún archivo seleccionado" Foreground="#A0A0A0" FontStyle="Italic" TextTrimming="CharacterEllipsis"/>
+                <Border Grid.Column="1" Name="BorderTechInfo" Background="#222222" CornerRadius="4" Padding="8,2" IsVisible="False">
+                    <TextBlock Name="TxtTechInfo" Text="FLAC" Foreground="#4CAF50" FontSize="12" FontFamily="Monospace"/>
+                </Border>
+            </Grid>
+
+            <!-- Seekbar -->
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <TextBlock Grid.Column="0" Name="TxtTiempoActual" Text="00:00" Foreground="#888888" Width="40"/>
+                <Slider Grid.Column="1" Name="SliderProgreso" Minimum="0" Maximum="100" Margin="10,0"
+                        PointerPressed="SliderProgreso_PointerPressed"
+                        PointerReleased="SliderProgreso_PointerReleased"
+                        ValueChanged="SliderProgreso_ValueChanged"/>
+                <TextBlock Grid.Column="2" Name="TxtTiempoTotal" Text="00:00" Foreground="#888888" Width="40" TextAlignment="Right"/>
+            </Grid>
+
+            <!-- Buttons & Volume -->
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+                    <Button Name="BtnCargarArchivo" Content="📄 Archivo" Background="#333333" Foreground="White" Click="BtnCargarArchivo_Click"/>
+                    <Button Name="BtnCargarCarpeta" Content="📁 Carpeta" Background="#333333" Foreground="White" Click="BtnCargarCarpeta_Click"/>
+                    <Button Name="BtnAnterior" Content="⏮" Width="40" HorizontalContentAlignment="Center" Background="#444444" Foreground="White" Click="BtnAnterior_Click"/>
+                    <Button Name="BtnReproducir" Content="▶ / ⏸" Width="60" HorizontalContentAlignment="Center" Background="#2E7D32" Foreground="White" Click="BtnReproducir_Click"/>
+                    <Button Name="BtnSiguiente" Content="⏭" Width="40" HorizontalContentAlignment="Center" Background="#444444" Foreground="White" Click="BtnSiguiente_Click"/>
+                </StackPanel>
+                
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <TextBlock Text="Vol" Foreground="#888888" VerticalAlignment="Center"/>
+                    <Slider Name="SliderVolumen" Minimum="0" Maximum="1" Value="1" Width="100" ValueChanged="SliderVolumen_ValueChanged"/>
+                </StackPanel>
+            </Grid>
         </StackPanel>
-        
-        <!-- Versión en la esquina -->
-        <TextBlock Name="TxtVersion" 
-                   Text="" 
-                   Foreground="#555555" 
-                   FontSize="10" 
-                   HorizontalAlignment="Right" 
-                   VerticalAlignment="Bottom" 
-                   Margin="0,0,10,10"/>
-    </StackPanel>
+    </Grid>
 </Window>
