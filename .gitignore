@@ -20,10 +20,10 @@ artifacts/
 *.DotSettings
 
 # Archivos basura de macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-Icon
+**/.DS_Store
+**/.AppleDouble
+**/.LSOverride
+**/Icon
 
 # Logs y cachés
 *.log
