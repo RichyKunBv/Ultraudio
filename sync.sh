@@ -11,6 +11,8 @@ descargar() {
 }
 
 publicar() {
+    git pull origin main --rebase
+
     git add .
     read -p "   >> Introduce el mensaje del commit: " mensaje
     
