@@ -19,11 +19,20 @@ artifacts/
 *.DotSettings.user
 *.DotSettings
 
-# Archivos basura de macOS
+# Archivos basura de macOS, ermano .DS_Store es muy molesto
+.DS_Store
 **/.DS_Store
+.AppleDouble
 **/.AppleDouble
+.LSOverride
 **/.LSOverride
-**/Icon
+Icon?
+Icon
+._*
+.fseventsd/
+.Spotlight-V100/
+.Trashes/
+.VolumeIcon.icns
 
 # Logs y cachés
 *.log
