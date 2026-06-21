@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Ultraudio.csproj" />
+  </Folder>
+</Solution>

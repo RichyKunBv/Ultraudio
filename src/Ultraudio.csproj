@@ -1,0 +1,112 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    
+    <!-- Información de la Aplicación -->
+    <Product>Ultraudio</Product>
+    <Company>EsMeSolutions</Company>
+    <Authors>RichyKunBv</Authors>
+    <Description>Reproductor Hi-Fi Bit-Perfect para formatos sin pérdida.</Description>
+    <Version>0.2.0</Version>
+
+    <!-- Forzar que AssemblyInformationalVersion use solo la versión que defines arriba -->
+    <AssemblyInformationalVersion>$(Version)</AssemblyInformationalVersion>
+
+    <!-- Para que al compilar genere el ícono a nivel sistema operativo -->
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+    
+    <Nullable>enable</Nullable>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.0.4" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.0.4" />
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport" Version="2.2.1">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="ManagedBass" Version="4.0.2" />
+    <PackageReference Include="ManagedBass.Flac" Version="4.0.2" />
+    <PackageReference Include="TagLibSharp" Version="2.3.0" />
+  </ItemGroup>
+
+  <!-- Definir el Sistema Operativo y Arquitectura Objetivo (Target) -->
+  <PropertyGroup>
+    <TargetOS Condition="'$(RuntimeIdentifier)' != '' And $(RuntimeIdentifier.StartsWith('win'))">Windows</TargetOS>
+    <TargetOS Condition="'$(RuntimeIdentifier)' != '' And $(RuntimeIdentifier.StartsWith('osx'))">OSX</TargetOS>
+    <TargetOS Condition="'$(RuntimeIdentifier)' != '' And $(RuntimeIdentifier.StartsWith('linux'))">Linux</TargetOS>
+    
+    <TargetOS Condition="'$(TargetOS)' == '' And $([MSBuild]::IsOSPlatform('Windows'))">Windows</TargetOS>
+    <TargetOS Condition="'$(TargetOS)' == '' And $([MSBuild]::IsOSPlatform('OSX'))">OSX</TargetOS>
+    <TargetOS Condition="'$(TargetOS)' == '' And $([MSBuild]::IsOSPlatform('Linux'))">Linux</TargetOS>
+
+    <TargetArch>x86_64</TargetArch>
+    <TargetArch Condition="'$(RuntimeIdentifier)' != '' And $(RuntimeIdentifier.EndsWith('arm64'))">aarch64</TargetArch>
+    <TargetArch Condition="'$(RuntimeIdentifier)' == '' And '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'Arm64'">aarch64</TargetArch>
+  </PropertyGroup>
+
+  <!-- Genera Info.plist automáticamente desde el template, inyectando la versión del .csproj -->
+  <Target Name="GenerateInfoPlist" BeforeTargets="Build" Condition="'$(TargetOS)' == 'OSX'">
+    <PropertyGroup>
+      <InfoPlistContent>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/Info.plist.template').Replace('@APP_VERSION@', '$(Version)'))</InfoPlistContent>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(OutputPath)Info.plist"
+                     Lines="$(InfoPlistContent)"
+                     Overwrite="true" />
+  </Target>
+
+  <ItemGroup Condition="'$(TargetOS)' == 'OSX'">
+    <None Include="..\lib\macOS\libbass.dylib">
+      <Link>libbass.dylib</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\lib\macOS\libbassflac.dylib">
+      <Link>libbassflac.dylib</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\lib\macOS\libbassdsd.dylib">
+      <Link>libbassdsd.dylib</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetOS)' == 'Windows'">
+    <None Include="..\lib\Windows\bass.dll">
+      <Link>bass.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\lib\Windows\bassflac.dll">
+      <Link>bassflac.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\lib\Windows\bassdsd.dll">
+      <Link>bassdsd.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetOS)' == 'Linux'">
+    <None Include="..\lib\Linux\$(TargetArch)\libbass.so">
+      <Link>libbass.so</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\lib\Linux\$(TargetArch)\libbassflac.so">
+      <Link>libbassflac.so</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\lib\Linux\$(TargetArch)\libbassdsd.so">
+      <Link>libbassdsd.so</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>
+
