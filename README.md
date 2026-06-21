@@ -1,7 +1,8 @@
 # Ultraudio
 
-<img width="562" height="394" alt="ultraudio sin pista" src="https://github.com/user-attachments/assets/36eb7ca2-d86d-4aff-a7af-2f80ad69525b" />
+<img width="762" height="594" alt="ultraudio sin pista" src="https://github.com/user-attachments/assets/d9d97f6a-831c-4827-bb91-f4d616ab1d32" />
 
-<img width="653" height="268" alt="elegir cancion en flac" src="https://github.com/user-attachments/assets/d2790f27-d857-403f-a38d-ce9b9527b5aa" />
+<img width="999" height="594" alt="elegir cancion en flac" src="https://github.com/user-attachments/assets/f3ba949f-1296-4c2a-abf3-bf73fdb69e4d" />
 
-<img width="562" height="394" alt="ultraudio con pista" src="https://github.com/user-attachments/assets/02d21475-4c10-4097-bd5f-6f21e23fe330" />
+<img width="762" height="594" alt="ultraudio con pista" src="https://github.com/user-attachments/assets/59c56b99-9d76-40bc-b0fe-bcf0788f64bb" />
+
