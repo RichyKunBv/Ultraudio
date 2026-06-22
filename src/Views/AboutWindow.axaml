@@ -1,0 +1,30 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Ultraudio.AboutWindow"
+        Title="Acerca de Ultraudio"
+        Width="450" Height="300"
+        CanResize="False"
+        Background="#121212"
+        WindowStartupLocation="CenterOwner"
+        Icon="avares://Ultraudio/Assets/icon.ico">
+    <Grid Margin="20" RowDefinitions="Auto,*,Auto">
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,15">
+            <TextBlock Text="Ultraudio" FontSize="24" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center"/>
+            <TextBlock Text="Pure Audio Player" FontSize="12" Foreground="#888888" HorizontalAlignment="Center"/>
+            <TextBlock Name="TxtVersion" FontSize="12" Foreground="#888888" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+        </StackPanel>
+        
+        <ScrollViewer Grid.Row="1">
+            <TextBlock Name="TxtInfo" TextWrapping="Wrap" Foreground="#CCCCCC" TextAlignment="Center">
+                Aplicación Hi-Fi Bit-Perfect para formatos sin pérdida. Principalmente hecha para
+                Windows, Linux y macOS, con soporte para archivos FLAC y DSD.
+
+                La aplicación está con la licencia Apache 2.0 y utiliza la biblioteca 
+                de audio BASS. BASS es propiedad de Un4seen Developments. Esta aplicación es 
+                gratuita y para uso no comercial.
+            </TextBlock>
+        </ScrollViewer>
+        
+        <Button Grid.Row="2" Name="BtnCerrar" Content="Cerrar" HorizontalAlignment="Center" Margin="0,15,0,0" Width="100" HorizontalContentAlignment="Center" Background="#333333" Foreground="White" Click="BtnCerrar_Click"/>
+    </Grid>
+</Window>

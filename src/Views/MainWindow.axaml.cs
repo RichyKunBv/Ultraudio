@@ -241,9 +241,10 @@ public partial class MainWindow : Window
         base.OnClosed(e);
     }
 
-    private void AcercaDe_Click(object? sender, EventArgs e)
+    private async void AcercaDe_Click(object? sender, EventArgs e)
     {
-        TxtRuta.Text = "Ultraudio v" + AppInfo.VersionDisplay;
+        var aboutWindow = new AboutWindow();
+        await aboutWindow.ShowDialog(this);
     }
 
     private void Salir_Click(object? sender, EventArgs e)

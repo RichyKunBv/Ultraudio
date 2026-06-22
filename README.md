@@ -5,7 +5,7 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 ## ✨ Características Principales
 
 - **Bit-Perfect Audio**: Reproducción exacta, entregando la señal de audio a tu DAC con la mayor fidelidad posible.
-- **Soporte de Formatos Lossless**: Optimizado para archivos FLAC y soporte planeado/implementado para DSD, garantizando una experiencia de escucha en alta resolución.
+- **Soporte de Formatos Lossless**: Optimizado para archivos FLAC y soporte planeado implementacion para DSD, garantizando una experiencia de escucha en alta resolución.
 - **Selector de DAC Dedicado**: Permite elegir la interfaz de salida de audio exacta (hardware) para dirigir la música.
 - **Gestión de Archivos y Carpetas**: Reproduce canciones individuales o carga directorios enteros de música.
 - **Multiplataforma**: Construido sobre Avalonia UI y .NET 10, compatible con Windows, macOS y Linux.
@@ -60,3 +60,4 @@ Este proyecto está bajo la licencia Apache 2.0, a excepción de las
 bibliotecas de audio BASS (ubicadas en `/lib`), las cuales son propiedad 
 de Un4seen Developments y se incluyen únicamente para uso no comercial.
 Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con fines comerciales es absolutamente responsable de adquirir la licencia comercial correspondiente de BASS Audio Library o remover sus dependencias del código.
+<img src="res/docs/acerca de.png" width="762" alt="Acerca De"/>
