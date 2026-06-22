@@ -1,0 +1,225 @@
+#!/bin/bash
+
+# Es para hacer las compilaciones desde macOS, realmente ignorenlo ya que es algo mas para mi que para ustedes, nada mas para mas facilidad
+# Tambien como yo trabajo en macOS los comandos son en UNIX y no funconarian bien en Linux y mucho menos en Windows
+# Ermano que tardado es hacer scripts :VVVV
+
+# Definir las rutas
+PROJECT_DIR="$HOME/Ultraudio"
+
+MACOS_ARM_APP="$HOME/UltraudioARM64macOS/Ultraudio.app"
+MACOS_X64_APP="$HOME/UltraudioX86_64macOS/Ultraudio.app"
+
+WIN_X64_DIR="$HOME/UltraudioX86_64Windows/"
+WIN_ARM_DIR="$HOME/UltraudioARM64Windows/"
+
+LINUX_X64_DIR="$HOME/UltraudioX86_64Linux/"
+LINUX_ARM_DIR="$HOME/UltraudioARM64Linux/"
+
+# Para macOS
+carpeta_macOS() {
+    echo "Creando carpetas..."
+    mkdir -p "$MACOS_X64_APP/Contents/"{MacOS,Resources}
+    mkdir -p "$MACOS_ARM_APP/Contents/"{MacOS,Resources}
+    
+    # IMPORTANTE: Copiar el Info.plist base para que plutil tenga algo que editar después
+    cp "$PROJECT_DIR/src/Info.plist.template" "$MACOS_X64_APP/Contents/Info.plist" 2>/dev/null || echo "Aviso: No se encontró Info.plist.template base"
+    cp "$PROJECT_DIR/src/Info.plist.template" "$MACOS_ARM_APP/Contents/Info.plist" 2>/dev/null
+    
+    echo "Carpetas creadas"
+}
+
+actualizar_macOS() {
+    echo "=== Iniciando compilación de Ultraudio ==="
+
+    # 1. Extraer la versión del archivo .csproj usando awk
+    VERSION=$(awk -F'[><]' '/<Version>/{print $3}' "$PROJECT_DIR/src/Ultraudio.csproj")
+
+    if [ -z "$VERSION" ]; then
+        echo "Error: No se pudo encontrar la etiqueta <Version> en el .csproj"
+        return
+    fi
+
+    echo "Versión detectada: $VERSION"
+    echo "Publicando binarios..."
+
+    # 2. Compilar ambas arquitecturas
+    cd "$PROJECT_DIR/src"
+    dotnet publish -c Release -r osx-arm64 --self-contained -p:PublishSingleFile=true
+    dotnet publish -c Release -r osx-x64 --self-contained -p:PublishSingleFile=true
+
+    echo "Copiando archivos y actualizando Info.plist..."
+
+    # 3. Procesar versión ARM64
+    cp -a "$PROJECT_DIR/src/bin/Release/net10.0/osx-arm64/publish/." "$MACOS_ARM_APP/Contents/MacOS/"
+    cp "$PROJECT_DIR/src/Assets/icon.icns" "$MACOS_ARM_APP/Contents/Resources/"
+    # plutil edita el valor de la llave CFBundleVersion de forma segura
+    plutil -replace CFBundleVersion -string "$VERSION" "$MACOS_ARM_APP/Contents/Info.plist"
+    plutil -replace CFBundleShortVersionString -string "$VERSION" "$MACOS_ARM_APP/Contents/Info.plist"
+
+    # 4. Procesar versión X86_64
+    cp -a "$PROJECT_DIR/src/bin/Release/net10.0/osx-x64/publish/." "$MACOS_X64_APP/Contents/MacOS/"
+    cp "$PROJECT_DIR/src/Assets/icon.icns" "$MACOS_X64_APP/Contents/Resources/"
+    plutil -replace CFBundleVersion -string "$VERSION" "$MACOS_X64_APP/Contents/Info.plist"
+    plutil -replace CFBundleShortVersionString -string "$VERSION" "$MACOS_X64_APP/Contents/Info.plist"
+
+    echo "Limpiando atributos y firmando aplicaciones..."
+
+    # 5. Firmar ARM64
+    xattr -cr "$MACOS_ARM_APP"
+    codesign --force --deep --sign - "$MACOS_ARM_APP"
+
+    # 6. Firmar X86_64
+    xattr -cr "$MACOS_X64_APP"
+    codesign --force --deep --sign - "$MACOS_X64_APP"
+
+    echo "=== ¡Listo! Ultraudio v$VERSION empaquetado para ambas arquitecturas ==="
+}
+
+# Para Windows
+carpeta_windows() {
+    echo "Creando carpetas para Windows..."
+    mkdir -p "$WIN_X64_DIR"
+    mkdir -p "$WIN_ARM_DIR"
+    echo "Carpetas de Windows creadas"
+}
+
+actualizar_windows() {
+    echo "=== Iniciando compilación de Ultraudio para Windows ==="
+
+    VERSION=$(awk -F'[><]' '/<Version>/{print $3}' "$PROJECT_DIR/src/Ultraudio.csproj")
+
+    if [ -z "$VERSION" ]; then
+        echo "Error: No se pudo encontrar la etiqueta <Version> en el .csproj"
+        return
+    fi
+
+    echo "Versión detectada: $VERSION"
+    echo "Publicando binarios..."
+
+    cd "$PROJECT_DIR/src"
+    dotnet publish -c Release -r win-arm64 --self-contained -p:PublishSingleFile=true
+    dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+
+    echo "Copiando ejecutables..."
+
+    # Procesar versión ARM64
+    cp -a "$PROJECT_DIR/src/bin/Release/net10.0/win-arm64/publish/." "$WIN_ARM_DIR/"
+
+    # Procesar versión X86_64
+    cp -a "$PROJECT_DIR/src/bin/Release/net10.0/win-x64/publish/." "$WIN_X64_DIR/"
+
+    echo "=== ¡Listo! Ultraudio v$VERSION empaquetado para Windows (x64/ARM64) ==="
+}
+
+# Para Linux
+carpeta_linux() {
+    echo "Creando carpetas para Linux..."
+    mkdir -p "$LINUX_X64_DIR"
+    mkdir -p "$LINUX_ARM_DIR"
+    
+    # Copiar el archivo .desktop base para tener algo que editar
+    cp "$PROJECT_DIR/src/Ultraudio.desktop" "$LINUX_X64_DIR/" 2>/dev/null || echo "Aviso: No se encontró Ultraudio.desktop base"
+    cp "$PROJECT_DIR/src/Ultraudio.desktop" "$LINUX_ARM_DIR/" 2>/dev/null
+    
+    echo "Carpetas de Linux creadas"
+}
+
+actualizar_linux() {
+    echo "=== Iniciando compilación de Ultraudio para Linux ==="
+
+    VERSION=$(awk -F'[><]' '/<Version>/{print $3}' "$PROJECT_DIR/src/Ultraudio.csproj")
+
+    if [ -z "$VERSION" ]; then
+        echo "Error: No se pudo encontrar la etiqueta <Version> en el .csproj"
+        return
+    fi
+
+    echo "Versión detectada: $VERSION"
+    echo "Publicando binarios..."
+
+    cd "$PROJECT_DIR/src"
+    dotnet publish -c Release -r linux-arm64 --self-contained -p:PublishSingleFile=true
+    dotnet publish -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true
+
+    echo "Copiando archivos y actualizando .desktop..."
+
+    # Procesar versión ARM64
+    cp -a "$PROJECT_DIR/src/bin/Release/net10.0/linux-arm64/publish/." "$LINUX_ARM_DIR/"
+    cp "$PROJECT_DIR/src/Assets/icon.png" "$LINUX_ARM_DIR/"
+    
+    # Usamos sed para buscar la línea "Version=" y reemplazarla. 
+    # El '.bak' asegura compatibilidad tanto si ejecutas esto en macOS como en Linux.
+    if [ -f "$LINUX_ARM_DIR/Ultraudio.desktop" ]; then
+        sed -i.bak "s/^Version=.*/Version=$VERSION/" "$LINUX_ARM_DIR/Ultraudio.desktop"
+        rm "$LINUX_ARM_DIR/Ultraudio.desktop.bak"
+    fi
+
+    # Procesar versión X86_64
+    cp -a "$PROJECT_DIR/src/bin/Release/net10.0/linux-x64/publish/." "$LINUX_X64_DIR/"
+    cp "$PROJECT_DIR/src/Assets/icon.png" "$LINUX_X64_DIR/"
+    
+    if [ -f "$LINUX_X64_DIR/Ultraudio.desktop" ]; then
+        sed -i.bak "s/^Version=.*/Version=$VERSION/" "$LINUX_X64_DIR/Ultraudio.desktop"
+        rm "$LINUX_X64_DIR/Ultraudio.desktop.bak"
+    fi
+
+    echo "=== ¡Listo! Ultraudio v$VERSION empaquetado para Linux (x64/ARM64) ==="
+}
+
+carpeta_todos(){
+    carpeta_macOS
+    carpeta_windows
+    carpeta_linux
+}
+
+actualizar_todos(){
+    actualizar_macOS
+    actualizar_windows
+    actualizar_linux
+}
+
+press_any_key() {
+    echo -e "\nPulsa cualquier tecla para volver al menú..."
+    read -n 1 -s -r
+}
+
+# --- MENÚ PRINCIPAL ---
+show_menu() {
+    cd "$PROJECT_DIR" || exit 1
+    clear
+    echo -e "--------------------------------------------------"
+    echo -e "   1) Crear estructura de carpetas para macOS"
+    echo -e "   2) Compilar y empaquetar para macOS"
+    echo -e "--------------------------------------------------"
+    echo -e "   3) Crear estructura de carpetas para Windows"
+    echo -e "   4) Compilar y empaquetar para Windows"
+    echo -e "--------------------------------------------------"
+    echo -e "   5) Crear estructura de carpetas para Linux"
+    echo -e "   6) Compilar y empaquetar para Linux"
+    echo -e "--------------------------------------------------"
+    echo -e "   8) Crear estructura de carpetas para TODOS"
+    echo -e "   9) Compilar y empaquetar para TODOS"
+    echo -e "--------------------------------------------------"
+    echo -e "   X) Salir"
+    read -p "   >> Introduce tu elección: " choice
+    echo ""
+
+    case "$choice" in
+        1) carpeta_macOS; press_any_key ;;
+        2) actualizar_macOS; press_any_key ;;
+        3) carpeta_windows; press_any_key ;;
+        4) actualizar_windows; press_any_key ;;
+        5) carpeta_linux; press_any_key ;;
+        6) actualizar_linux; press_any_key ;;
+        8) carpeta_todos; press_any_key ;;
+        9) actualizar_todos; press_any_key ;;
+        X|x) echo "Saliendo... ¡Hasta pronto!"; exit 0 ;;
+        *) echo "Opción inválida. Por favor, intenta de nuevo."; sleep 2 ;;
+    esac
+}
+
+# Bucle infinito para mantener el menú corriendo
+while true; do
+    show_menu
+done

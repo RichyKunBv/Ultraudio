@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=0.3.0
+Type=Application
+Name=Ultraudio
+GenericName=Reproductor de Audio
+Comment=Aplicación para la reproducción y gestión de audio
+Exec=./Ultraudio
+Icon=./icon.png
+Terminal=false
+Categories=Audio;AudioVideo;Player;
+StartupNotify=true
