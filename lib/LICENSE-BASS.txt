@@ -1,0 +1,19 @@
+BASS FREEWARE LICENSE TERMS
+===========================
+
+BASS is free for non-commercial use. If you are a non-commercial entity 
+(eg. an individual) and you are not making any money from your product 
+(through sales, advertising, etc) then you can use BASS in it for free. 
+Otherwise, a commercial licence will be required.
+
+These licences are on a per-platform basis and only cover your own software, 
+not the publishing of third-party software. If you publish other's software, 
+its developers (or the software itself) will need to be licensed to use BASS.
+
+Reselling/sublicensing of BASS is not permitted. Your products must be 
+end-user products, eg. not components or libraries used by other products.
+
+All BASS add-ons (including BASSFLAC and BASSDSD) are subject to these same 
+licensing terms.
+
+Copyright (c) Un4seen Developments. All rights reserved.

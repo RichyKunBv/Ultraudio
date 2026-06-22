@@ -54,3 +54,9 @@ dotnet run --project src/Ultraudio.csproj
 ```
 
 Para macOS, también tienes a tu disposición el script `build_ultraudio_formacos.sh` que facilita la creación y el empaquetado como aplicación nativa de macOS (`.app`). (Se está trabajando en un script para Windows y Linux, solo que solo soy una persona y encima soy estudiante asi que mi tiempo es algo limitado, pero la aplicacion esta hecha con <3)
+
+## Licencia
+Este proyecto está bajo la licencia Apache 2.0, a excepción de las 
+bibliotecas de audio BASS (ubicadas en `/lib`), las cuales son propiedad 
+de Un4seen Developments y se incluyen únicamente para uso no comercial.
+Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con fines comerciales es absolutamente responsable de adquirir la licencia comercial correspondiente de BASS Audio Library o remover sus dependencias del código.

@@ -199,3 +199,10 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+-------------------------------------------------------------------
+LICENSE EXCEPTIONS:
+The binary files contained in the /lib/ folder (.dll, .so, .dylib)
+are not covered by the Apache 2.0 license. These files are
+property of Un4seen Developments and are subject to their own license,
+the "BASS Freeware License", detailed in /lib/LICENSE-BASS.txt.
