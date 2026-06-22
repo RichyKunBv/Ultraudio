@@ -98,16 +98,20 @@ actualizar_windows() {
     echo "Publicando binarios..."
 
     cd "$PROJECT_DIR/src"
-    dotnet publish -c Release -r win-arm64 --self-contained -p:PublishSingleFile=true
-    dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true
+# Compilar para Windows ARM64
+    dotnet publish -c Release -r win-arm64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None
+    # Compilar para Windows x64
+    dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None
 
     echo "Copiando ejecutables..."
 
     # Procesar versión ARM64
     cp -a "$PROJECT_DIR/src/bin/Release/net10.0/win-arm64/publish/." "$WIN_ARM_DIR/"
+    rm -rf "$WIN_ARM_DIR"/*.pdb
 
     # Procesar versión X86_64
     cp -a "$PROJECT_DIR/src/bin/Release/net10.0/win-x64/publish/." "$WIN_X64_DIR/"
+    rm -rf "$WIN_X64_DIR"/*.pdb
 
     echo "=== ¡Listo! Ultraudio v$VERSION empaquetado para Windows (x64/ARM64) ==="
 }
@@ -139,8 +143,10 @@ actualizar_linux() {
     echo "Publicando binarios..."
 
     cd "$PROJECT_DIR/src"
-    dotnet publish -c Release -r linux-arm64 --self-contained -p:PublishSingleFile=true
-    dotnet publish -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true
+# Compilar para Linux ARM64
+    dotnet publish -c Release -r linux-arm64 --self-contained -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:PublishSingleFile=true    
+# Compilar para Linux x64
+    dotnet publish -c Release -r linux-x64 --self-contained -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:PublishSingleFile=true
 
     echo "Copiando archivos y actualizando .desktop..."
 
