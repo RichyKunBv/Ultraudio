@@ -61,3 +61,40 @@ bibliotecas de audio BASS (ubicadas en `/lib`), las cuales son propiedad
 de Un4seen Developments y se incluyen únicamente para uso no comercial.
 Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con fines comerciales es absolutamente responsable de adquirir la licencia comercial correspondiente de BASS Audio Library o remover sus dependencias del código.
 <img src="res/docs/acerca de.png" width="762" alt="Acerca De"/>
+
+---
+
+<details>
+<summary>TESTS</summary>
+
+## Entornos de Prueba
+
+Este proyecto ha sido probado y verificado en las siguientes configuraciones de hardware y software:
+
+<details>
+<summary>Windows</summary>
+
+| Sistema Operativo | Arquitectura / CPU | Memoria RAM |
+| :--- | :--- | :--- |
+|   |   |   |
+</details>
+
+<details>
+<summary>macOS</summary>
+
+| Sistema Operativo | Arquitectura / CPU | Memoria RAM |
+| :--- | :--- | :--- |
+| macOS 27 | ARM / M1 | 8 GB |
+| macOS 26.5.1 | ARM / A18 Pro | 8 GB |
+| macOS 15.7.7 | x86_64 / i5 (2 Puertos Thunderbolt) | 8 GB |
+</details>
+
+<details>
+<summary>Linux</summary>
+
+| Sistema Operativo | Arquitectura / CPU | Memoria RAM |
+| :--- | :--- | :--- |
+|   |   |   |
+</details>
+
+</details>
