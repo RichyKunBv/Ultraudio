@@ -29,20 +29,48 @@ namespace Ultraudio
         public AudioEngine()
         {
             _endSync = new SyncProcedure(OnTrackEnd);
-            // Cargar el plugin DSD si existe, detectando el SO para el nombre del archivo
-            try
-            {
-                string pluginName = "libbassdsd.so"; // Linux por defecto
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    pluginName = "bassdsd.dll";
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                    pluginName = "libbassdsd.dylib";
+            LoadBassPlugins();
+        }
 
-                Bass.PluginLoad(pluginName);
-            }
-            catch (Exception ex)
+        private void LoadBassPlugins()
+        {
+            string baseDir = AppContext.BaseDirectory;
+            var pluginFiles = new List<string>();
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                Console.WriteLine($"Nota: No se pudo cargar libbassdsd.dylib: {ex.Message}");
+                pluginFiles.Add("bassflac.dll");
+                pluginFiles.Add("bassdsd.dll");
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                pluginFiles.Add("libbassflac.dylib");
+                pluginFiles.Add("libbassdsd.dylib");
+            }
+            else
+            {
+                pluginFiles.Add("libbassflac.so");
+                pluginFiles.Add("libbassdsd.so");
+            }
+
+            foreach (var pluginFile in pluginFiles)
+            {
+                string pluginPath = Path.Combine(baseDir, pluginFile);
+                try
+                {
+                    if (!File.Exists(pluginPath))
+                    {
+                        Console.WriteLine($"Plugin no encontrado: {pluginPath}");
+                        continue;
+                    }
+
+                    Bass.PluginLoad(pluginPath);
+                    Console.WriteLine($"Plugin cargado: {pluginPath}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"No se pudo cargar {pluginFile}: {ex.Message}");
+                }
             }
         }
 

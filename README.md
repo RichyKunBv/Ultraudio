@@ -74,27 +74,30 @@ Este proyecto ha sido probado y verificado en las siguientes configuraciones de 
 <details>
 <summary>Windows</summary>
 
-| Sistema Operativo | Arquitectura / CPU | Memoria RAM |
-| :--- | :--- | :--- |
-|   |   |   |
+| Sistema Operativo | Arquitectura / CPU | Memoria RAM | Notas |
+| :--- | :--- | :--- | :--- |
+|   |   |   |   |
+
 </details>
 
 <details>
 <summary>macOS</summary>
 
-| Sistema Operativo | Arquitectura / CPU | Memoria RAM |
-| :--- | :--- | :--- |
-| macOS 27 | ARM / M1 | 8 GB |
-| macOS 26.5.1 | ARM / A18 Pro | 8 GB |
-| macOS 15.7.7 | x86_64 / i5 (2 Puertos Thunderbolt) | 8 GB |
+| Sistema Operativo | Arquitectura / CPU | Memoria RAM | Notas |
+| :--- | :--- | :--- | :--- |
+| macOS 27 | ARM / M1 | 8 GB | Beta de macOS con dotnet 10 instalado|
+| macOS 26.5.1 | ARM / A18 Pro | 8 GB | dotnet 10 instalado |
+| macOS 15.7.7 | x86_64 / i5 (2 Puertos Thunderbolt) | 8 GB | dotnet no instalado |
+
 </details>
 
 <details>
 <summary>Linux</summary>
 
-| Sistema Operativo | Arquitectura / CPU | Memoria RAM |
-| :--- | :--- | :--- |
-|   |   |   |
+| Sistema Operativo | Arquitectura / CPU | Memoria RAM | Notas |
+| :--- | :--- | :--- | :--- |
+|   |   |   |   |
+
 </details>
 
 </details>
