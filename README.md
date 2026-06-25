@@ -94,10 +94,21 @@ Este proyecto ha sido probado y verificado en las siguientes configuraciones de 
 <details>
 <summary>Linux</summary>
 
+
 | Sistema Operativo | Arquitectura / CPU | Memoria RAM | Notas |
 | :--- | :--- | :--- | :--- |
-|   |   |   |   |
+| Fedora | ARM / 4 nucleos | 4 GB | Virtualizado en VMware Fusion |
 
 </details>
+
+---
+
+<summary>Canciones</summary>
+
+## Se ha probado con estas canciones
+
+| Nombre | Artista | Album | Formato |
+| :--- | :--- | :--- | :--- |
+| Massive Explosion (Instrumental) | 石元丈晴 | DISSIDIA FINAL FANTASY NT: Ultimate Collector's Edition Official Soundtrack | FLAC |
 
 </details>
