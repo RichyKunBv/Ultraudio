@@ -65,112 +65,87 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 ---
 
 <details>
-<summary>TESTS — Entornos de Prueba y Verificación</summary>
+<summary>TESTS</summary>
 
-<br/>
+## Entornos de Prueba
 
-> **Nota:** Este proyecto ha sido probado y verificado en las siguientes configuraciones de hardware y software.  
-
-| Simbolo | Significado |
-| :---: | :--- |
-| ✅ | Verificado |
-| ❌ | No funciona |
-| ⬜  | Pendiente |
-
----
-
-### Windows
+Este proyecto ha sido probado y verificado en las siguientes configuraciones de hardware y software:
 
 <details>
-<summary>&nbsp;&nbsp;ARM</summary>
+<summary>Windows</summary>
 
-<br/>
+<details>
+<summary>ARM</summary>
 
-| ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
-| :---: | :--- | :--- | :--- | :--- | :--- | :--- |
-| ✅ | Windows 11 Pro | 25h2 | 4 núcleos | 4 GB | v0.3.1 | Virtualizado en VMware Fusion, sin instalar nada de .NET |
+| Sistema Operativo | Arquitectura / CPU | Memoria RAM | Notas |
+| :--- | :--- | :--- | :--- |
+| Windows 11 | ARM / 4 nucleos | 4 GB | Virtualizado en VMware Fusion, sin instalar dotnet |
 
 </details>
 
 <details>
-<summary>&nbsp;&nbsp;x86_64</summary>
+<summary>x86_64</summary>
 
-<br/>
-
-| ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
-| :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ⬜ | Windows 11 Home | 25h2 | i7-1255U | 16 GB | |  |
-| ⬜ | Windows 10 Pro | 22h2 | i5-4200M | 16 GB | |  |
-| ⬜ | Windows 10 Pro | 22h2 | i5-3230M | 10 GB | |  |
+| Sistema Operativo | Arquitectura / CPU | Memoria RAM | Notas |
+| :--- | :--- | :--- | :--- |
+|  |  |  |  |
 
 </details>
-
----
-
-### macOS
+</details>
 
 <details>
-<summary>&nbsp;&nbsp;ARM</summary>
+<summary>macOS</summary>
 
-<br/>
+<details>
+<summary>ARM</summary>
 
-| ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
-| :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ✅ | macOS 27 Golden Gate | 27 | M1 | 8 GB | v0.3.0 | Beta de macOS con dotnet 10 instalado |
-| ✅ | macOS Tahoe | 26.5.1 | A18 Pro | 8 GB | v0.3.0 | dotnet 10 instalado |
+| Sistema Operativo | Arquitectura / CPU | Memoria RAM | Notas |
+| :--- | :--- | :--- | :--- |
+| macOS 27 | ARM / M1 | 8 GB | Beta de macOS con dotnet 10 instalado|
+| macOS 26.5.1 | ARM / A18 Pro | 8 GB | dotnet 10 instalado |
 
 </details>
 
 <details>
-<summary>&nbsp;&nbsp;x86_64</summary>
+<summary>x86_64</summary>
 
-<br/>
-
-| ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
-| :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ✅ | macOS 15.7.7 | 15.7.7 | i5 (2 Puertos Thunderbolt) | 8 GB | v0.3.0 | dotnet no instalado |
+| Sistema Operativo | Arquitectura / CPU | Memoria RAM | Notas |
+| :--- | :--- | :--- | :--- |
+| macOS 15.7.7 | x86_64 / i5 (2 Puertos Thunderbolt) | 8 GB | dotnet no instalado |
 
 </details>
-
----
-
-### Linux
+</details>
 
 <details>
-<summary>&nbsp;&nbsp;ARM</summary>
+<summary>Linux</summary>
 
-<br/>
+<details>
+<summary>ARM</summary>
 
-| ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
-| :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ✅ | Fedora | 44 | 4 núcleos | 4 GB | v0.3.0 | Virtualizado en VMware Fusion |
+| Sistema Operativo | Arquitectura / CPU | Memoria RAM | Notas |
+| :--- | :--- | :--- | :--- |
+| Fedora | ARM / 4 nucleos | 4 GB | Virtualizado en VMware Fusion |
 
 </details>
 
 <details>
-<summary>&nbsp;&nbsp;x86_64</summary>
+<summary>x86_64</summary>
 
-<br/>
+| Sistema Operativo | Arquitectura / CPU | Memoria RAM | Notas |
+| :--- | :--- | :--- | :--- |
+|  |  |  |  |
 
-| ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
-| :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ⬜ | Fedora | 44 | i7-1255U | 16 GB | |  |
-| ⬜ | Arch | | i5-5250U | 4 GB | |  |
-| ⬜ | Debian | 13 | Celeron N3350 | 4 GB | |  |
-| ⬜ | Debian | 13 | i5 M520 | 8 GB | |  |
+</details>
 
 </details>
 
 ---
 
-### 🎶 Canciones de Prueba
+## Se ha probado con estas canciones
 
-> Pistas utilizadas para verificar la fidelidad Bit-Perfect de la reproducción.
-
-| # | Nombre | Artista | Álbum | Formato |
-| :---: | :--- | :--- | :--- | :---: |
-| 1 | Massive Explosion (Instrumental) | 石元丈晴 | DISSIDIA FINAL FANTASY NT: Ultimate Collector's Edition Official Soundtrack | `FLAC` |
-| 2 | Over Each Other | Linkin Park | From Zero | `FLAC` |
+| Nombre | Artista | Album | Formato |
+| :--- | :--- | :--- | :--- |
+| Massive Explosion (Instrumental) | 石元丈晴 | DISSIDIA FINAL FANTASY NT: Ultimate Collector's Edition Official Soundtrack | FLAC |
 
 </details>
 
