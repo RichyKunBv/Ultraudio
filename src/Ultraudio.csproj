@@ -8,7 +8,7 @@
     <Company>EsMeSolutions</Company>
     <Authors>RichyKunBv</Authors>
     <Description>Reproductor Hi-Fi Bit-Perfect para formatos sin pérdida.</Description>
-    <Version>0.3.0</Version>
+    <Version>0.3.1</Version>
 
     <!-- Forzar que AssemblyInformationalVersion use solo la versión que defines arriba -->
     <AssemblyInformationalVersion>$(Version)</AssemblyInformationalVersion>
@@ -52,6 +52,10 @@
     <TargetArch>x86_64</TargetArch>
     <TargetArch Condition="'$(RuntimeIdentifier)' != '' And $(RuntimeIdentifier.EndsWith('arm64'))">aarch64</TargetArch>
     <TargetArch Condition="'$(RuntimeIdentifier)' == '' And '$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)' == 'Arm64'">aarch64</TargetArch>
+
+    <!-- Mapeo de arquitectura a nombres de carpeta en lib/Windows/ -->
+    <WindowsArch>x64</WindowsArch>
+    <WindowsArch Condition="'$(TargetArch)' == 'aarch64'">arm64</WindowsArch>
   </PropertyGroup>
 
   <!-- Genera Info.plist automáticamente desde el template, inyectando la versión del .csproj -->
@@ -80,15 +84,15 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetOS)' == 'Windows'">
-    <None Include="..\lib\Windows\bass.dll">
+    <None Include="..\lib\Windows\$(WindowsArch)\bass.dll">
       <Link>bass.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="..\lib\Windows\bassflac.dll">
+    <None Include="..\lib\Windows\$(WindowsArch)\bassflac.dll">
       <Link>bassflac.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="..\lib\Windows\bassdsd.dll">
+    <None Include="..\lib\Windows\$(WindowsArch)\bassdsd.dll">
       <Link>bassdsd.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

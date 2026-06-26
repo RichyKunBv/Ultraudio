@@ -76,7 +76,7 @@ Este proyecto ha sido probado y verificado en las siguientes configuraciones de 
 
 | Sistema Operativo | Arquitectura / CPU | Memoria RAM | Notas |
 | :--- | :--- | :--- | :--- |
-|   |   |   |   |
+| Windows 11 | ARM / 4 nucleos | 4 GB | Virtualizado en VMware Fusion, sin instalar dotnet |
 
 </details>
 
@@ -102,8 +102,6 @@ Este proyecto ha sido probado y verificado en las siguientes configuraciones de 
 </details>
 
 ---
-
-<summary>Canciones</summary>
 
 ## Se ha probado con estas canciones
 
