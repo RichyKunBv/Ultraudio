@@ -53,7 +53,11 @@ dotnet build
 dotnet run --project src/Ultraudio.csproj
 ```
 
-Para macOS, también tienes a tu disposición el script `build_ultraudio_in_macos.sh` que facilita la creación y el empaquetado como aplicación nativa de macOS (`.app`). (Se está trabajando en un script para Windows y Linux, solo que el proyecto es desarrollado y mantenido por una sola persona y encima soy estudiante asi que mi tiempo es algo limitado, pero la aplicación está hecha con <3)
+Para macOS, también tienes a tu disposición el script `build_ultraudio_in_macos.sh` que facilita la creación y el empaquetado como aplicación nativa de macOS (`.app`) y para windows y linux.
+Para Windows está el archivo .ps1 `PRE_build_ultraudio_in_windows.ps1` para facilitar la creacion de paquetes de todos los sistemas y arquitecturas.
+En Linux está el script `PRE_build_ultraudio_in_linux.sh` que facilita la creacion de paquetes de todos los sistemas y arquitecturas.
+
+NOTA: En el script de linux y windows no se puede firmar la aplicacion para macOS ya que es algo exclusivo que se puede y debe hacer desde una mac (y todos los scripts estan en la carpeta `scripts/`).
 
 ## Licencia
 Este proyecto está bajo la licencia Apache 2.0, a excepción de las 

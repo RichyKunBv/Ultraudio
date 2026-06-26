@@ -3,7 +3,7 @@
 set -euo pipefail
 
 # es para hacer una mini sincronizacion, realmente ignorenlo ya que es algo mas para mi que para ustedes, nada mas para mas agilidad
-# Tambien como yo trabajo en macOS los comandos son en UNIX y no funconarian bien en Linux y mucho menos en Windows
+# El script es solo para Linux y MacOS, no es compatible con Windows.
 
     nombre="Ultraudio"
     repo_url="https://github.com/RichyKunBv/$nombre.git"
