@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 # es para hacer una mini sincronizacion, realmente ignorenlo ya que es algo mas para mi que para ustedes, nada mas para mas agilidad
 # Tambien como yo trabajo en macOS los comandos son en UNIX y no funconarian bien en Linux y mucho menos en Windows
 

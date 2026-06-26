@@ -5,7 +5,7 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 ## ✨ Características Principales
 
 - **Bit-Perfect Audio**: Reproducción exacta, entregando la señal de audio a tu DAC con la mayor fidelidad posible.
-- **Soporte de Formatos Lossless**: Optimizado para archivos FLAC y soporte planeado implementacion para DSD, garantizando una experiencia de escucha en alta resolución.
+- **Soporte de Formatos Lossless**: Optimizado para archivos FLAC y soporte planeado implementación para DSD, garantizando una experiencia de escucha en alta resolución.
 - **Selector de DAC Dedicado**: Permite elegir la interfaz de salida de audio exacta (hardware) para dirigir la música.
 - **Gestión de Archivos y Carpetas**: Reproduce canciones individuales o carga directorios enteros de música.
 - **Multiplataforma**: Construido sobre Avalonia UI y .NET 10, compatible con Windows, macOS y Linux.
@@ -53,7 +53,7 @@ dotnet build
 dotnet run --project src/Ultraudio.csproj
 ```
 
-Para macOS, también tienes a tu disposición el script `build_ultraudio_formacos.sh` que facilita la creación y el empaquetado como aplicación nativa de macOS (`.app`). (Se está trabajando en un script para Windows y Linux, solo que solo soy una persona y encima soy estudiante asi que mi tiempo es algo limitado, pero la aplicacion esta hecha con <3)
+Para macOS, también tienes a tu disposición el script `build_ultraudio_in_macos.sh` que facilita la creación y el empaquetado como aplicación nativa de macOS (`.app`). (Se está trabajando en un script para Windows y Linux, solo que el proyecto es desarrollado y mantenido por una sola persona y encima soy estudiante asi que mi tiempo es algo limitado, pero la aplicación está hecha con <3)
 
 ## Licencia
 Este proyecto está bajo la licencia Apache 2.0, a excepción de las 
