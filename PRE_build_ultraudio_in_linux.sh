@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Es para hacer las compilaciones desde macOS, realmente ignorenlo ya que es algo mas para mi que para ustedes, nada mas para mas facilidad
-# Tambien como yo trabajo en macOS los comandos son en UNIX y no funconarian bien en Linux y mucho menos en Windows
+# Es para hacer las compilaciones desde Linux, realmente ignorenlo ya que es algo mas para mi que para ustedes, nada mas para mas facilidad
+# Tambien como yo trabajo en Linux los comandos son GNU/Linux y no funcionarian bien en macOS (sin adaptar) y mucho menos en Windows
 # Ermano que tardado es hacer scripts :VVVV
 
-if [[ "$(uname)" != "Darwin" ]]; then
-    echo "Aviso: macOS no detectado, Si lo estas usando en linux es probable que no funcione correctamente. Es bajo tu responsabilidad. Ya que esta diseñado para macOS y no para Linux."
+if [[ "$(uname)" != "Linux" ]]; then
+    echo "Aviso: Linux no detectado. Si lo estas usando en macOS o Windows es probable que no funcione correctamente. Es bajo tu responsabilidad. Ya que esta diseñado para Linux."
 
     echo -e "\nPulsa cualquier tecla para continuar..."
     read -n 1 -s -r
@@ -25,19 +25,19 @@ LINUX_ARM_DIR="$HOME/UltraudioARM64Linux/"
 
 # Para macOS
 carpeta_macOS() {
-    echo "Creando carpetas..."
+    echo "Creando carpetas para macOS..."
     mkdir -p "$MACOS_X64_APP/Contents/"{MacOS,Resources}
     mkdir -p "$MACOS_ARM_APP/Contents/"{MacOS,Resources}
     
-    # IMPORTANTE: Copiar el Info.plist base para que plutil tenga algo que editar después
+    # IMPORTANTE: Copiar el Info.plist base para tener algo que editar después
     cp "$PROJECT_DIR/src/Info.plist.template" "$MACOS_X64_APP/Contents/Info.plist" 2>/dev/null || echo "Aviso: No se encontró Info.plist.template base"
     cp "$PROJECT_DIR/src/Info.plist.template" "$MACOS_ARM_APP/Contents/Info.plist" 2>/dev/null
     
-    echo "Carpetas creadas"
+    echo "Carpetas de macOS creadas"
 }
 
 actualizar_macOS() {
-    echo "=== Iniciando compilación de Ultraudio ==="
+    echo "=== Iniciando compilación de Ultraudio para macOS ==="
 
     # 1. Extraer la versión del archivo .csproj usando awk
     VERSION=$(awk -F'[><]' '/<Version>/{print $3}' "$PROJECT_DIR/src/Ultraudio.csproj")
@@ -51,7 +51,7 @@ actualizar_macOS() {
     echo "Publicando binarios..."
 
     # 2. Compilar ambas arquitecturas
-    cd "$PROJECT_DIR/src"
+    cd "$PROJECT_DIR/src" || exit 1
     dotnet publish -c Release -r osx-arm64 --self-contained -p:PublishSingleFile=true
     dotnet publish -c Release -r osx-x64 --self-contained -p:PublishSingleFile=true
 
@@ -59,28 +59,28 @@ actualizar_macOS() {
 
     # 3. Procesar versión ARM64
     cp -a "$PROJECT_DIR/src/bin/Release/net10.0/osx-arm64/publish/." "$MACOS_ARM_APP/Contents/MacOS/"
-    cp "$PROJECT_DIR/src/Assets/icon.icns" "$MACOS_ARM_APP/Contents/Resources/"
-    # plutil edita el valor de la llave CFBundleVersion de forma segura
-    plutil -replace CFBundleVersion -string "$VERSION" "$MACOS_ARM_APP/Contents/Info.plist"
-    plutil -replace CFBundleShortVersionString -string "$VERSION" "$MACOS_ARM_APP/Contents/Info.plist"
+    cp "$PROJECT_DIR/src/Assets/icon.icns" "$MACOS_ARM_APP/Contents/Resources/" 2>/dev/null
+    
+    # En Linux no tenemos plutil, usamos Python3 (plistlib nativo) para editar el plist de forma segura
+    python3 -c "import plistlib, sys; p=sys.argv[1]; d=plistlib.load(open(p,'rb')); d['CFBundleVersion']=sys.argv[2]; d['CFBundleShortVersionString']=sys.argv[2]; plistlib.dump(d,open(p,'wb'))" "$MACOS_ARM_APP/Contents/Info.plist" "$VERSION" 2>/dev/null || echo "Aviso: No se pudo actualizar Info.plist de ARM64"
 
     # 4. Procesar versión X86_64
     cp -a "$PROJECT_DIR/src/bin/Release/net10.0/osx-x64/publish/." "$MACOS_X64_APP/Contents/MacOS/"
-    cp "$PROJECT_DIR/src/Assets/icon.icns" "$MACOS_X64_APP/Contents/Resources/"
-    plutil -replace CFBundleVersion -string "$VERSION" "$MACOS_X64_APP/Contents/Info.plist"
-    plutil -replace CFBundleShortVersionString -string "$VERSION" "$MACOS_X64_APP/Contents/Info.plist"
+    cp "$PROJECT_DIR/src/Assets/icon.icns" "$MACOS_X64_APP/Contents/Resources/" 2>/dev/null
+    
+    python3 -c "import plistlib, sys; p=sys.argv[1]; d=plistlib.load(open(p,'rb')); d['CFBundleVersion']=sys.argv[2]; d['CFBundleShortVersionString']=sys.argv[2]; plistlib.dump(d,open(p,'wb'))" "$MACOS_X64_APP/Contents/Info.plist" "$VERSION" 2>/dev/null || echo "Aviso: No se pudo actualizar Info.plist de x64"
 
-    echo "Limpiando atributos y firmando aplicaciones..."
+    echo "Aviso: Omitiendo firmado de aplicaciones..."
+    echo "Las herramientas 'xattr' y 'codesign' son exclusivas de macOS y no están disponibles en Linux."
+    echo "La app ha sido empaquetada, pero tendrá que ser firmada manualmente en una Mac si es necesario."
 
-    # 5. Firmar ARM64
-    xattr -cr "$MACOS_ARM_APP"
-    codesign --force --deep --sign - "$MACOS_ARM_APP"
+    # 5 & 6 (Omitidos en Linux)
+    # xattr -cr "$MACOS_ARM_APP"
+    # codesign --force --deep --sign - "$MACOS_ARM_APP"
+    # xattr -cr "$MACOS_X64_APP"
+    # codesign --force --deep --sign - "$MACOS_X64_APP"
 
-    # 6. Firmar X86_64
-    xattr -cr "$MACOS_X64_APP"
-    codesign --force --deep --sign - "$MACOS_X64_APP"
-
-    echo "=== ¡Listo! Ultraudio v$VERSION empaquetado para ambas arquitecturas ==="
+    echo "=== ¡Listo! Ultraudio v$VERSION empaquetado para macOS (x64/ARM64) desde Linux ==="
 }
 
 # Para Windows
@@ -104,8 +104,8 @@ actualizar_windows() {
     echo "Versión detectada: $VERSION"
     echo "Publicando binarios..."
 
-    cd "$PROJECT_DIR/src"
-# Compilar para Windows ARM64
+    cd "$PROJECT_DIR/src" || exit 1
+    # Compilar para Windows ARM64
     dotnet publish -c Release -r win-arm64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None
     # Compilar para Windows x64
     dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None
@@ -149,32 +149,29 @@ actualizar_linux() {
     echo "Versión detectada: $VERSION"
     echo "Publicando binarios..."
 
-    cd "$PROJECT_DIR/src"
-# Compilar para Linux ARM64
+    cd "$PROJECT_DIR/src" || exit 1
+    # Compilar para Linux ARM64
     dotnet publish -c Release -r linux-arm64 --self-contained -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:PublishSingleFile=true    
-# Compilar para Linux x64
+    # Compilar para Linux x64
     dotnet publish -c Release -r linux-x64 --self-contained -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -p:PublishSingleFile=true
 
     echo "Copiando archivos y actualizando .desktop..."
 
     # Procesar versión ARM64
     cp -a "$PROJECT_DIR/src/bin/Release/net10.0/linux-arm64/publish/." "$LINUX_ARM_DIR/"
-    cp "$PROJECT_DIR/src/Assets/icon.png" "$LINUX_ARM_DIR/"
+    cp "$PROJECT_DIR/src/Assets/icon.png" "$LINUX_ARM_DIR/" 2>/dev/null
     
-    # Usamos sed para buscar la línea "Version=" y reemplazarla. 
-    # El '.bak' asegura compatibilidad tanto si ejecutas esto en macOS como en Linux.
+    # En Linux, GNU sed no requiere la extensión .bak para editar en el lugar de forma segura
     if [ -f "$LINUX_ARM_DIR/Ultraudio.desktop" ]; then
-        sed -i.bak "s/^Version=.*/Version=$VERSION/" "$LINUX_ARM_DIR/Ultraudio.desktop"
-        rm "$LINUX_ARM_DIR/Ultraudio.desktop.bak"
+        sed -i "s/^Version=.*/Version=$VERSION/" "$LINUX_ARM_DIR/Ultraudio.desktop"
     fi
 
     # Procesar versión X86_64
     cp -a "$PROJECT_DIR/src/bin/Release/net10.0/linux-x64/publish/." "$LINUX_X64_DIR/"
-    cp "$PROJECT_DIR/src/Assets/icon.png" "$LINUX_X64_DIR/"
+    cp "$PROJECT_DIR/src/Assets/icon.png" "$LINUX_X64_DIR/" 2>/dev/null
     
     if [ -f "$LINUX_X64_DIR/Ultraudio.desktop" ]; then
-        sed -i.bak "s/^Version=.*/Version=$VERSION/" "$LINUX_X64_DIR/Ultraudio.desktop"
-        rm "$LINUX_X64_DIR/Ultraudio.desktop.bak"
+        sed -i "s/^Version=.*/Version=$VERSION/" "$LINUX_X64_DIR/Ultraudio.desktop"
     fi
 
     echo "=== ¡Listo! Ultraudio v$VERSION empaquetado para Linux (x64/ARM64) ==="
@@ -193,42 +190,26 @@ actualizar_todos(){
 }
 
 comprimir_todos(){
-        echo "Comprimiendo todas las versiones..."
+    echo "Comprimiendo todas las versiones..."
 
-    if [ -f "$HOME/UltraudioARM64macOS.zip" ]; then
-        echo "El archivo UltraudioARM64macOS.zip ya existe, eliminando..."
-        rm "$HOME/UltraudioARM64macOS.zip"
-    fi
-    if [ -f "$HOME/UltraudioX86_64macOS.zip" ]; then
-        echo "El archivo UltraudioX86_64macOS.zip ya existe, eliminando..."
-        rm "$HOME/UltraudioX86_64macOS.zip"
-    fi
-    if [ -f "$HOME/UltraudioARM64Windows.zip" ]; then
-        echo "El archivo UltraudioARM64Windows.zip ya existe, eliminando..."
-        rm "$HOME/UltraudioARM64Windows.zip"
-    fi
-    if [ -f "$HOME/UltraudioX86_64Windows.zip" ]; then
-        echo "El archivo UltraudioX86_64Windows.zip ya existe, eliminando..."
-        rm "$HOME/UltraudioX86_64Windows.zip"
-    fi
-    if [ -f "$HOME/UltraudioARM64Linux.zip" ]; then
-        echo "El archivo UltraudioARM64Linux.zip ya existe, eliminando..."
-        rm "$HOME/UltraudioARM64Linux.zip"
-    fi
-    if [ -f "$HOME/UltraudioX86_64Linux.zip" ]; then
-        echo "El archivo UltraudioX86_64Linux.zip ya existe, eliminando..."
-        rm "$HOME/UltraudioX86_64Linux.zip"
-    fi
+    # Limpiar zips anteriores si existen
+    for file in "UltraudioARM64macOS.zip" "UltraudioX86_64macOS.zip" "UltraudioARM64Windows.zip" "UltraudioX86_64Windows.zip" "UltraudioARM64Linux.zip" "UltraudioX86_64Linux.zip"; do
+        if [ -f "$HOME/$file" ]; then
+            echo "El archivo $file ya existe, eliminando..."
+            rm "$HOME/$file"
+        fi
+    done
 
     cd "$HOME" || exit 1
     for dir in UltraudioARM64macOS UltraudioX86_64macOS UltraudioARM64Windows UltraudioX86_64Windows UltraudioARM64Linux UltraudioX86_64Linux; do
         if [ -d "$dir" ]; then
-            zip -r "${dir}.zip" "$dir"
+            zip -rq "${dir}.zip" "$dir"
+            echo "Directorio $dir comprimido con éxito."
         else
             echo "Aviso: no existe el directorio $dir, se omite compresión."
         fi
     done
-    echo "Compresión completada."
+    echo "=== Compresión completada ==="
 }
 
 press_any_key() {
