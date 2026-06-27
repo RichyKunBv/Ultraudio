@@ -104,7 +104,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
 | ⬜ | Windows 11 Home | 25h2 | i7-1255U | 16 GB | |  |
-| ⬜ | Windows 10 Pro | 22h2 | i5-4200M | 16 GB | |  |
+| ✅ | Windows 10 Pro | 22h2 | i5-4200M | 16 GB | v0.3.1 | soporte extendido y sin dotnet |
 | ⬜ | Windows 10 Pro | 22h2 | i5-3230M | 10 GB | |  |
 
 </details>
@@ -175,6 +175,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 | :---: | :--- | :--- | :--- | :---: |
 | 1 | Massive Explosion (Instrumental) | 石元丈晴 | DISSIDIA FINAL FANTASY NT: Ultimate Collector's Edition Official Soundtrack | `FLAC` |
 | 2 | Over Each Other | Linkin Park | From Zero | `FLAC` |
+| 3 | In the end | Linkin Park | Hybrid Theory | `FLAC`|
 
 </details>
 
