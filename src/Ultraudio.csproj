@@ -8,7 +8,7 @@
     <Company>EsMeSolutions</Company>
     <Authors>RichyKunBv</Authors>
     <Description>Reproductor Hi-Fi Bit-Perfect para formatos sin pérdida.</Description>
-    <Version>0.3.1</Version>
+    <Version>0.5.0</Version>
 
     <!-- Forzar que AssemblyInformationalVersion use solo la versión que defines arriba -->
     <AssemblyInformationalVersion>$(Version)</AssemblyInformationalVersion>
@@ -36,7 +36,10 @@
     </PackageReference>
     <PackageReference Include="ManagedBass" Version="4.0.2" />
     <PackageReference Include="ManagedBass.Flac" Version="4.0.2" />
+    <PackageReference Include="ManagedBass.Wasapi" Version="4.0.2" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
+    <!-- Tmds.DBus.Protocol for Linux MPRIS2 D-Bus integration (version pinned to Avalonia transitive dep) -->
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
   </ItemGroup>
 
   <!-- Definir el Sistema Operativo y Arquitectura Objetivo (Target) -->

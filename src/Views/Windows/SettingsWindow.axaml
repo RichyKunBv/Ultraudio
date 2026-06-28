@@ -1,0 +1,169 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Ultraudio.Views.Windows.SettingsWindow"
+        Title="Settings – Ultraudio"
+        Width="520" Height="500"
+        CanResize="False"
+        Background="#0F0F0F"
+        WindowStartupLocation="CenterOwner"
+        Icon="avares://Ultraudio/Assets/icon.ico">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.header">
+            <Setter Property="Foreground" Value="#AAAAAA"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="LetterSpacing" Value="1.5"/>
+        </Style>
+        <Style Selector="TextBlock.label">
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="TextBlock.value">
+            <Setter Property="Foreground" Value="#888888"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="Border.section">
+            <Setter Property="Background" Value="#1A1A1A"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+        <Style Selector="ToggleSwitch">
+            <Setter Property="OnContent" Value=""/>
+            <Setter Property="OffContent" Value=""/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,*,Auto" Margin="20">
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="Settings" FontSize="22" FontWeight="Bold" Foreground="White"/>
+            <TextBlock Text="Ultraudio Configuration" FontSize="12" Foreground="#666666"/>
+        </StackPanel>
+
+        <!-- Settings Panels -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="0">
+
+                <!-- Audio Device -->
+                <TextBlock Text="AUDIO OUTPUT" Classes="header" Margin="2,0,0,8"/>
+                <Border Classes="section">
+                    <StackPanel Spacing="14">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Output Device" Classes="label"/>
+                                <TextBlock Text="Select your DAC or audio interface" Classes="value" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <ComboBox Name="ComboDevices" Width="180" VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <Separator Background="#2A2A2A" Height="1"/>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Exclusive Mode" Classes="label"/>
+                                <TextBlock Text="WASAPI (Win) / Hog Mode (Mac) — bypasses OS mixer" Classes="value" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <ToggleSwitch Name="ToggleExclusive" VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <Separator Background="#2A2A2A" Height="1"/>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="RAM Mode" Classes="label"/>
+                                <TextBlock Text="Load entire file to memory before playback" Classes="value" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <ToggleSwitch Name="ToggleRamMode" VerticalAlignment="Center"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Playback -->
+                <TextBlock Text="PLAYBACK" Classes="header" Margin="2,0,0,8"/>
+                <Border Classes="section">
+                    <StackPanel Spacing="14">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Gapless Playback" Classes="label"/>
+                                <TextBlock Text="Pre-buffer next track for seamless transitions" Classes="value" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <ToggleSwitch Name="ToggleGapless" VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <Separator Background="#2A2A2A" Height="1"/>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Spectrum Visualizer" Classes="label"/>
+                                <TextBlock Text="Real-time FFT spectrum (slight CPU overhead)" Classes="value" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <ToggleSwitch Name="ToggleSpectrum" VerticalAlignment="Center"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- HTTP Remote API -->
+                <TextBlock Text="REMOTE CONTROL" Classes="header" Margin="2,0,0,8"/>
+                <Border Classes="section">
+                    <StackPanel Spacing="14">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="HTTP API" Classes="label"/>
+                                <TextBlock Text="Enable local HTTP remote control API" Classes="value" Margin="0,2,0,0"/>
+                            </StackPanel>
+                            <ToggleSwitch Name="ToggleHttpApi" VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto" Name="GridHttpPort">
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="API Port" Classes="label"/>
+                                <TextBlock Text="http://127.0.0.1:{port}/status" Classes="value" Margin="0,2,0,0" Name="TxtApiUrl"/>
+                            </StackPanel>
+                            <NumericUpDown Name="NumPort" Minimum="1024" Maximum="65535" Width="120"
+                                           VerticalAlignment="Center" FormatString="0"
+                                           Foreground="White" Background="#2A2A2A"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- Keyboard Shortcuts -->
+                <TextBlock Text="KEYBOARD SHORTCUTS" Classes="header" Margin="2,0,0,8"/>
+                <Border Classes="section">
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="8">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Space" Classes="label"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="Play / Pause" Classes="value"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="→ / ←" Classes="label"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="Next / Previous track" Classes="value"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="↑ / ↓" Classes="label"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="Volume +10% / -10%" Classes="value"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="M" Classes="label"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" Text="Mute / Unmute" Classes="value"/>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="S" Classes="label"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1" Text="Toggle Shuffle" Classes="value"/>
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="R" Classes="label"/>
+                        <TextBlock Grid.Row="5" Grid.Column="1" Text="Cycle Repeat mode" Classes="value"/>
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="F" Classes="label"/>
+                        <TextBlock Grid.Row="6" Grid.Column="1" Text="Favorite current track" Classes="value"/>
+                    </Grid>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer Buttons -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" Margin="0,16,0,0">
+            <TextBlock Grid.Column="0" Name="TxtVersion" Foreground="#444444" FontSize="11" VerticalAlignment="Center"/>
+            <Button Grid.Column="1" Name="BtnCancel" Content="Cancel"
+                    Background="#2A2A2A" Foreground="#CCCCCC"
+                    Padding="20,8" Margin="0,0,10,0" Click="BtnCancel_Click"/>
+            <Button Grid.Column="2" Name="BtnSave" Content="Save Settings"
+                    Background="#1B6B3A" Foreground="White"
+                    Padding="20,8" Click="BtnSave_Click"/>
+        </Grid>
+    </Grid>
+</Window>
