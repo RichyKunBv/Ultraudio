@@ -320,6 +320,8 @@
                             Content="📁 Folder" Click="BtnCargarCarpeta_Click"/>
                     <Button Name="BtnCargarCue" Classes="load-btn"
                             Content="📋 CUE Sheet" Click="BtnCargarCue_Click"/>
+                    <Button Name="BtnCargarCd" Classes="load-btn"
+                            Content="💿 CD Audio" Click="BtnCargarCd_Click"/>
                     <Border Width="1" Height="20" Background="#2A2A2A" Margin="2,0"/>
                     <Button Name="BtnClearPlaylist" Classes="load-btn"
                             Content="✕ Clear" Click="BtnClearPlaylist_Click"/>

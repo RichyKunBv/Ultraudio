@@ -32,6 +32,7 @@ public class AppSettings
     public bool HttpApiEnabled { get; set; } = false;
     public int HttpApiPort { get; set; } = 7654;
     public bool SpectrumEnabled { get; set; } = true;
+    public bool CdEnabled { get; set; } = true;
 
     // ── Library ─────────────────────────────────────────────────────────────
     public List<string> LibraryFolders { get; set; } = new();

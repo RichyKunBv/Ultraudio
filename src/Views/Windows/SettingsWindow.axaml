@@ -58,7 +58,7 @@
                                 <TextBlock Text="Output Device" Classes="label"/>
                                 <TextBlock Text="Select your DAC or audio interface" Classes="value" Margin="0,2,0,0"/>
                             </StackPanel>
-                            <ComboBox Name="ComboDevices" Width="180" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="1" Name="ComboDevices" Width="180" VerticalAlignment="Center"/>
                         </Grid>
 
                         <Separator Background="#2A2A2A" Height="1"/>
@@ -68,7 +68,7 @@
                                 <TextBlock Text="Exclusive Mode" Classes="label"/>
                                 <TextBlock Text="WASAPI (Win) / Hog Mode (Mac) — bypasses OS mixer" Classes="value" Margin="0,2,0,0"/>
                             </StackPanel>
-                            <ToggleSwitch Name="ToggleExclusive" VerticalAlignment="Center"/>
+                            <ToggleSwitch Grid.Column="1" Name="ToggleExclusive" VerticalAlignment="Center"/>
                         </Grid>
 
                         <Separator Background="#2A2A2A" Height="1"/>
@@ -78,7 +78,7 @@
                                 <TextBlock Text="RAM Mode" Classes="label"/>
                                 <TextBlock Text="Load entire file to memory before playback" Classes="value" Margin="0,2,0,0"/>
                             </StackPanel>
-                            <ToggleSwitch Name="ToggleRamMode" VerticalAlignment="Center"/>
+                            <ToggleSwitch Grid.Column="1" Name="ToggleRamMode" VerticalAlignment="Center"/>
                         </Grid>
                     </StackPanel>
                 </Border>
@@ -92,7 +92,7 @@
                                 <TextBlock Text="Gapless Playback" Classes="label"/>
                                 <TextBlock Text="Pre-buffer next track for seamless transitions" Classes="value" Margin="0,2,0,0"/>
                             </StackPanel>
-                            <ToggleSwitch Name="ToggleGapless" VerticalAlignment="Center"/>
+                            <ToggleSwitch Grid.Column="1" Name="ToggleGapless" VerticalAlignment="Center"/>
                         </Grid>
 
                         <Separator Background="#2A2A2A" Height="1"/>
@@ -102,9 +102,21 @@
                                 <TextBlock Text="Spectrum Visualizer" Classes="label"/>
                                 <TextBlock Text="Real-time FFT spectrum (slight CPU overhead)" Classes="value" Margin="0,2,0,0"/>
                             </StackPanel>
-                            <ToggleSwitch Name="ToggleSpectrum" VerticalAlignment="Center"/>
+                            <ToggleSwitch Grid.Column="1" Name="ToggleSpectrum" VerticalAlignment="Center"/>
                         </Grid>
                     </StackPanel>
+                </Border>
+
+                <!-- CD Audio -->
+                <TextBlock Text="CD AUDIO" Classes="header" Margin="2,0,0,8"/>
+                <Border Classes="section">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Enable CD Audio" Classes="label"/>
+                            <TextBlock Text="Show the CD Audio button (requires basscd libraries)" Classes="value" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" Name="ToggleCd" VerticalAlignment="Center"/>
+                    </Grid>
                 </Border>
 
                 <!-- HTTP Remote API -->
@@ -116,7 +128,7 @@
                                 <TextBlock Text="HTTP API" Classes="label"/>
                                 <TextBlock Text="Enable local HTTP remote control API" Classes="value" Margin="0,2,0,0"/>
                             </StackPanel>
-                            <ToggleSwitch Name="ToggleHttpApi" VerticalAlignment="Center"/>
+                            <ToggleSwitch Grid.Column="1" Name="ToggleHttpApi" VerticalAlignment="Center"/>
                         </Grid>
 
                         <Grid ColumnDefinitions="*,Auto" Name="GridHttpPort">
@@ -124,7 +136,7 @@
                                 <TextBlock Text="API Port" Classes="label"/>
                                 <TextBlock Text="http://127.0.0.1:{port}/status" Classes="value" Margin="0,2,0,0" Name="TxtApiUrl"/>
                             </StackPanel>
-                            <NumericUpDown Name="NumPort" Minimum="1024" Maximum="65535" Width="120"
+                            <NumericUpDown Grid.Column="1" Name="NumPort" Minimum="1024" Maximum="65535" Width="120"
                                            VerticalAlignment="Center" FormatString="0"
                                            Foreground="White" Background="#2A2A2A"/>
                         </Grid>

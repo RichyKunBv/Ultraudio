@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Ultraudio.Models;
 
 namespace Ultraudio.Views.Windows;
@@ -38,6 +39,12 @@ public partial class SettingsWindow : Window
         ToggleGapless.IsChecked   = _settings.GaplessEnabled;
         ToggleSpectrum.IsChecked  = _settings.SpectrumEnabled;
         ToggleHttpApi.IsChecked   = _settings.HttpApiEnabled;
+        ToggleCd.IsChecked        = _settings.CdEnabled;
+
+        bool isCdSupported = (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) 
+                             && RuntimeInformation.OSArchitecture == Architecture.X64;
+        ToggleCd.IsEnabled = isCdSupported;
+        if (!isCdSupported) ToggleCd.IsChecked = false;
 
         // Port
         NumPort.Value = _settings.HttpApiPort;
@@ -70,6 +77,7 @@ public partial class SettingsWindow : Window
         _settings.GaplessEnabled = ToggleGapless.IsChecked   ?? true;
         _settings.SpectrumEnabled = ToggleSpectrum.IsChecked ?? true;
         _settings.HttpApiEnabled = ToggleHttpApi.IsChecked   ?? false;
+        _settings.CdEnabled      = ToggleCd.IsChecked        ?? false;
         _settings.HttpApiPort    = (int)(NumPort.Value ?? 7654);
 
         Saved = true;

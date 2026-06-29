@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Flac;
+using ManagedBass.Cd;
 
 namespace Ultraudio;
 
@@ -83,6 +84,7 @@ public class AudioEngine
         {
             pluginFiles.Add("bassflac.dll");
             pluginFiles.Add("bassdsd.dll");
+            pluginFiles.Add("basscd.dll");
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
@@ -93,6 +95,7 @@ public class AudioEngine
         {
             pluginFiles.Add("libbassflac.so");
             pluginFiles.Add("libbassdsd.so");
+            pluginFiles.Add("libbasscd.so");
         }
 
         foreach (var pluginFile in pluginFiles)
@@ -201,11 +204,24 @@ public class AudioEngine
 
         string ext = Path.GetExtension(filePath).ToLower();
         bool isFlac = ext == ".flac";
+        bool isCd = filePath.StartsWith("cda://", StringComparison.OrdinalIgnoreCase);
 
         // ── Detect sample rate ─────────────────────────────────────────────
-        int infoStream = isFlac
-            ? BassFlac.CreateStream(filePath, 0, 0, BassFlags.Decode)
-            : Bass.CreateStream(filePath, 0, 0, BassFlags.Decode);
+        int infoStream = 0;
+        if (isCd)
+        {
+            var parts = filePath.Replace("cda://", "").Split('/');
+            if (parts.Length == 2 && int.TryParse(parts[0], out int drive) && int.TryParse(parts[1], out int track))
+            {
+                infoStream = BassCd.CreateStream(drive, track, BassFlags.Decode);
+            }
+        }
+        else
+        {
+            infoStream = isFlac
+                ? BassFlac.CreateStream(filePath, 0, 0, BassFlags.Decode)
+                : Bass.CreateStream(filePath, 0, 0, BassFlags.Decode);
+        }
 
         float freqf = 44100f;
         if (infoStream != 0)
@@ -241,6 +257,14 @@ public class AudioEngine
             _stream = isFlac
                 ? BassFlac.CreateStream(_memoryHandle.AddrOfPinnedObject(), 0, fileBytes.Length, BassFlags.Default)
                 : Bass.CreateStream(_memoryHandle.AddrOfPinnedObject(), 0, fileBytes.Length, BassFlags.Default);
+        }
+        else if (isCd)
+        {
+            var parts = filePath.Replace("cda://", "").Split('/');
+            if (parts.Length == 2 && int.TryParse(parts[0], out int drive) && int.TryParse(parts[1], out int track))
+            {
+                _stream = BassCd.CreateStream(drive, track, BassFlags.Default);
+            }
         }
         else
         {
@@ -300,16 +324,25 @@ public class AudioEngine
 
         string ext = Path.GetExtension(filePath).ToLower();
         bool isFlac = ext == ".flac";
+        bool isCd = filePath.StartsWith("cda://", StringComparison.OrdinalIgnoreCase);
 
         try
         {
-            if (memoryPlayback)
+            if (memoryPlayback && !isCd)
             {
                 byte[] bytes = File.ReadAllBytes(filePath);
                 _nextMemoryHandle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
                 _nextStream = isFlac
                     ? BassFlac.CreateStream(_nextMemoryHandle.AddrOfPinnedObject(), 0, bytes.Length, BassFlags.Default)
                     : Bass.CreateStream(_nextMemoryHandle.AddrOfPinnedObject(), 0, bytes.Length, BassFlags.Default);
+            }
+            else if (isCd)
+            {
+                var parts = filePath.Replace("cda://", "").Split('/');
+                if (parts.Length == 2 && int.TryParse(parts[0], out int drive) && int.TryParse(parts[1], out int track))
+                {
+                    _nextStream = BassCd.CreateStream(drive, track, BassFlags.Default);
+                }
             }
             else
             {

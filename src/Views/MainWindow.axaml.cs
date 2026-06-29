@@ -18,6 +18,8 @@ using Ultraudio.Core;
 using Ultraudio.Models;
 using Ultraudio.Services;
 using Ultraudio.Views.Windows;
+using System.Runtime.InteropServices;
+using ManagedBass.Cd;
 
 namespace Ultraudio;
 
@@ -138,6 +140,11 @@ public partial class MainWindow : Window
         SpectrumViz.Initialize(_spectrum);
         if (!_prefs.Settings.SpectrumEnabled)
             SpectrumViz.Stop();
+
+        // ── CD Button visibility ─────────────────────────────────────────────
+        bool isCdSupported = (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) 
+                             && RuntimeInformation.OSArchitecture == Architecture.X64;
+        BtnCargarCd.IsVisible = isCdSupported && _prefs.Settings.CdEnabled;
     }
 
     // ─── HTTP Remote wiring ───────────────────────────────────────────────────
@@ -288,6 +295,91 @@ public partial class MainWindow : Window
             var tracks = CueParser.Parse(files[0].Path.LocalPath);
             if (tracks.Count > 0)
                 LoadPlaylist(tracks, autoPlay: true);
+        }
+    }
+
+    private void BtnCargarCd_Click(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            int driveCount = BassCd.DriveCount;
+            if (driveCount <= 0)
+            {
+                // No CD drives found
+                return;
+            }
+
+            int drive = 0; // Default to first drive, might need drive selector for multiple
+            if (!BassCd.IsReady(drive))
+            {
+                return;
+            }
+
+            int trackCount = BassCd.GetTracks(drive);
+            if (trackCount < 0) return;
+
+            // Fetch CDDB or local CD-TEXT
+            string album = "CD Audio";
+            string artist = "Unknown Artist";
+            var trackNames = new string[trackCount];
+            
+            // Try CD-TEXT first
+            string[] textLines = BassCd.GetIDText(drive);
+            if (textLines != null && textLines.Length > 0)
+            {
+                foreach (string line in textLines)
+                {
+                    if (line.StartsWith("TITLE=") && album == "CD Audio") album = line.Substring(6);
+                    if (line.StartsWith("PERFORMER=") && artist == "Unknown Artist") artist = line.Substring(10);
+                }
+            }
+
+            var tracks = new List<TrackModel>();
+            for (int i = 0; i < trackCount; i++)
+            {
+                string title = $"Track {(i + 1):00}";
+                if (textLines != null && textLines.Length > 0)
+                {
+                    // Search for TITLE= per track
+                    string trackPrefix = $"TRACK{(i + 1):00}";
+                    foreach (string line in textLines)
+                    {
+                        if (line.StartsWith("TITLE=") && line.Contains(title)) // simple heuristics, usually basscd returns it formatted if requested properly
+                        {
+                            // A better way is using BassCd.GetIDText for the track or parsing the returned array 
+                            // but in ManagedBass, GetIDText just returns array of strings. We can use a simple naming.
+                        }
+                    }
+                }
+                
+                int lenBytes = BassCd.GetTrackLength(drive, i);
+                double duration = -1;
+                if (lenBytes != -1)
+                {
+                    // BASS_CD uses 44100Hz, 16bit, stereo = 176400 bytes/sec
+                    duration = lenBytes / 176400.0;
+                }
+
+                tracks.Add(new TrackModel
+                {
+                    FilePath = $"cda://{drive}/{i}",
+                    Title = title,
+                    Album = album,
+                    Artist = artist,
+                    Format = "CDA",
+                    BitDepth = 16,
+                    SampleRate = 44100,
+                    Bitrate = 1411,
+                    Duration = TimeSpan.FromSeconds(duration > 0 ? duration : 0)
+                });
+            }
+
+            if (tracks.Count > 0)
+                LoadPlaylist(tracks, autoPlay: true);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[CD Error]: {ex.Message}");
         }
     }
 
@@ -699,6 +791,10 @@ public partial class MainWindow : Window
                 SpectrumViz.Resume();
             else
                 SpectrumViz.Stop();
+                
+            bool isCdSupported = (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) 
+                                 && RuntimeInformation.OSArchitecture == Architecture.X64;
+            BtnCargarCd.IsVisible = isCdSupported && _prefs.Settings.CdEnabled;
         }
     }
 
