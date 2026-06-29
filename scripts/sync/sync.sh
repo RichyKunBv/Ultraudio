@@ -38,6 +38,11 @@ publicar() {
     else
         echo "Error al publicar. Revisa el mensaje de error y vuelve a intentarlo."
     fi
+
+        if [ -z "Everything up-to-date" ]; then
+        echo "Ya esta actualizado."
+    fi
+
 }
 
 # Configuración inicial del entorno
