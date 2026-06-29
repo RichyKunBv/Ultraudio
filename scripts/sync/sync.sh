@@ -32,6 +32,12 @@ publicar() {
     git pull origin main --rebase
     
     git push origin main
+
+    if [ $? -eq 0 ]; then
+        echo "Publicación exitosa."
+    else
+        echo "Error al publicar. Revisa el mensaje de error y vuelve a intentarlo."
+    fi
 }
 
 # Configuración inicial del entorno
