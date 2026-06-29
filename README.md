@@ -142,7 +142,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
 | ✅ | macOS 27 Golden Gate | 27 | M1 | 8 GB | v0.3.0 | Beta de macOS con dotnet 10 instalado |
-| ✅ | macOS Tahoe | 26.5.1 | A18 Pro | 8 GB | v0.3.0 | dotnet 10 instalado |
+| ✅ | macOS Tahoe | 26.5.1 | A18 Pro | 8 GB | v0.5.0 | dotnet 10 instalado |
 
 </details>
 
@@ -182,7 +182,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 | ⬜ | Fedora | 44 | i7-1255U | 16 GB | |  |
 | ⬜ | Arch | | i5-5250U | 4 GB | |  |
 | ⬜ | Debian | 13 | Celeron N3350 | 4 GB | |  |
-| ⬜ | Debian | 13 | i5 M520 | 8 GB | |  |
+| ✅ | Fedora | 44 | i5 M520 | 8 GB | v0.5.0 | Clonado y compilado |
 
 </details>
 
@@ -192,12 +192,12 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 > Pistas utilizadas para verificar la fidelidad Bit-Perfect de la reproducción (Ejemplos de 15 segundos de las canciones probadas en la carpeta `res/Samples/`).
 
-| # | Nombre | Artista | Álbum | Formato |
+| # | Nombre | Artista | Álbum | Formato | Version de app |
 | :---: | :--- | :--- | :--- | :---: |
-| 1 | Massive Explosion (Instrumental) | 石元丈晴 | DISSIDIA FINAL FANTASY NT: Ultimate Collector's Edition Official Soundtrack | `FLAC` |
-| 2 | Over Each Other | Linkin Park | From Zero | `FLAC` |
-| 3 | In the end | Linkin Park | Hybrid Theory | `FLAC`|
-| 4 | Faith | Limp Bizkit | Greatest Hits | `FLAC`|
+| 1 | Massive Explosion (Instrumental) | 石元丈晴 | DISSIDIA FINAL FANTASY NT: Ultimate Collector's Edition Official Soundtrack | `FLAC` | v0.1.2 |
+| 2 | Over Each Other | Linkin Park | From Zero | `FLAC` | v0.2.0 |
+| 3 | In the end | Linkin Park | Hybrid Theory | `FLAC`| 0.3.0 |
+| 4 | Faith | Limp Bizkit | Greatest Hits | `FLAC`| 0.3.1 |
 
 </details>
 
