@@ -15,7 +15,12 @@ fi
 
 descargar() {
     echo "Obteniendo últimos cambios del repositorio..."
-    git pull origin main
+
+    if git pull origin main --rebase; then
+        echo "Actualización exitosa."
+    else
+        echo "Error al obtener los cambios. Revisa tu conexión o posibles conflictos."
+    fi
 }
 
 publicar() {

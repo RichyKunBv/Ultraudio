@@ -199,5 +199,11 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 | 3 | In the end | Linkin Park | Hybrid Theory | `FLAC`| 0.3.0 |
 | 4 | Faith | Limp Bizkit | Greatest Hits | `FLAC`| 0.3.1 |
 
+### 🎶 Discos de Prueba
+
+| # | Álbum | Artista | Formato | Version de app |
+| :---: | :--- | :--- | :--- | :---: |
+| 1 | Greatest Hits | Limp Bizkit | `CD` | v0.6.0 |
+
 </details>
 

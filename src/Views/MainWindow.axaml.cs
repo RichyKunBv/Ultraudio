@@ -82,6 +82,8 @@ public partial class MainWindow : Window
     private string _searchText = string.Empty;
     private string? _pendingNextFile; // for gapless preload
     private readonly DispatcherTimer _timer;
+    private DispatcherTimer? _cdTimer;
+    private bool _cdWasReady = false;
 
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -141,10 +143,44 @@ public partial class MainWindow : Window
         if (!_prefs.Settings.SpectrumEnabled)
             SpectrumViz.Stop();
 
-        // ── CD Button visibility ─────────────────────────────────────────────
+        // ── CD Button visibility and Polling ───────────────────────────────────
         bool isCdSupported = (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) 
                              && RuntimeInformation.OSArchitecture == Architecture.X64;
-        BtnCargarCd.IsVisible = isCdSupported && _prefs.Settings.CdEnabled;
+        BtnCargarCd.IsVisible = false;
+
+        if (isCdSupported)
+        {
+            _cdTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+            _cdTimer.Tick += (s, e) =>
+            {
+                if (!_prefs.Settings.CdEnabled)
+                {
+                    BtnCargarCd.IsVisible = false;
+                    return;
+                }
+
+                try
+                {
+                    if (BassCd.DriveCount > 0)
+                    {
+                        bool isReady = BassCd.IsReady(0);
+                        if (isReady != _cdWasReady)
+                        {
+                            _cdWasReady = isReady;
+                            BtnCargarCd.IsVisible = isReady;
+
+                            if (isReady)
+                            {
+                                // Auto-load tracks when CD is inserted
+                                BtnCargarCd_Click(null, null);
+                            }
+                        }
+                    }
+                }
+                catch { }
+            };
+            _cdTimer.Start();
+        }
     }
 
     // ─── HTTP Remote wiring ───────────────────────────────────────────────────
@@ -792,9 +828,20 @@ public partial class MainWindow : Window
             else
                 SpectrumViz.Stop();
                 
+            // Update CD button immediately based on settings change if a CD is ready
             bool isCdSupported = (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) 
                                  && RuntimeInformation.OSArchitecture == Architecture.X64;
-            BtnCargarCd.IsVisible = isCdSupported && _prefs.Settings.CdEnabled;
+            if (isCdSupported)
+            {
+                if (!_prefs.Settings.CdEnabled)
+                {
+                    BtnCargarCd.IsVisible = false;
+                }
+                else
+                {
+                    try { BtnCargarCd.IsVisible = BassCd.IsReady(0); } catch { }
+                }
+            }
         }
     }
 
@@ -934,6 +981,7 @@ public partial class MainWindow : Window
 
         // Cleanup
         _timer.Stop();
+        _cdTimer?.Stop();
         SpectrumViz.Stop();
         _httpRemote.Dispose();
         _mediaKeys.Dispose();
