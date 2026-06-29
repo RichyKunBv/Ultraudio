@@ -193,7 +193,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 > Pistas utilizadas para verificar la fidelidad Bit-Perfect de la reproducción (Ejemplos de 15 segundos de las canciones probadas en la carpeta `res/Samples/`).
 
 | # | Nombre | Artista | Álbum | Formato | Version de app |
-| :---: | :--- | :--- | :--- | :---: |
+| :---: | :--- | :--- | :--- | :--- | :---: |
 | 1 | Massive Explosion (Instrumental) | 石元丈晴 | DISSIDIA FINAL FANTASY NT: Ultimate Collector's Edition Official Soundtrack | `FLAC` | v0.1.2 |
 | 2 | Over Each Other | Linkin Park | From Zero | `FLAC` | v0.2.0 |
 | 3 | In the end | Linkin Park | Hybrid Theory | `FLAC`| 0.3.0 |
