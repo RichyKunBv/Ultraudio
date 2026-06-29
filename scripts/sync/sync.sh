@@ -19,6 +19,11 @@ descargar() {
 }
 
 publicar() {
+    if [ -z "$(git status --porcelain)" ]; then
+        echo "No hay cambios para publicar. Ya esta actualizado."
+        return
+    fi
+
     git add .
     read -p "   >> Introduce el mensaje del commit: " mensaje
     
@@ -31,20 +36,12 @@ publicar() {
     
     git pull origin main --rebase
     
-    git push origin main
-
-    if [ $? -eq 0 ]; then
+    if git push origin main; then
         echo "Publicación exitosa."
     else
         echo "Error al publicar. Revisa el mensaje de error y vuelve a intentarlo."
         return
     fi
-
-        if [ -z "Everything up-to-date" ]; then
-        echo "Ya esta actualizado."
-        return
-    fi
-
 }
 
 # Configuración inicial del entorno
