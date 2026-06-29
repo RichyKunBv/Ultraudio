@@ -37,10 +37,12 @@ publicar() {
         echo "Publicación exitosa."
     else
         echo "Error al publicar. Revisa el mensaje de error y vuelve a intentarlo."
+        return
     fi
 
         if [ -z "Everything up-to-date" ]; then
         echo "Ya esta actualizado."
+        return
     fi
 
 }
