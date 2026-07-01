@@ -1,15 +1,28 @@
 # Ultraudio 🎵
 
+[![Versión](https://img.shields.io/badge/Versión-0.6.0-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Estable](https://img.shields.io/badge/Estado-desarrollo-red.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Licencia](https://img.shields.io/badge/Licencia-Apache-green.svg)](https://github.com/RichyKunBv/Ultraudio/blob/main/LICENSE)
+[![Licencia](https://img.shields.io/badge/Licencia-BASS%20No%20Commercial-green.svg)](https://www.un4seen.com/bass.html#license)
+[![Lenguaje](https://img.shields.io/badge/Lenguaje-C%23.NET-lightgrey.svg)](https://dotnet.microsoft.com/es-es/download/dotnet/10.0)
+[![GUI](https://img.shields.io/badge/GUI-Avalonia%20UI-purple.svg)](https://avaloniaui.net)
+
+![Linux](https://img.shields.io/badge/Linux-000000?style=for-the-badge&logo=linux&logoColor=white)
+![Windows](https://img.shields.io/badge/Windows-000000?style=for-the-badge&logo=windows&logoColor=white)
+![macOS](https://img.shields.io/badge/macOS-000000?style=for-the-badge&logo=apple&logoColor=white)
+
 Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicamente para formatos sin pérdida (lossless). Desarrollado con el objetivo de ofrecer la máxima calidad de sonido directamente a tu DAC (Digital-to-Analog Converter), evitando alteraciones en la señal de audio original.
 
 ## ✨ Características Principales
 
 - **Bit-Perfect Audio**: Reproducción exacta, entregando la señal a tu DAC con la mayor fidelidad posible.
-- **Soporte Lossless & CUE**: Optimizado para FLAC, con soporte de hojas CUE para dividir álbumes.
-- **Visualizador de Espectro**: Análisis de frecuencias de audio en tiempo real integrado en la interfaz.
-- **Ventana de Configuración Avanzada**: Selector de DAC dedicado y persistencia de preferencias del usuario.
-- **Gestión Avanzada de Librería**: Extracción automática de portadas (Cover Art), escaneo de librerías y registro de historial de reproducción.
-- **Integración con Sistema**: Soporte nativo de Teclas Multimedia (Media Keys), integración en la barra de menú (macOS) y servicio HTTP.
+- **Soporte Amplio de Formatos**: Compatible con formatos Lossless y Hi-Res como FLAC, WAV, AIFF, y DSD (DSF/DFF).
+- **Reproducción de CD**: Soporte nativo para lectura y reproducción de audio desde discos compactos.
+- **Gapless Playback & CUE**: Reproducción continua sin pausas entre pistas y soporte completo de hojas CUE para álbumes.
+- **Visualizador de Espectro**: Análisis de frecuencias de audio (FFT) en tiempo real integrado en la interfaz.
+- **Gestión Avanzada de Librería**: Escaneo veloz con lectura de metadatos (incluyendo ReplayGain), extracción automática de portadas (Cover Art) y registro de historial.
+- **Ventana de Configuración Avanzada**: Selector de DAC (dispositivo de salida) dedicado y persistencia de preferencias.
+- **Integración con Sistema**: Soporte nativo de Teclas Multimedia (Media Keys), integración en la barra de menú (macOS) y servicio de control HTTP remoto.
 - **Multiplataforma**: Construido sobre Avalonia UI y .NET 10, para Windows, macOS y Linux.
 
 ## 📸 Interfaz y Uso
@@ -42,18 +55,6 @@ El proyecto está desarrollado en **C# (.NET 10)** y se apoya en las siguientes 
 - [Avalonia UI](https://avaloniaui.net/): Framework de interfaz de usuario para aplicaciones de escritorio multiplataforma.
 - [BASS Audio Library](http://www.un4seen.com/): Motor de audio para reproducción. Se usan los wrappers `ManagedBass` y `ManagedBass.Flac`.
 - [TagLib#](https://github.com/mono/taglib-sharp): Herramienta para extraer metadata
-
-## 📁 Estructura del Proyecto
-
-```text
-Ultraudio/
-├── lib/               # Bibliotecas nativas (BASS) para macOS, Windows y Linux
-├── res/               # Recursos de la aplicación (imágenes de docs, samples)
-├── scripts/           # Scripts de compilación, empaquetado y sincronización
-├── src/               # Código fuente de la aplicación (Avalonia UI, C#)
-├── Ultraudio.slnx     # Archivo de solución de .NET
-└── README.md          # Documentación del proyecto
-```
 
 ## 🚀 Cómo compilar y ejecutar
 
@@ -182,7 +183,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 | ⬜ | Fedora | 44 | i7-1255U | 16 GB | |  |
 | ⬜ | Arch | | i5-5250U | 4 GB | |  |
 | ⬜ | Debian | 13 | Celeron N3350 | 4 GB | |  |
-| ✅ | Fedora | 44 | i5 M520 | 8 GB | v0.5.0 | Clonado y compilado |
+| ✅ | Fedora | 44 | i5 M520 | 8 GB | v0.6.0 | Clonado y compilado, prueba del lector de CD (si funciona) |
 
 </details>
 
@@ -198,12 +199,25 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 | 2 | Over Each Other | Linkin Park | From Zero | `FLAC` | v0.2.0 |
 | 3 | In the end | Linkin Park | Hybrid Theory | `FLAC`| 0.3.0 |
 | 4 | Faith | Limp Bizkit | Greatest Hits | `FLAC`| 0.3.1 |
+| 5 | Take a Look Around | Limp Bizkit | Significant Other | `WAV`| v0.5.0 |
 
 ### 🎶 Discos de Prueba
 
-| # | Álbum | Artista | Formato | Version de app |
+| # | Álbum | Artista | Versión de app |
+| :---: | :--- | :--- | :---: |
+| 1 | Greatest Hits | Limp Bizkit | v0.6.0 |
+| 2 | DISSIDIA FINAL FANTASY NT: Ultimate Collector's Edition Official Soundtrack | 石元丈晴 | v0.6.0 |
+
+### 🎶 Audifonos y Bocinas de Prueba
+
+| # | marca | modelo | tipo | version de app |
 | :---: | :--- | :--- | :--- | :---: |
-| 1 | Greatest Hits | Limp Bizkit | `CD` | v0.6.0 |
+| 1 | Sennheiser | HD599 | acústico abierto circumaurales | v0.5.0 |
+| 2 | Apple | Integrados MacBook Air M1 | Bocinas | v0.1.2 |
+| 3 | Apple | Integrados MacBook Neo | Bocinas | v0.2.0 |
+| 4 | Apple | Integrados MacBook Pro (2019) | Bocinas | v0.3.0 |
+| 5 | Apple | Integrados MacBook Pro (2010) | Bocinas | v0.5.0 |
+| 6 | Bose | SoundLink Mini | Bocinas | v0.6.0 |
 
 </details>
 
