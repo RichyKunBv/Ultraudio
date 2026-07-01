@@ -11,8 +11,40 @@ if [[ "$(uname)" != "Darwin" ]]; then
     read -n 1 -s -r
 fi
 
-# Definir las rutas
-PROJECT_DIR="$HOME/Ultraudio"
+# Definir las rutas base al estilo sync.sh
+nombre="Ultraudio"
+repos_base="$HOME/Repos"
+old_location="$HOME/$nombre"
+PROJECT_DIR=""
+
+ensure_repos_dir() {
+    if [ ! -d "$repos_base" ]; then
+        echo "Creando carpeta predeterminada de repositorios en $repos_base..."
+        mkdir -p "$repos_base"
+    fi
+}
+
+detect_repository_location() {
+    if [ -d "$repos_base/$nombre/.git" ]; then
+        PROJECT_DIR="$repos_base/$nombre"
+    elif [ -d "$old_location/.git" ]; then
+        ensure_repos_dir
+
+        if [ -e "$repos_base/$nombre" ]; then
+            echo "Existe un repositorio en $old_location y también en $repos_base/$nombre."
+            echo "Por favor mueve manualmente el contenido o elimina uno de ellos."
+            exit 1
+        fi
+
+        echo "Moviendo repositorio existente de $old_location a $repos_base/$nombre..."
+        mv "$old_location" "$repos_base/"
+        PROJECT_DIR="$repos_base/$nombre"
+    else
+        PROJECT_DIR="$repos_base/$nombre"
+    fi
+}
+
+detect_repository_location
 
 MACOS_ARM_APP="$HOME/UltraudioARM64macOS/Ultraudio.app"
 MACOS_X64_APP="$HOME/UltraudioX86_64macOS/Ultraudio.app"
