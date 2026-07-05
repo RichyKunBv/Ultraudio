@@ -73,29 +73,28 @@ jobs:
           echo Eliminando .pdb...
           del /q /s "src\bin\Release\net10.0\${{ matrix.rid }}\publish\*.pdb" 2>nul || ver>nul
 
-          if not exist "C:\Program Files (x86)\NSIS\makensis.exe" (
+          if not exist "C:\PROGRA~2\NSIS\makensis.exe" (
             echo Instalando NSIS...
             choco install nsis -y
           )
 
-          REM Usar la ruta corta 8.3 para evitar problemas con paréntesis
-          set "NSIS_EXE=C:\PROGRA~2\NSIS\makensis.exe"
-
-          if not exist "%NSIS_EXE%" (
-            echo ERROR: makensis.exe no encontrado en %NSIS_EXE%
+          echo Verificando makensis.exe...
+          if not exist "C:\PROGRA~2\NSIS\makensis.exe" (
+            echo ERROR: No se encontró makensis.exe
             exit /b 1
           )
 
+          echo Verificando script NSIS...
           if not exist "scripts\build\installer.nsi" (
-            echo ERROR: scripts\build\installer.nsi no existe. ¿Está en el repositorio?
-            dir scripts\build\installer.nsi
+            echo ERROR: El archivo scripts\build\installer.nsi no existe.
             exit /b 1
           )
 
           echo Ejecutando NSIS...
-          "%NSIS_EXE%" /DARCH=${{ matrix.arch }} /DVERSION=${{ env.VERSION }} /DPUBLISH_DIR=src\bin\Release\net10.0\${{ matrix.rid }}\publish /DOUTFILE=${{ matrix.asset_name }} scripts\build\installer.nsi
-      
-          # --- EMPAQUETADO LINUX ---
+          "C:\PROGRA~2\NSIS\makensis.exe" /DARCH=${{ matrix.arch }} /DVERSION=${{ env.VERSION }} /DPUBLISH_DIR=src\bin\Release\net10.0\${{ matrix.rid }}\publish /DOUTFILE=${{ matrix.asset_name }} scripts\build\installer.nsi
+
+
+      # --- EMPAQUETADO LINUX ---
       - name: Preparar AppDir (Linux)
         if: runner.os == 'Linux'
         run: |
