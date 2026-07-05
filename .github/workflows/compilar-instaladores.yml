@@ -91,8 +91,7 @@ jobs:
           )
 
           echo Ejecutando NSIS...
-          "C:\PROGRA~2\NSIS\makensis.exe" /DARCH=${{ matrix.arch }} /DVERSION=${{ env.VERSION }} /DPUBLISH_DIR=src\bin\Release\net10.0\${{ matrix.rid }}\publish /DOUTFILE=${{ matrix.asset_name }} scripts\build\installer.nsi
-
+          "C:\PROGRA~2\NSIS\makensis.exe" /DARCH=${{ matrix.arch }} /DVERSION=${{ env.VERSION }} /DPUBLISH_DIR=${{ github.workspace }}\src\bin\Release\net10.0\${{ matrix.rid }}\publish /DOUTFILE=${{ matrix.asset_name }} scripts\build\installer.nsi
 
       # --- EMPAQUETADO LINUX ---
       - name: Preparar AppDir (Linux)
