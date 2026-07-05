@@ -78,19 +78,24 @@ jobs:
             choco install nsis -y
           )
 
-          echo Verificando existencia de makensis.exe:
-          dir "C:\Program Files (x86)\NSIS\makensis.exe"
+          REM Usar la ruta corta 8.3 para evitar problemas con paréntesis
+          set "NSIS_EXE=C:\PROGRA~2\NSIS\makensis.exe"
 
-          echo Verificando script NSIS:
-          dir scripts\build\installer.nsi
+          if not exist "%NSIS_EXE%" (
+            echo ERROR: makensis.exe no encontrado en %NSIS_EXE%
+            exit /b 1
+          )
 
-          echo Contenido de la carpeta de publicación:
-          dir src\bin\Release\net10.0\${{ matrix.rid }}\publish
+          if not exist "scripts\build\installer.nsi" (
+            echo ERROR: scripts\build\installer.nsi no existe. ¿Está en el repositorio?
+            dir scripts\build\installer.nsi
+            exit /b 1
+          )
 
-          echo Ejecutando makensis...
-          "C:\Program Files (x86)\NSIS\makensis.exe" /DARCH=${{ matrix.arch }} /DVERSION=${{ env.VERSION }} /DPUBLISH_DIR=src\bin\Release\net10.0\${{ matrix.rid }}\publish /DOUTFILE=${{ matrix.asset_name }} scripts\build\installer.nsi
-          
-      # --- EMPAQUETADO LINUX ---
+          echo Ejecutando NSIS...
+          "%NSIS_EXE%" /DARCH=${{ matrix.arch }} /DVERSION=${{ env.VERSION }} /DPUBLISH_DIR=src\bin\Release\net10.0\${{ matrix.rid }}\publish /DOUTFILE=${{ matrix.asset_name }} scripts\build\installer.nsi
+      
+          # --- EMPAQUETADO LINUX ---
       - name: Preparar AppDir (Linux)
         if: runner.os == 'Linux'
         run: |
