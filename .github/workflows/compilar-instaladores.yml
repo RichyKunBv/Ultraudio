@@ -69,10 +69,27 @@ jobs:
         if: runner.os == 'Windows'
         shell: cmd
         run: |
+          @echo on
+          echo Eliminando .pdb...
           del /q /s "src\bin\Release\net10.0\${{ matrix.rid }}\publish\*.pdb" 2>nul || ver>nul
-          if not exist "C:\Program Files (x86)\NSIS\makensis.exe" choco install nsis -y
-          "C:\Program Files (x86)\NSIS\makensis.exe" /DARCH=${{ matrix.arch }} /DVERSION=${{ env.VERSION }} /DPUBLISH_DIR=src\bin\Release\net10.0\${{ matrix.rid }}\publish /DOUTFILE=${{ matrix.asset_name }} scripts\build\installer.nsi
 
+          if not exist "C:\Program Files (x86)\NSIS\makensis.exe" (
+            echo Instalando NSIS...
+            choco install nsis -y
+          )
+
+          echo Verificando existencia de makensis.exe:
+          dir "C:\Program Files (x86)\NSIS\makensis.exe"
+
+          echo Verificando script NSIS:
+          dir scripts\build\installer.nsi
+
+          echo Contenido de la carpeta de publicación:
+          dir src\bin\Release\net10.0\${{ matrix.rid }}\publish
+
+          echo Ejecutando makensis...
+          "C:\Program Files (x86)\NSIS\makensis.exe" /DARCH=${{ matrix.arch }} /DVERSION=${{ env.VERSION }} /DPUBLISH_DIR=src\bin\Release\net10.0\${{ matrix.rid }}\publish /DOUTFILE=${{ matrix.asset_name }} scripts\build\installer.nsi
+          
       # --- EMPAQUETADO LINUX ---
       - name: Preparar AppDir (Linux)
         if: runner.os == 'Linux'
