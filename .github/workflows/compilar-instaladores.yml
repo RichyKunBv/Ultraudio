@@ -93,10 +93,10 @@ jobs:
           echo Ejecutando NSIS...
           "C:\PROGRA~2\NSIS\makensis.exe" /DARCH=${{ matrix.arch }} /DVERSION=${{ env.VERSION }} /DPUBLISH_DIR=${{ github.workspace }}\src\bin\Release\net10.0\${{ matrix.rid }}\publish /DOUTFILE=${{ github.workspace }}\${{ matrix.asset_name }} scripts\build\installer.nsi
 
-          echo Verificando instalador generado...
+          echo Verificando instalador en la raíz...
           dir "${{ github.workspace }}\${{ matrix.asset_name }}"
           if not exist "${{ github.workspace }}\${{ matrix.asset_name }}" (
-            echo ERROR: El instalador no se generó.
+            echo ERROR: El instalador no se generó en la ubicación esperada.
             exit /b 1
           )
 
@@ -194,7 +194,7 @@ jobs:
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ github.workspace }}\${{ matrix.asset_name }}
+          files: ${{ github.workspace }}/${{ matrix.asset_name }}
           
       - name: Subir Artefacto para PR o Manual
         if: github.event_name != 'release'
