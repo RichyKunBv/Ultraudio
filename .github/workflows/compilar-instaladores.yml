@@ -95,9 +95,10 @@ jobs:
           
           cp src/Ultraudio.desktop AppDir/usr/share/applications/
           cp src/Ultraudio.desktop AppDir/
-          sed -i "s/^Version=.*/Version=${{ env.VERSION }}/" AppDir/usr/share/applications/Ultraudio.desktop
-          sed -i "s/^Version=.*/Version=${{ env.VERSION }}/" AppDir/Ultraudio.desktop
           sed -i "s/^Exec=.*/Exec=Ultraudio/" AppDir/usr/share/applications/Ultraudio.desktop
+          sed -i "s/^Exec=.*/Exec=Ultraudio/" AppDir/Ultraudio.desktop
+          sed -i "s/^Icon=.*/Icon=Ultraudio/" AppDir/usr/share/applications/Ultraudio.desktop
+          sed -i "s/^Icon=.*/Icon=Ultraudio/" AppDir/Ultraudio.desktop
           sed -i "s/^Exec=.*/Exec=Ultraudio/" AppDir/Ultraudio.desktop
           sed -i "s/^Icon=.*/Icon=Ultraudio/" AppDir/usr/share/applications/Ultraudio.desktop
           sed -i "s/^Icon=.*/Icon=Ultraudio/" AppDir/Ultraudio.desktop
