@@ -1,7 +1,5 @@
 name: Generar Instaladores Multiplataforma
 
-# 2 horas en hacer esto lol 
-
 on:
   release:
     types: [created]
@@ -15,7 +13,7 @@ jobs:
     name: Empaquetar ${{ matrix.rid }}
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false   # 🔹 Permite que sigan ejecutándose aunque uno falle
+      fail-fast: false
       matrix:
         include:
           - os: windows-latest
@@ -74,6 +72,7 @@ jobs:
           del /q /s "src\bin\Release\net10.0\${{ matrix.rid }}\publish\*.pdb" 2>nul || ver>nul
           if not exist "C:\Program Files (x86)\NSIS\makensis.exe" choco install nsis -y
           "C:\Program Files (x86)\NSIS\makensis.exe" /DARCH=${{ matrix.arch }} /DVERSION=${{ env.VERSION }} /DPUBLISH_DIR="src\bin\Release\net10.0\${{ matrix.rid }}\publish" /DOUTFILE="${{ matrix.asset_name }}" scripts\build\installer.nsi
+
       # --- EMPAQUETADO LINUX ---
       - name: Preparar AppDir (Linux)
         if: runner.os == 'Linux'
@@ -129,7 +128,6 @@ jobs:
       - name: Preparar App Bundle (macOS)
         if: runner.os == 'macOS'
         run: |
-          brew untap aws/tap 2>/dev/null || true   # 🔹 Elimina el aviso de tap no confiable (opcional)
           APP_DIR="Ultraudio.app"
           mkdir -p "$APP_DIR/Contents/MacOS"
           mkdir -p "$APP_DIR/Contents/Resources"
