@@ -1,0 +1,174 @@
+name: Generar Instaladores Multiplataforma
+
+on:
+  release:
+    types: [created]
+  workflow_dispatch:
+
+jobs:
+  build-and-package:
+    name: Empaquetar ${{ matrix.rid }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            arch: x64
+            rid: win-x64
+            asset_name: Ultraudio-x64.exe
+          - os: windows-latest
+            arch: arm64
+            rid: win-arm64
+            asset_name: Ultraudio-arm64.exe
+          - os: ubuntu-latest
+            arch: x64
+            rid: linux-x64
+            asset_name: Ultraudio-x64.AppImage
+          - os: ubuntu-latest
+            arch: arm64
+            rid: linux-arm64
+            asset_name: Ultraudio-arm64.AppImage
+          - os: macos-latest
+            arch: x64
+            rid: osx-x64
+            asset_name: Ultraudio-x64.dmg
+          - os: macos-latest
+            arch: arm64
+            rid: osx-arm64
+            asset_name: Ultraudio-arm64.dmg
+
+    steps:
+      - name: Obtener código fuente
+        uses: actions/checkout@v4
+
+      - name: Instalar .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Instalar QEMU (Para Linux arm64)
+        if: runner.os == 'Linux' && matrix.arch == 'arm64'
+        uses: docker/setup-qemu-action@v3
+
+      - name: Obtener Versión
+        id: get_version
+        shell: bash
+        run: |
+          VERSION=$(awk -F'[><]' '/<Version>/{print $3}' src/Ultraudio.csproj | head -n 1)
+          if [ -z "$VERSION" ]; then VERSION="0.0.0"; fi
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Compilar aplicación
+        run: |
+          cd src
+          dotnet publish -c Release -r ${{ matrix.rid }} --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None
+
+      # --- EMPAQUETADO WINDOWS ---
+      - name: Generar Instalador (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          # Eliminar PDBs
+          Remove-Item -Path "src/bin/Release/net10.0/${{ matrix.rid }}/publish/*.pdb" -Force -ErrorAction SilentlyContinue
+          
+          # makensis está preinstalado en windows-latest en C:\Program Files (x86)\NSIS\makensis.exe, si no está se instala
+          $makensis = "C:\Program Files (x86)\NSIS\makensis.exe"
+          if (-not (Test-Path $makensis)) {
+              choco install nsis -y
+          }
+          & $makensis /DARCH=${{ matrix.arch }} /DVERSION=${{ env.VERSION }} /DPUBLISH_DIR="src\bin\Release\net10.0\${{ matrix.rid }}\publish" /DOUTFILE="${{ matrix.asset_name }}" scripts\build\installer.nsi
+
+      # --- EMPAQUETADO LINUX ---
+      - name: Preparar AppDir (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p AppDir/usr/bin
+          mkdir -p AppDir/usr/share/applications
+          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+          
+          cp -r src/bin/Release/net10.0/${{ matrix.rid }}/publish/* AppDir/usr/bin/
+          chmod +x AppDir/usr/bin/Ultraudio
+          
+          cp src/Assets/icon.png AppDir/usr/share/icons/hicolor/256x256/apps/Ultraudio.png
+          cp src/Assets/icon.png AppDir/Ultraudio.png
+          
+          cp src/Ultraudio.desktop AppDir/usr/share/applications/
+          cp src/Ultraudio.desktop AppDir/
+          sed -i "s/^Version=.*/Version=${{ env.VERSION }}/" AppDir/usr/share/applications/Ultraudio.desktop
+          sed -i "s/^Version=.*/Version=${{ env.VERSION }}/" AppDir/Ultraudio.desktop
+          sed -i "s/^Exec=.*/Exec=Ultraudio/" AppDir/usr/share/applications/Ultraudio.desktop
+          sed -i "s/^Exec=.*/Exec=Ultraudio/" AppDir/Ultraudio.desktop
+          sed -i "s/^Icon=.*/Icon=Ultraudio/" AppDir/usr/share/applications/Ultraudio.desktop
+          sed -i "s/^Icon=.*/Icon=Ultraudio/" AppDir/Ultraudio.desktop
+
+      - name: Generar AppImage (Linux x64)
+        if: runner.os == 'Linux' && matrix.arch == 'x64'
+        run: |
+          wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage
+          export APPIMAGE_EXTRACT_AND_RUN=1
+          ./linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage
+          mv Ultraudio*.AppImage ${{ matrix.asset_name }}
+
+      - name: Generar AppImage (Linux arm64)
+        if: runner.os == 'Linux' && matrix.arch == 'arm64'
+        run: |
+          wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-aarch64.AppImage
+          chmod +x linuxdeploy-aarch64.AppImage
+          export APPIMAGE_EXTRACT_AND_RUN=1
+          export ARCH=aarch64
+          ./linuxdeploy-aarch64.AppImage --appdir AppDir --output appimage
+          mv Ultraudio*.AppImage ${{ matrix.asset_name }}
+
+      # --- EMPAQUETADO MACOS ---
+      - name: Preparar App Bundle (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          APP_DIR="Ultraudio.app"
+          mkdir -p "$APP_DIR/Contents/MacOS"
+          mkdir -p "$APP_DIR/Contents/Resources"
+          
+          cp -a src/bin/Release/net10.0/${{ matrix.rid }}/publish/. "$APP_DIR/Contents/MacOS/"
+          
+          cp src/Assets/icon.icns "$APP_DIR/Contents/Resources/" || true
+          cp src/Info.plist.template "$APP_DIR/Contents/Info.plist"
+          
+          plutil -replace CFBundleVersion -string "${{ env.VERSION }}" "$APP_DIR/Contents/Info.plist"
+          plutil -replace CFBundleShortVersionString -string "${{ env.VERSION }}" "$APP_DIR/Contents/Info.plist"
+          plutil -replace CFBundleExecutable -string "Ultraudio" "$APP_DIR/Contents/Info.plist"
+          plutil -replace CFBundleIconFile -string "icon.icns" "$APP_DIR/Contents/Info.plist"
+          plutil -replace CFBundleIdentifier -string "com.esmesolutions.ultraudio" "$APP_DIR/Contents/Info.plist"
+          
+          xattr -cr "$APP_DIR"
+          codesign --force --deep --sign - "$APP_DIR"
+
+      - name: Generar DMG (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install create-dmg
+          
+          create-dmg \
+            --volname "Ultraudio" \
+            --window-pos 200 120 \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "Ultraudio.app" 150 150 \
+            --hide-extension "Ultraudio.app" \
+            --app-drop-link 450 150 \
+            "${{ matrix.asset_name }}" \
+            "Ultraudio.app"
+
+      # --- SUBIR RESULTADO ---
+      - name: Subir Archivo a GitHub Releases
+        if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.asset_name }}
+          
+      - name: Subir Artefacto para PR o Manual
+        if: github.event_name != 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: ${{ matrix.asset_name }}
