@@ -67,17 +67,10 @@ jobs:
       # --- EMPAQUETADO WINDOWS ---
       - name: Generar Instalador (Windows)
         if: runner.os == 'Windows'
-        shell: pwsh
+        shell: cmd
         run: |
-          # Eliminar PDBs
-          Remove-Item -Path "src/bin/Release/net10.0/${{ matrix.rid }}/publish/*.pdb" -Force -ErrorAction SilentlyContinue
-          
-          # makensis está preinstalado en windows-latest en C:\Program Files (x86)\NSIS\makensis.exe, si no está se instala
-          $makensis = "C:\Program Files (x86)\NSIS\makensis.exe"
-          if (-not (Test-Path $makensis)) {
-              choco install nsis -y
-          }
-          & $makensis /DARCH=${{ matrix.arch }} /DVERSION=${{ env.VERSION }} /DPUBLISH_DIR="src\bin\Release\net10.0\${{ matrix.rid }}\publish" /DOUTFILE="${{ matrix.asset_name }}" scripts\build\installer.nsi
+          del /q /s "src\bin\Release\net10.0\${{ matrix.rid }}\publish\*.pdb" 2>nul || ver>nul
+          makensis /DARCH=${{ matrix.arch }} /DVERSION=${{ env.VERSION }} /DPUBLISH_DIR="src\bin\Release\net10.0\${{ matrix.rid }}\publish" /DOUTFILE="${{ matrix.asset_name }}" scripts\build\installer.nsi
 
       # --- EMPAQUETADO LINUX ---
       - name: Preparar AppDir (Linux)
