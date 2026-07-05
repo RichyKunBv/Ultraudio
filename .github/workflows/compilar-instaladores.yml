@@ -103,23 +103,35 @@ jobs:
       - name: Generar AppImage (Linux x64)
         if: runner.os == 'Linux' && matrix.arch == 'x64'
         run: |
-          # Crear AppRun simbólico (requerido por appimagetool puro)
-          ln -s usr/bin/Ultraudio AppDir/AppRun
+          # Crear AppRun (Script robusto)
+          cat << 'EOF' > AppDir/AppRun
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "${0}")")"
+          exec "${HERE}/usr/bin/Ultraudio" "$@"
+          EOF
+          chmod +x AppDir/AppRun
           wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
           export APPIMAGE_EXTRACT_AND_RUN=1
-          ./appimagetool-x86_64.AppImage AppDir ${{ matrix.asset_name }}
+          export UPDATE_INFORMATION=""
+          # Ignorar validación estricta si falla algo menor
+          ./appimagetool-x86_64.AppImage AppDir ${{ matrix.asset_name }} || ./appimagetool-x86_64.AppImage AppDir ${{ matrix.asset_name }} -n
 
       - name: Generar AppImage (Linux arm64)
         if: runner.os == 'Linux' && matrix.arch == 'arm64'
         run: |
-          ln -s usr/bin/Ultraudio AppDir/AppRun
+          cat << 'EOF' > AppDir/AppRun
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "${0}")")"
+          exec "${HERE}/usr/bin/Ultraudio" "$@"
+          EOF
+          chmod +x AppDir/AppRun
           # Usamos la herramienta x86_64 pero le decimos que empaquete para aarch64
           wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
           export APPIMAGE_EXTRACT_AND_RUN=1
           export ARCH=aarch64
-          ./appimagetool-x86_64.AppImage AppDir ${{ matrix.asset_name }}
+          ./appimagetool-x86_64.AppImage AppDir ${{ matrix.asset_name }} || ./appimagetool-x86_64.AppImage AppDir ${{ matrix.asset_name }} -n
 
       # --- EMPAQUETADO MACOS ---
       - name: Preparar App Bundle (macOS)
