@@ -150,19 +150,24 @@
                 <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
 
                     <!-- Track title + favorite + tech badge -->
-                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,4">
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,4">
                         <TextBlock Grid.Column="0" Name="TxtTitle"
                                    Text="No track selected"
                                    FontSize="17" FontWeight="SemiBold"
                                    Foreground="White"
                                    TextTrimming="CharacterEllipsis"/>
+                        <!-- Update Button -->
+                        <Button Grid.Column="1" Name="BtnUpdate"
+                                Classes="transport" FontSize="18"
+                                Content="✨" ToolTip.Tip="New version available"
+                                Click="BtnUpdate_Click" Margin="8,0,0,0" IsVisible="False"/>
                         <!-- Favorite star -->
-                        <Button Grid.Column="1" Name="BtnFavorite"
+                        <Button Grid.Column="2" Name="BtnFavorite"
                                 Classes="transport" FontSize="18"
                                 Content="☆" ToolTip.Tip="Mark as favorite"
                                 Click="BtnFavorite_Click" Margin="8,0,0,0"/>
                         <!-- Settings gear -->
-                        <Button Grid.Column="2" Name="BtnSettings"
+                        <Button Grid.Column="3" Name="BtnSettings"
                                 Classes="transport" Content="⚙"
                                 ToolTip.Tip="Settings"
                                 Click="BtnSettings_Click"/>

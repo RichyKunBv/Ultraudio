@@ -181,6 +181,29 @@ public partial class MainWindow : Window
             };
             _cdTimer.Start();
         }
+
+        CheckForUpdatesAsync();
+    }
+
+    // ─── Update Checker ───────────────────────────────────────────────────────
+
+    private async void CheckForUpdatesAsync()
+    {
+        var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.6.0.7";
+        // Fallback or cleanup if assembly version has extra zeros
+        if (version.EndsWith(".0") && version.Split('.').Length == 4)
+        {
+            // Just use the reflection version as is, it's typically fine for semantic comparison.
+        }
+        var (status, newVersion) = await UpdateService.CheckForUpdatesAsync(version);
+        if (status == UpdateStatus.Outdated)
+        {
+            Dispatcher.UIThread.Post(() =>
+            {
+                BtnUpdate.IsVisible = true;
+                ToolTip.SetTip(BtnUpdate, $"New version available: {newVersion}");
+            });
+        }
     }
 
     // ─── HTTP Remote wiring ───────────────────────────────────────────────────
@@ -765,6 +788,24 @@ public partial class MainWindow : Window
             ToolTip.SetTip(BtnRepeat, _repeatMode == RepeatMode.One ? "Repeat: One" : "Repeat: All");
         else
             ToolTip.SetTip(BtnRepeat, "Repeat (R)");
+    }
+
+    private void BtnUpdate_Click(object? sender, RoutedEventArgs e)
+    {
+        var uri = UpdateService.GetDirectDownloadUrl();
+        try
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = uri, UseShellExecute = true });
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                System.Diagnostics.Process.Start("xdg-open", uri);
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                System.Diagnostics.Process.Start("open", uri);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Could not open update URL: {ex.Message}");
+        }
     }
 
     // ─── Favorite ─────────────────────────────────────────────────────────────

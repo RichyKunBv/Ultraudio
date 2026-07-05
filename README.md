@@ -73,6 +73,11 @@ dotnet build
 dotnet run --project src/Ultraudio.csproj
 ```
 
+```sh
+# Para macOS, quitar el atributo de cuarentena si tienes la aplicacion en /Applications
+sudo xattr -cr /Applications/Ultraudio.app
+```
+
 Para la creación y empaquetado de la aplicación, dispones de scripts automatizados en el directorio `scripts/`:
 
 - **macOS**: `scripts/build_ultraudio_in_macos.sh` (empaqueta como `.app` nativa y también compila para Windows y Linux).
