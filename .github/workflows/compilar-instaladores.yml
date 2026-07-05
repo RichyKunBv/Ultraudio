@@ -46,9 +46,6 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Instalar QEMU (Para Linux arm64)
-        if: runner.os == 'Linux' && matrix.arch == 'arm64'
-        uses: docker/setup-qemu-action@v3
 
       - name: Obtener Versión
         id: get_version
@@ -117,11 +114,12 @@ jobs:
         if: runner.os == 'Linux' && matrix.arch == 'arm64'
         run: |
           ln -s usr/bin/Ultraudio AppDir/AppRun
-          wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-aarch64.AppImage
-          chmod +x appimagetool-aarch64.AppImage
+          # Usamos la herramienta x86_64 pero le decimos que empaquete para aarch64
+          wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
           export APPIMAGE_EXTRACT_AND_RUN=1
           export ARCH=aarch64
-          ./appimagetool-aarch64.AppImage AppDir ${{ matrix.asset_name }}
+          ./appimagetool-x86_64.AppImage AppDir ${{ matrix.asset_name }}
 
       # --- EMPAQUETADO MACOS ---
       - name: Preparar App Bundle (macOS)
