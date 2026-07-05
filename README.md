@@ -1,6 +1,6 @@
 # Ultraudio 🎵
 
-[![Versión](https://img.shields.io/badge/Versión-0.6.0-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Versión](https://img.shields.io/badge/Versión-0.7.0-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Estable](https://img.shields.io/badge/Estado-desarrollo-red.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Licencia](https://img.shields.io/badge/Licencia-Apache-green.svg)](https://github.com/RichyKunBv/Ultraudio/blob/main/LICENSE)
 [![Licencia](https://img.shields.io/badge/Licencia-BASS%20No%20Commercial-green.svg)](https://www.un4seen.com/bass.html#license)
@@ -23,6 +23,7 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 - **Gestión Avanzada de Librería**: Escaneo veloz con lectura de metadatos (incluyendo ReplayGain), extracción automática de portadas (Cover Art) y registro de historial.
 - **Ventana de Configuración Avanzada**: Selector de DAC (dispositivo de salida) dedicado y persistencia de preferencias.
 - **Integración con Sistema**: Soporte nativo de Teclas Multimedia (Media Keys), integración en la barra de menú (macOS) y servicio de control HTTP remoto.
+- **Verificación de Actualizaciones**: Notificación de nuevas versiones disponibles.
 - **Multiplataforma**: Construido sobre Avalonia UI y .NET 10, para Windows, macOS y Linux.
 
 ## 📸 Interfaz y Uso
@@ -44,6 +45,11 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 <img src="res/docs/config 1.png" width="762" alt="Configuración General"/>
 <br/>
 <img src="res/docs/config 2.png" width="762" alt="Configuración de Audio y DAC"/>
+<br/>
+<img src="res/docs/config 3.png" width="762" alt="Configuración de Interfaz"/>
+
+### Notificación de Actualizaciones
+<img src="res/docs/actualizaciones.png" width="762" alt="Aviso de Actualización"/>
 
 ### Integración con macOS (Barra de Menú)
 <img src="res/docs/barra de menu macos.png" width="762" alt="Barra de Menú en macOS"/>
@@ -55,6 +61,20 @@ El proyecto está desarrollado en **C# (.NET 10)** y se apoya en las siguientes 
 - [Avalonia UI](https://avaloniaui.net/): Framework de interfaz de usuario para aplicaciones de escritorio multiplataforma.
 - [BASS Audio Library](http://www.un4seen.com/): Motor de audio para reproducción. Se usan los wrappers `ManagedBass` y `ManagedBass.Flac`.
 - [TagLib#](https://github.com/mono/taglib-sharp): Herramienta para extraer metadata
+- [Internet](https://github.com/RichyKunBv/Ultraudio/releases/latest): Herramienta para actualizar la aplicacion
+
+## ⬇️ Descargas / Instalación
+
+Puedes descargar los binarios precompilados listos para usar desde la sección de **[Releases](https://github.com/RichyKunBv/Ultraudio/releases/latest)**.
+
+Están disponibles para todos los sistemas operativos principales (**Windows, macOS y Linux**) en las arquitecturas más utilizadas:
+- **x64** (Procesadores Intel y AMD)
+- **arm64** (Apple Silicon y procesadores ARM)
+
+```sh
+# Para macOS, quitar el atributo de cuarentena si no se puede abrir la app
+sudo xattr -cr /Applications/Ultraudio.app
+```
 
 ## 🚀 Cómo compilar y ejecutar
 
@@ -73,10 +93,6 @@ dotnet build
 dotnet run --project src/Ultraudio.csproj
 ```
 
-```sh
-# Para macOS, quitar el atributo de cuarentena si tienes la aplicacion en /Applications
-sudo xattr -cr /Applications/Ultraudio.app
-```
 
 Para la creación y empaquetado de la aplicación, dispones de scripts automatizados en el directorio `scripts/`:
 
