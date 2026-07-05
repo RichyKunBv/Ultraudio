@@ -105,21 +105,22 @@ jobs:
       - name: Generar AppImage (Linux x64)
         if: runner.os == 'Linux' && matrix.arch == 'x64'
         run: |
-          wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
-          chmod +x linuxdeploy-x86_64.AppImage
+          # Crear AppRun simbólico (requerido por appimagetool puro)
+          ln -s usr/bin/Ultraudio AppDir/AppRun
+          wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
           export APPIMAGE_EXTRACT_AND_RUN=1
-          ./linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage
-          mv Ultraudio*.AppImage ${{ matrix.asset_name }}
+          ./appimagetool-x86_64.AppImage AppDir ${{ matrix.asset_name }}
 
       - name: Generar AppImage (Linux arm64)
         if: runner.os == 'Linux' && matrix.arch == 'arm64'
         run: |
-          wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-aarch64.AppImage
-          chmod +x linuxdeploy-aarch64.AppImage
+          ln -s usr/bin/Ultraudio AppDir/AppRun
+          wget https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-aarch64.AppImage
+          chmod +x appimagetool-aarch64.AppImage
           export APPIMAGE_EXTRACT_AND_RUN=1
           export ARCH=aarch64
-          ./linuxdeploy-aarch64.AppImage --appdir AppDir --output appimage
-          mv Ultraudio*.AppImage ${{ matrix.asset_name }}
+          ./appimagetool-aarch64.AppImage AppDir ${{ matrix.asset_name }}
 
       # --- EMPAQUETADO MACOS ---
       - name: Preparar App Bundle (macOS)
