@@ -131,8 +131,45 @@ public partial class MainWindow : Window
         UpdateShuffleButton();
         UpdateRepeatButton();
 
+        // ── Global Keyboard Shortcuts ─────────────────────────────────────────
+        AddHandler(KeyDownEvent, Window_KeyDown, RoutingStrategies.Tunnel);
+
         // ── Playlist binding ─────────────────────────────────────────────────
         ListaReproduccion.ItemsSource = _filteredItems;
+
+        // ── Restore Session ───────────────────────────────────────────────────
+        if (_prefs.Settings.SessionQueue != null && _prefs.Settings.SessionQueue.Count > 0)
+        {
+            LoadPlaylist(_prefs.Settings.SessionQueue, autoPlay: false);
+
+            if (_prefs.Settings.SessionCurrentIndex >= 0 && _prefs.Settings.SessionCurrentIndex < _playlist.Count)
+            {
+                _currentIndex = _prefs.Settings.SessionCurrentIndex;
+                _allItems[_currentIndex].IsPlaying = true;
+
+                var track = _playlist[_currentIndex];
+                _audio.Reproducir(track.FilePath, _prefs.Settings.RamMode, track.CueStartSeconds, track.CueEndSeconds, 0);
+                _audio.AlternarPausa(); // Start paused
+                _audio.PosicionSegundos = _prefs.Settings.SessionPosition;
+                _audio.Volumen = SliderVolumen.Value;
+
+                UpdatePlayerUI(track);
+                _mediaKeys.UpdateNowPlaying(track);
+
+                // Scroll to selected item
+                var vm = _allItems[_currentIndex];
+                if (_filteredItems.Contains(vm))
+                {
+                    ListaReproduccion.SelectedItem = vm;
+                    ListaReproduccion.ScrollIntoView(vm);
+                }
+                
+                // Update timer UI once
+                Timer_Tick(null, EventArgs.Empty);
+            }
+        }
+
+        if (_shuffleEnabled) BuildShuffleOrder();
 
         // ── Progress timer ────────────────────────────────────────────────────
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
@@ -292,7 +329,7 @@ public partial class MainWindow : Window
             var tracks = files
                 .Select(f => LibraryScanner.ScanFile(f.Path.LocalPath) ?? new TrackModel { FilePath = f.Path.LocalPath })
                 .ToList();
-            LoadPlaylist(tracks, autoPlay: true);
+            LoadPlaylist(tracks, autoPlay: true, append: true);
 
             if (!string.IsNullOrEmpty(files[0].Path.LocalPath))
                 _prefs.Set(s => s.LastFolderPath = Path.GetDirectoryName(files[0].Path.LocalPath) ?? s.LastFolderPath);
@@ -329,7 +366,7 @@ public partial class MainWindow : Window
                 var tracks = files
                     .Select(f => LibraryScanner.ScanFile(f) ?? new TrackModel { FilePath = f })
                     .ToList();
-                LoadPlaylist(tracks, autoPlay: true);
+                LoadPlaylist(tracks, autoPlay: true, append: true);
             }
         }
     }
@@ -353,7 +390,7 @@ public partial class MainWindow : Window
         {
             var tracks = CueParser.Parse(files[0].Path.LocalPath);
             if (tracks.Count > 0)
-                LoadPlaylist(tracks, autoPlay: true);
+                LoadPlaylist(tracks, autoPlay: true, append: true);
         }
     }
 
@@ -434,7 +471,7 @@ public partial class MainWindow : Window
             }
 
             if (tracks.Count > 0)
-                LoadPlaylist(tracks, autoPlay: true);
+                LoadPlaylist(tracks, autoPlay: true, append: true);
         }
         catch (Exception ex)
         {
@@ -452,14 +489,102 @@ public partial class MainWindow : Window
         _timer.Stop();
         ResetPlayerUI();
     }
+    
+    private void BtnMoveUp_Click(object? sender, RoutedEventArgs e)
+    {
+        if (ListaReproduccion.SelectedItem is PlaylistItemViewModel vm)
+        {
+            int idx = _allItems.IndexOf(vm);
+            if (idx > 0)
+            {
+                var track = _playlist[idx];
+                _playlist.RemoveAt(idx);
+                _playlist.Insert(idx - 1, track);
+                
+                _allItems.RemoveAt(idx);
+                _allItems.Insert(idx - 1, vm);
+                
+                ListaReproduccion.SelectedItem = vm;
+                
+                if (_currentIndex == idx) _currentIndex = idx - 1;
+                else if (_currentIndex == idx - 1) _currentIndex = idx;
+                
+                if (_shuffleEnabled) BuildShuffleOrder();
+            }
+        }
+    }
+
+    private void BtnMoveDown_Click(object? sender, RoutedEventArgs e)
+    {
+        if (ListaReproduccion.SelectedItem is PlaylistItemViewModel vm)
+        {
+            int idx = _allItems.IndexOf(vm);
+            if (idx >= 0 && idx < _allItems.Count - 1)
+            {
+                var track = _playlist[idx];
+                _playlist.RemoveAt(idx);
+                _playlist.Insert(idx + 1, track);
+                
+                _allItems.RemoveAt(idx);
+                _allItems.Insert(idx + 1, vm);
+                
+                ListaReproduccion.SelectedItem = vm;
+                
+                if (_currentIndex == idx) _currentIndex = idx + 1;
+                else if (_currentIndex == idx + 1) _currentIndex = idx;
+                
+                if (_shuffleEnabled) BuildShuffleOrder();
+            }
+        }
+    }
+
+    private async void BtnSavePlaylist_Click(object? sender, RoutedEventArgs e)
+    {
+        if (_playlist.Count == 0) return;
+        
+        var topLevel = TopLevel.GetTopLevel(this);
+        if (topLevel == null) return;
+        
+        var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Save Playlist",
+            DefaultExtension = "m3u8",
+            SuggestedFileName = "Playlist.m3u8",
+            FileTypeChoices = new[] { new FilePickerFileType("M3U8 Playlist") { Patterns = new[] { "*.m3u8" } } }
+        });
+        
+        if (file != null)
+        {
+            try
+            {
+                using var stream = await file.OpenWriteAsync();
+                using var writer = new StreamWriter(stream);
+                await writer.WriteLineAsync("#EXTM3U");
+                foreach (var track in _playlist)
+                {
+                    await writer.WriteLineAsync($"#EXTINF:{(int)track.Duration.TotalSeconds},{track.Artist} - {track.DisplayTitle}");
+                    await writer.WriteLineAsync(track.FilePath);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving playlist: {ex.Message}");
+            }
+        }
+    }
 
     // ─── Playlist management ──────────────────────────────────────────────────
 
-    private void LoadPlaylist(List<TrackModel> tracks, bool autoPlay = false)
+    private void LoadPlaylist(List<TrackModel> tracks, bool autoPlay = false, bool append = false)
     {
-        _playlist.Clear();
+        if (!append)
+        {
+            _playlist.Clear();
+            _allItems.Clear();
+        }
+
+        int startIndex = _playlist.Count;
         _playlist.AddRange(tracks);
-        _allItems.Clear();
 
         foreach (var t in tracks)
         {
@@ -469,9 +594,13 @@ public partial class MainWindow : Window
 
         ApplySearchFilter(_searchText);
         UpdatePlaylistCount();
+        
+        if (_shuffleEnabled) BuildShuffleOrder();
 
-        if (autoPlay && _playlist.Count > 0)
+        if (autoPlay && !append && _playlist.Count > 0)
             ReproducirIndice(0);
+        else if (autoPlay && append && !_audio.EstaReproduciendo && startIndex < _playlist.Count)
+            ReproducirIndice(startIndex);
     }
 
     private void ApplySearchFilter(string query)
@@ -973,6 +1102,25 @@ public partial class MainWindow : Window
             case Key.F:
                 BtnFavorite_Click(null, new RoutedEventArgs());
                 break;
+            case Key.MediaPlayPause:
+            case Key.F8:
+                e.Handled = true;
+                BtnReproducir_Click(null, new RoutedEventArgs());
+                break;
+            case Key.MediaPreviousTrack:
+            case Key.F7:
+                e.Handled = true;
+                PrevTrack();
+                break;
+            case Key.MediaNextTrack:
+            case Key.F9:
+                e.Handled = true;
+                NextTrack();
+                break;
+            case Key.MediaStop:
+                e.Handled = true;
+                _audio.Detener();
+                break;
             case Key.O when e.KeyModifiers == KeyModifiers.Control:
                 e.Handled = true;
                 BtnCargarArchivo_Click(null, new RoutedEventArgs());
@@ -1017,6 +1165,12 @@ public partial class MainWindow : Window
         _prefs.Settings.WindowTop      = Position.Y;
         _prefs.Settings.IsShuffleEnabled = _shuffleEnabled;
         _prefs.Settings.RepeatMode     = _repeatMode.ToString();
+
+        // Save session state
+        _prefs.Settings.SessionQueue = new List<TrackModel>(_playlist);
+        _prefs.Settings.SessionCurrentIndex = _currentIndex;
+        _prefs.Settings.SessionPosition = _audio.PosicionSegundos;
+
         _prefs.Save();
         _history.Save();
 

@@ -9,7 +9,6 @@
         Background="#0A0A0A"
         WindowStartupLocation="CenterScreen"
         Icon="avares://Ultraudio/Assets/icon.ico"
-        KeyDown="Window_KeyDown"
         PointerWheelChanged="Window_PointerWheelChanged">
 
     <!-- Native menu -->
@@ -318,19 +317,28 @@
 
             <!-- Load buttons -->
             <Border Grid.Row="3" Padding="10,8" Background="#0A0A0A">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <Button Name="BtnCargarArchivo" Classes="load-btn"
-                            Content="📄 Files" Click="BtnCargarArchivo_Click"/>
-                    <Button Name="BtnCargarCarpeta" Classes="load-btn"
-                            Content="📁 Folder" Click="BtnCargarCarpeta_Click"/>
-                    <Button Name="BtnCargarCue" Classes="load-btn"
-                            Content="📋 CUE Sheet" Click="BtnCargarCue_Click"/>
-                    <Button Name="BtnCargarCd" Classes="load-btn"
-                            Content="💿 CD Audio" Click="BtnCargarCd_Click"/>
-                    <Border Width="1" Height="20" Background="#2A2A2A" Margin="2,0"/>
-                    <Button Name="BtnClearPlaylist" Classes="load-btn"
-                            Content="✕ Clear" Click="BtnClearPlaylist_Click"/>
-                </StackPanel>
+                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Name="BtnCargarArchivo" Classes="load-btn"
+                                Content="📄 Add Files" Click="BtnCargarArchivo_Click"/>
+                        <Button Name="BtnCargarCarpeta" Classes="load-btn"
+                                Content="📁 Add Folder" Click="BtnCargarCarpeta_Click"/>
+                        <Button Name="BtnCargarCue" Classes="load-btn"
+                                Content="📋 CUE Sheet" Click="BtnCargarCue_Click"/>
+                        <Button Name="BtnCargarCd" Classes="load-btn"
+                                Content="💿 CD Audio" Click="BtnCargarCd_Click"/>
+                        <Border Width="1" Height="20" Background="#2A2A2A" Margin="2,0"/>
+                        <Button Name="BtnMoveUp" Classes="load-btn"
+                                Content="↑" Click="BtnMoveUp_Click" ToolTip.Tip="Move Selected Up"/>
+                        <Button Name="BtnMoveDown" Classes="load-btn"
+                                Content="↓" Click="BtnMoveDown_Click" ToolTip.Tip="Move Selected Down"/>
+                        <Border Width="1" Height="20" Background="#2A2A2A" Margin="2,0"/>
+                        <Button Name="BtnSavePlaylist" Classes="load-btn"
+                                Content="💾 Save" Click="BtnSavePlaylist_Click"/>
+                        <Button Name="BtnClearPlaylist" Classes="load-btn"
+                                Content="✕ Clear" Click="BtnClearPlaylist_Click"/>
+                    </StackPanel>
+                </ScrollViewer>
             </Border>
         </Grid>
     </Grid>

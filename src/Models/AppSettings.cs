@@ -41,6 +41,11 @@ public class AppSettings
     /// <summary>Set of file paths marked as favorite.</summary>
     public HashSet<string> Favorites { get; set; } = new(System.StringComparer.OrdinalIgnoreCase);
 
+    // ── Session State ───────────────────────────────────────────────────────
+    public List<TrackModel> SessionQueue { get; set; } = new();
+    public int SessionCurrentIndex { get; set; } = -1;
+    public double SessionPosition { get; set; } = 0;
+
     // ── Version ─────────────────────────────────────────────────────────────
     [JsonPropertyName("settingsVersion")]
     public int SettingsVersion { get; set; } = 1;
