@@ -65,7 +65,6 @@ public class MediaKeysService : IDisposable
     private sealed class MacMediaKeys
     {
         private readonly MediaKeysService _parent;
-        private bool _registered = false;
 
         // ObjC / CoreFoundation P/Invoke
         [DllImport("/System/Library/Frameworks/Foundation.framework/Foundation")]

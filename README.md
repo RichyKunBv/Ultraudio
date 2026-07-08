@@ -1,6 +1,6 @@
 # Ultraudio 🎵
 
-[![Versión](https://img.shields.io/badge/Versión-0.7.0-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Versión](https://img.shields.io/badge/Versión-0.8.0-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Estable](https://img.shields.io/badge/Estado-desarrollo-red.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Licencia](https://img.shields.io/badge/Licencia-Apache-green.svg)](https://github.com/RichyKunBv/Ultraudio/blob/main/LICENSE)
 [![Licencia](https://img.shields.io/badge/Licencia-BASS%20No%20Commercial-green.svg)](https://www.un4seen.com/bass.html#license)
@@ -20,7 +20,8 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 - **Reproducción de CD**: Soporte nativo para lectura y reproducción de audio desde discos compactos.
 - **Gapless Playback & CUE**: Reproducción continua sin pausas entre pistas y soporte completo de hojas CUE para álbumes.
 - **Visualizador de Espectro**: Análisis de frecuencias de audio (FFT) en tiempo real integrado en la interfaz.
-- **Gestión Avanzada de Librería**: Escaneo veloz con lectura de metadatos (incluyendo ReplayGain), extracción automática de portadas (Cover Art) y registro de historial.
+- **Gestión Avanzada de Librería**: Escaneo veloz con lectura de metadatos (incluyendo ReplayGain), extracción automática de portadas (Cover Art), registro de historial y búsqueda filtrada.
+- **Gestión de Listas de Reproducción**: Guarda tus listas en formato `.m3u8`, limpia la cola de reproducción y reordena las pistas a tu gusto.
 - **Ventana de Configuración Avanzada**: Selector de DAC (dispositivo de salida) dedicado y persistencia de preferencias.
 - **Integración con Sistema**: Soporte nativo de Teclas Multimedia (Media Keys), integración en la barra de menú (macOS) y servicio de control HTTP remoto.
 - **Verificación de Actualizaciones**: Notificación de nuevas versiones disponibles.

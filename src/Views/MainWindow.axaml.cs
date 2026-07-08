@@ -209,7 +209,7 @@ public partial class MainWindow : Window
                             if (isReady)
                             {
                                 // Auto-load tracks when CD is inserted
-                                BtnCargarCd_Click(null, null);
+                                BtnCargarCd_Click(null, null!);
                             }
                         }
                     }

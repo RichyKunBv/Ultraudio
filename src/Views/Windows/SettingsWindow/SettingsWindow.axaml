@@ -177,6 +177,30 @@
                     </Grid>
                 </Border>
 
+                <!-- About -->
+                <TextBlock Text="ABOUT" Classes="header" Margin="2,0,0,8"/>
+                <Border Classes="section">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="About Ultraudio" Classes="label"/>
+                            <TextBlock Text="Información sobre Ultraudio" Classes="value" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Name="BtnOpenAboutWindow" Content="Acerca de" Background="#2A2A2A" Foreground="#CCCCCC" Padding="12,6" VerticalAlignment="Center" Click="BtnOpenAboutWindow_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- History -->
+                <TextBlock Text="HISTORY" Classes="header" Margin="2,0,0,8"/>
+                <Border Classes="section">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="History" Classes="label"/>
+                            <TextBlock Text="Historial de Ultraudio" Classes="value" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Name="BtnOpenHistoryWindow" Content="Historial" Background="#2A2A2A" Foreground="#CCCCCC" Padding="12,6" VerticalAlignment="Center" Click="BtnOpenHistoryWindow_Click"/>
+                    </Grid>
+                </Border>
+
             </StackPanel>
         </ScrollViewer>
 

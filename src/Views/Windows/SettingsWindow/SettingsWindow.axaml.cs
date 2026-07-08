@@ -3,6 +3,7 @@ using Avalonia.Interactivity;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Ultraudio.Models;
+using Ultraudio.Views.Windows;
 using Avalonia.Media;
 
 namespace Ultraudio.Views.Windows;
@@ -95,5 +96,17 @@ public partial class SettingsWindow : Window
     {
         var win = new UpdateWindow();
         await win.ShowDialog(this);
+    }
+
+    private async void BtnOpenAboutWindow_Click(object? sender, RoutedEventArgs e)
+    {
+        var w = new AboutWindow();
+        await w.ShowDialog(this);
+    }
+
+    private async void BtnOpenHistoryWindow_Click(object? sender, RoutedEventArgs e)
+    {
+        var w = new HistoryWindow();
+        await w.ShowDialog(this);
     }
 }
