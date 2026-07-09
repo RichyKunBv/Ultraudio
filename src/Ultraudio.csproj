@@ -8,7 +8,7 @@
     <Company>EsMeSolutions</Company>
     <Authors>RichyKunBv</Authors>
     <Description>Reproductor Hi-Fi Bit-Perfect para formatos sin pérdida.</Description>
-    <Version>0.8.0</Version>
+    <Version>0.8.1</Version>
 
     <!-- Forzar que AssemblyInformationalVersion use solo la versión que defines arriba -->
     <AssemblyInformationalVersion>$(Version)</AssemblyInformationalVersion>
