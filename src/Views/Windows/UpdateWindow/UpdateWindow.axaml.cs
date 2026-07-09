@@ -18,7 +18,7 @@ public partial class UpdateWindow : Window
 
     private async void CheckForUpdatesAsync()
     {
-        var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.7.0";
+        var version = UpdateService.GetCurrentVersion();
         var (status, latestVersion) = await UpdateService.CheckForUpdatesAsync(version);
 
         Dispatcher.UIThread.Post(() =>
@@ -35,7 +35,7 @@ public partial class UpdateWindow : Window
                     TxtStatus.Foreground = Brushes.LightGreen;
                     break;
                 case UpdateStatus.Newer:
-                    TxtStatus.Text = $"Tienes una versión más reciente (Local: {version}, Remota: {latestVersion}).";
+                    TxtStatus.Text = $"Estás usando una versión de desarrollo (Local: {version}, Remota: {latestVersion}).";
                     TxtStatus.Foreground = Brushes.LightBlue;
                     break;
                 case UpdateStatus.Error:

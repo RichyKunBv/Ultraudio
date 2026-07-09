@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -15,6 +16,25 @@ public enum UpdateStatus
 
 public static class UpdateService
 {
+    public static string GetCurrentVersion()
+    {
+        var infoVersion = System.Reflection.Assembly.GetExecutingAssembly()
+            .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+            .FirstOrDefault() as System.Reflection.AssemblyInformationalVersionAttribute;
+
+        if (infoVersion != null && !string.IsNullOrEmpty(infoVersion.InformationalVersion))
+        {
+            var ver = infoVersion.InformationalVersion.Split('+')[0];
+            return ver;
+        }
+
+        var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.8.2";
+        if (version.EndsWith(".0") && version.Split('.').Length == 4)
+        {
+            version = version.Substring(0, version.Length - 2);
+        }
+        return version;
+    }
     public static async Task<(UpdateStatus status, string? latestVersion)> CheckForUpdatesAsync(string currentVersion)
     {
         try

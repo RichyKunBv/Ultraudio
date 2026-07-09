@@ -14,18 +14,22 @@
             <TextBlock Name="TxtVersion" FontSize="12" Foreground="#888888" HorizontalAlignment="Center" Margin="0,5,0,0"/>
         </StackPanel>
         
-        <ScrollViewer Grid.Row="1">
-            <TextBlock Name="TxtInfo" TextWrapping="Wrap" Foreground="#CCCCCC" TextAlignment="Center">
-                V0.8.0 - Soporte para M3U8.
-                V0.7.0 - La aplicacion detecta si existe una actualizacion disponible para descargarla automaticamente.
-                V0.6.0 - Solucion de errores de la interfaz y se agregó soporte de CDs.
-                V0.5.0 - Interfaz de usuario rediseñada.
-                V0.4.0 - Reorganizacion del codigo (Nunca vio la luz, estaba llena de bugs).
-                V0.3.0 - Automatizaciones en .sh y .bat para las builds. Tambien se agregaron las librerias BASS.
-                V0.2.0 - Pulido del codigo base.
-                V0.1.0 - Creacion del proyecto y codigo base.
-            </TextBlock>
-        </ScrollViewer>
+            <ScrollViewer Grid.Row="1">
+                <ListBox x:Name="LstVersions"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" 
+                                    Foreground="#CCCCCC"
+                                    TextWrapping="Wrap"
+                                    Margin="0,4,0,4"
+                                    FontSize="13"/>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </ScrollViewer>
         
         <Button Grid.Row="2" Name="BtnCerrar" Content="Cerrar" HorizontalAlignment="Center" Margin="0,15,0,0" Width="100" HorizontalContentAlignment="Center" Background="#333333" Foreground="White" Click="BtnCerrar_Click"/>
     </Grid>

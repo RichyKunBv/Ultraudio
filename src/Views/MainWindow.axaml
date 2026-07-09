@@ -17,6 +17,8 @@
             <NativeMenuItem Header="Ultraudio">
                 <NativeMenu>
                     <NativeMenuItem Header="Acerca de Ultraudio" Click="AcercaDe_Click"/>
+                    <NativeMenuItem Header="Comprobar actualizaciones" Click="UpdateCheck_Click"/>
+                    <NativeMenuItem Header="Historial de actualizaciones" Click="UpdateHistory_Click"/>
                     <NativeMenuItemSeparator/>
                     <NativeMenuItem Header="Salir" Gesture="Meta+Q" Click="Salir_Click"/>
                 </NativeMenu>

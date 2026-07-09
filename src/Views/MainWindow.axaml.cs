@@ -226,12 +226,7 @@ public partial class MainWindow : Window
 
     private async void CheckForUpdatesAsync()
     {
-        var version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.6.0.7";
-        // Fallback or cleanup if assembly version has extra zeros
-        if (version.EndsWith(".0") && version.Split('.').Length == 4)
-        {
-            // Just use the reflection version as is, it's typically fine for semantic comparison.
-        }
+        var version = UpdateService.GetCurrentVersion();
         var (status, newVersion) = await UpdateService.CheckForUpdatesAsync(version);
         if (status == UpdateStatus.Outdated)
         {
@@ -1147,6 +1142,18 @@ public partial class MainWindow : Window
     private async void AcercaDe_Click(object? sender, EventArgs e)
     {
         var w = new AboutWindow();
+        await w.ShowDialog(this);
+    }
+
+    private async void UpdateCheck_Click(object? sender, EventArgs e)
+    {
+        var w = new UpdateWindow();
+        await w.ShowDialog(this);
+    }
+
+    private async void UpdateHistory_Click(object? sender, EventArgs e)
+    {
+        var w = new HistoryWindow();
         await w.ShowDialog(this);
     }
 
