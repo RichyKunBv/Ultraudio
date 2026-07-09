@@ -198,7 +198,20 @@ public partial class MainWindow : Window
 
                 try
                 {
-                    if (BassCd.DriveCount > 0)
+                    // Prevent grabbing the CD before Windows finishes mounting it.
+                    // If we call BassCd.IsReady immediately upon insertion, it locks the drive 
+                    // and causes Windows to think it's empty and eject it.
+                    bool windowsDriveReady = true;
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        var cdDrive = DriveInfo.GetDrives().FirstOrDefault(d => d.DriveType == DriveType.CDRom);
+                        if (cdDrive != null)
+                        {
+                            windowsDriveReady = cdDrive.IsReady;
+                        }
+                    }
+
+                    if (windowsDriveReady && BassCd.DriveCount > 0)
                     {
                         bool isReady = BassCd.IsReady(0);
                         if (isReady != _cdWasReady)
@@ -212,6 +225,12 @@ public partial class MainWindow : Window
                                 BtnCargarCd_Click(null, null!);
                             }
                         }
+                    }
+                    else if (!windowsDriveReady && _cdWasReady)
+                    {
+                        // Drive was removed or is busy
+                        _cdWasReady = false;
+                        BtnCargarCd.IsVisible = false;
                     }
                 }
                 catch { }
@@ -321,13 +340,20 @@ public partial class MainWindow : Window
 
         if (files.Count > 0)
         {
-            var tracks = files
-                .Select(f => LibraryScanner.ScanFile(f.Path.LocalPath) ?? new TrackModel { FilePath = f.Path.LocalPath })
-                .ToList();
-            LoadPlaylist(tracks, autoPlay: true, append: true);
+            try
+            {
+                var tracks = files
+                    .Select(f => LibraryScanner.ScanFile(f.Path.LocalPath) ?? new TrackModel { FilePath = f.Path.LocalPath })
+                    .ToList();
+                LoadPlaylist(tracks, autoPlay: true, append: true);
 
-            if (!string.IsNullOrEmpty(files[0].Path.LocalPath))
-                _prefs.Set(s => s.LastFolderPath = Path.GetDirectoryName(files[0].Path.LocalPath) ?? s.LastFolderPath);
+                if (!string.IsNullOrEmpty(files[0].Path.LocalPath))
+                    _prefs.Set(s => s.LastFolderPath = Path.GetDirectoryName(files[0].Path.LocalPath) ?? s.LastFolderPath);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading files: {ex.Message}");
+            }
         }
     }
 
@@ -344,24 +370,31 @@ public partial class MainWindow : Window
 
         if (folders.Count > 0)
         {
-            string path = folders[0].Path.LocalPath;
-            _prefs.Set(s => s.LastFolderPath = path);
-
-            var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                { ".flac", ".wav", ".aiff", ".aif", ".dsf", ".dff" };
-
-            var files = Directory
-                .GetFiles(path, "*.*", SearchOption.TopDirectoryOnly)
-                .Where(f => extensions.Contains(Path.GetExtension(f)))
-                .OrderBy(f => f)
-                .ToList();
-
-            if (files.Count > 0)
+            try
             {
-                var tracks = files
-                    .Select(f => LibraryScanner.ScanFile(f) ?? new TrackModel { FilePath = f })
+                string path = folders[0].Path.LocalPath;
+                _prefs.Set(s => s.LastFolderPath = path);
+
+                var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    { ".flac", ".wav", ".aiff", ".aif", ".dsf", ".dff" };
+
+                var files = Directory
+                    .GetFiles(path, "*.*", SearchOption.TopDirectoryOnly)
+                    .Where(f => extensions.Contains(Path.GetExtension(f)))
+                    .OrderBy(f => f)
                     .ToList();
-                LoadPlaylist(tracks, autoPlay: true, append: true);
+
+                if (files.Count > 0)
+                {
+                    var tracks = files
+                        .Select(f => LibraryScanner.ScanFile(f) ?? new TrackModel { FilePath = f })
+                        .ToList();
+                    LoadPlaylist(tracks, autoPlay: true, append: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading folder: {ex.Message}");
             }
         }
     }
@@ -383,9 +416,16 @@ public partial class MainWindow : Window
 
         if (files.Count > 0)
         {
-            var tracks = CueParser.Parse(files[0].Path.LocalPath);
-            if (tracks.Count > 0)
-                LoadPlaylist(tracks, autoPlay: true, append: true);
+            try
+            {
+                var tracks = CueParser.Parse(files[0].Path.LocalPath);
+                if (tracks.Count > 0)
+                    LoadPlaylist(tracks, autoPlay: true, append: true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading CUE sheet: {ex.Message}");
+            }
         }
     }
 

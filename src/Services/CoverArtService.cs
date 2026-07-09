@@ -29,6 +29,9 @@ public class CoverArtService
         if (string.IsNullOrEmpty(filePath))
             return DefaultCover;
 
+        if (filePath.StartsWith("cda://", StringComparison.OrdinalIgnoreCase))
+            return DefaultCover;
+
         // ── Cache hit ──────────────────────────────────────────────────────
         if (_cache.TryGetValue(filePath, out var cached))
         {
