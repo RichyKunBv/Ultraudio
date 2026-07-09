@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using System.Text.Json.Serialization;
+using System.Threading;
 
 namespace Ultraudio.Core;
 
@@ -10,6 +10,10 @@ namespace Ultraudio.Core;
 // Data model
 // ─────────────────────────────────────────────────────────────────────────────
 
+/// <summary>
+/// A single entry in the play history, tracking play count, last played time,
+/// and total accumulated listen time.
+/// </summary>
 public class PlayHistoryEntry
 {
     public string FilePath { get; set; } = string.Empty;
@@ -24,7 +28,8 @@ public class PlayHistoryEntry
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// <summary>
-/// Tracks playback history per file. Data is persisted as JSON.
+/// Tracks playback history per file. Data is persisted as JSON with debounced
+/// writes to avoid excessive disk I/O on every track change.
 /// </summary>
 public class PlayHistory
 {
@@ -32,6 +37,11 @@ public class PlayHistory
 
     private readonly string _historyPath;
     private Dictionary<string, PlayHistoryEntry> _entries = new(StringComparer.OrdinalIgnoreCase);
+
+    // ── Debounced save ────────────────────────────────────────────────────
+    private bool _isDirty = false;
+    private Timer? _saveTimer;
+    private const int SaveDelayMs = 5000; // 5 seconds debounce
 
     public PlayHistory()
     {
@@ -49,11 +59,13 @@ public class PlayHistory
         return Path.Combine(appData, "Ultraudio");
     }
 
-    // ─── Public API ───────────────────────────────────────────────────────────
+    // ─── Public API ──────────────────────────────────────────────────────
 
-    /// <summary>Record that a track started playing.</summary>
+    /// <summary>Record that a track started playing (debounced save).</summary>
     public void RecordPlay(string filePath, string displayTitle)
     {
+        if (string.IsNullOrEmpty(filePath)) return;
+
         if (!_entries.TryGetValue(filePath, out var entry))
         {
             entry = new PlayHistoryEntry { FilePath = filePath, DisplayTitle = displayTitle };
@@ -63,16 +75,16 @@ public class PlayHistory
         entry.PlayCount++;
         entry.LastPlayed = DateTime.UtcNow;
         entry.DisplayTitle = displayTitle; // Keep title fresh
-        Save();
+        ScheduleSave();
     }
 
-    /// <summary>Accumulate listened seconds for the current session.</summary>
+    /// <summary>Accumulate listened seconds for the current session (debounced save).</summary>
     public void AddListenTime(string filePath, double seconds)
     {
         if (_entries.TryGetValue(filePath, out var entry))
         {
             entry.TotalListenSeconds += seconds;
-            // Debounced save — don't hit disk every second
+            ScheduleSave();
         }
     }
 
@@ -97,7 +109,38 @@ public class PlayHistory
 
     public void Clear() { _entries.Clear(); Save(); }
 
-    // ─── Persistence ──────────────────────────────────────────────────────────
+    // ─── Debounced persistence ───────────────────────────────────────────
+
+    private void ScheduleSave()
+    {
+        _isDirty = true;
+        // Reset the timer — only fires after SaveDelayMs of inactivity
+        _saveTimer?.Dispose();
+        _saveTimer = new Timer(_ => FlushIfDirty(), null, SaveDelayMs, Timeout.Infinite);
+    }
+
+    private void FlushIfDirty()
+    {
+        if (_isDirty)
+        {
+            SaveToDisk();
+            _isDirty = false;
+        }
+    }
+
+    /// <summary>
+    /// Force an immediate save to disk. Call this on app shutdown to ensure
+    /// no data is lost from the debounce buffer.
+    /// </summary>
+    public void Save()
+    {
+        _saveTimer?.Dispose();
+        _saveTimer = null;
+        SaveToDisk();
+        _isDirty = false;
+    }
+
+    // ─── Persistence ─────────────────────────────────────────────────────
 
     private void Load()
     {
@@ -117,11 +160,11 @@ public class PlayHistory
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[History] Load failed: {ex.Message}");
+            Log.Error("History", "Load failed", ex);
         }
     }
 
-    public void Save()
+    private void SaveToDisk()
     {
         try
         {
@@ -131,7 +174,7 @@ public class PlayHistory
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[History] Save failed: {ex.Message}");
+            Log.Error("History", "Save failed", ex);
         }
     }
 }

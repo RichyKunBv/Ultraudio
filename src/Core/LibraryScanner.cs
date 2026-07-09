@@ -15,10 +15,8 @@ namespace Ultraudio.Core;
 /// </summary>
 public class LibraryScanner
 {
-    private static readonly HashSet<string> _supportedExtensions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        ".flac", ".wav", ".aiff", ".aif", ".dsf", ".dff", ".mp3", ".m4a", ".ogg", ".opus"
-    };
+    // Uses centralized lossless-only extensions — no lossy formats allowed
+    private static readonly HashSet<string> _supportedExtensions = UltraudioConstants.LosslessExtensions;
 
     public event EventHandler<int>? ProgressChanged; // total files found so far
     public event EventHandler<TrackModel>? TrackScanned;
@@ -61,7 +59,7 @@ public class LibraryScanner
         }, cancellationToken);
 
         ProgressChanged?.Invoke(this, results.Count);
-        Console.WriteLine($"[LibraryScanner] Scanned {results.Count} tracks.");
+        Log.Info("Scanner", $"Scanned {results.Count} tracks.");
         return results;
     }
 
@@ -122,7 +120,7 @@ public class LibraryScanner
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[LibraryScanner] Error scanning {Path.GetFileName(filePath)}: {ex.Message}");
+            Log.Warn("Scanner", $"Error scanning {Path.GetFileName(filePath)}: {ex.Message}");
             // Return minimal model so the file is still playable
             return new TrackModel
             {

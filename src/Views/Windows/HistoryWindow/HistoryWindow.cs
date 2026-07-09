@@ -1,8 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using System.Collections.Generic;   // <-- Agregar esta línea
+using System.Collections.Generic;
 
-namespace Ultraudio;
+namespace Ultraudio.Views.Windows;
 
 public partial class HistoryWindow : Window
 {
@@ -11,9 +11,10 @@ public partial class HistoryWindow : Window
         InitializeComponent();
         TxtVersion.Text = "Versión " + AppInfo.VersionDisplay;
 
-        // Lista de versiones
+        // Lista de versiones (más reciente primero)
         var versions = new List<string>
         {
+            "V0.9.0 - Pulido masivo: refactorización del código, optimización de rendimiento, robustez antitontos, y estandarización del proyecto.",
             "V0.8.0 - Soporte para M3U8.",
             "V0.7.0 - La aplicación detecta si existe una actualización disponible para descargarla automáticamente.",
             "V0.6.0 - Solución de errores de la interfaz y se agregó soporte de CDs.",

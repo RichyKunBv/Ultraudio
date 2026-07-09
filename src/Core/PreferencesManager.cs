@@ -35,7 +35,7 @@ public class PreferencesManager
         _settingsPath = Path.Combine(settingsDir, "settings.json");
     }
 
-    /// <summary>Loads settings from disk, or returns defaults if the file doesn't exist.</summary>
+    /// <summary>Loads settings from disk, falling back to backup if main file is corrupted.</summary>
     public void Load()
     {
         try
@@ -45,27 +45,61 @@ public class PreferencesManager
                 string json = File.ReadAllText(_settingsPath);
                 var loaded = JsonSerializer.Deserialize<AppSettings>(json, _jsonOptions);
                 if (loaded != null)
+                {
                     Settings = loaded;
+                    return;
+                }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Preferences] Failed to load settings: {ex.Message}. Using defaults.");
-            Settings = new AppSettings();
+            Log.Warn("Preferences", $"Failed to load settings: {ex.Message}");
         }
+
+        // Try backup file
+        string backupPath = _settingsPath + ".bak";
+        try
+        {
+            if (File.Exists(backupPath))
+            {
+                Log.Info("Preferences", "Attempting to restore from backup...");
+                string json = File.ReadAllText(backupPath);
+                var loaded = JsonSerializer.Deserialize<AppSettings>(json, _jsonOptions);
+                if (loaded != null)
+                {
+                    Settings = loaded;
+                    Log.Info("Preferences", "Restored settings from backup.");
+                    return;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Warn("Preferences", $"Backup restore also failed: {ex.Message}");
+        }
+
+        Log.Info("Preferences", "Using default settings.");
+        Settings = new AppSettings();
     }
 
-    /// <summary>Saves the current settings to disk.</summary>
+    /// <summary>Saves the current settings to disk with a .bak safety backup.</summary>
     public void Save()
     {
         try
         {
+            // Create backup of existing file before overwriting
+            if (File.Exists(_settingsPath))
+            {
+                string backupPath = _settingsPath + ".bak";
+                File.Copy(_settingsPath, backupPath, overwrite: true);
+            }
+
             string json = JsonSerializer.Serialize(Settings, _jsonOptions);
             File.WriteAllText(_settingsPath, json);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Preferences] Failed to save settings: {ex.Message}");
+            Log.Error("Preferences", "Failed to save settings", ex);
         }
     }
 

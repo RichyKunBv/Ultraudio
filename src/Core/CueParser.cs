@@ -34,7 +34,7 @@ public static class CueParser
 
         if (!File.Exists(cuePath))
         {
-            Console.WriteLine($"[CUE] File not found: {cuePath}");
+            Log.Warn("CUE", $"File not found: {cuePath}");
             return tracks;
         }
 
@@ -157,7 +157,7 @@ public static class CueParser
                 t.Title = $"Track {t.CueTrackNumber:D2}";
         }
 
-        Console.WriteLine($"[CUE] Parsed {tracks.Count} tracks from: {Path.GetFileName(cuePath)}");
+        Log.Info("CUE", $"Parsed {tracks.Count} tracks from: {Path.GetFileName(cuePath)}");
         return tracks;
     }
 

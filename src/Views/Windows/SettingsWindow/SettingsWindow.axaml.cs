@@ -1,9 +1,8 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using System.Linq;
-using System.Runtime.InteropServices;
+using Ultraudio.Core;
 using Ultraudio.Models;
-using Ultraudio.Views.Windows;
 using Avalonia.Media;
 
 namespace Ultraudio.Views.Windows;
@@ -14,6 +13,9 @@ public partial class SettingsWindow : Window
     private readonly System.Collections.Generic.List<DeviceModel> _devices;
 
     public bool Saved { get; private set; } = false;
+
+    // Required by XAML runtime loader (AVLN3001). Not used directly.
+    public SettingsWindow() : this(new AppSettings(), new System.Collections.Generic.List<DeviceModel>()) { }
 
     public SettingsWindow(
         AppSettings settings,
@@ -43,8 +45,7 @@ public partial class SettingsWindow : Window
         ToggleHttpApi.IsChecked   = _settings.HttpApiEnabled;
         ToggleCd.IsChecked        = _settings.CdEnabled;
 
-        bool isCdSupported = (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) 
-                             && RuntimeInformation.OSArchitecture == Architecture.X64;
+        bool isCdSupported = UltraudioConstants.IsCdSupported;
         ToggleCd.IsEnabled = isCdSupported;
         if (!isCdSupported) ToggleCd.IsChecked = false;
 

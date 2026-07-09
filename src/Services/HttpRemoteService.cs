@@ -1,3 +1,4 @@
+using Ultraudio.Core;
 using System;
 using System.IO;
 using System.Net;
@@ -61,11 +62,11 @@ public class HttpRemoteService : IDisposable
             _running = true;
             _cts = new CancellationTokenSource();
             _ = ListenAsync(_cts.Token);
-            Console.WriteLine($"[HTTP Remote] Listening on http://127.0.0.1:{port}/");
+            Log.Info("HTTP", $"Listening on http://127.0.0.1:{port}/");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[HTTP Remote] Failed to start: {ex.Message}");
+            Log.Error("HTTP", "Failed to start", ex);
             _running = false;
         }
     }
@@ -75,7 +76,7 @@ public class HttpRemoteService : IDisposable
         _cts?.Cancel();
         _listener?.Stop();
         _running = false;
-        Console.WriteLine("[HTTP Remote] Stopped.");
+        Log.Info("HTTP", "Stopped.");
     }
 
     private async Task ListenAsync(CancellationToken ct)
@@ -171,17 +172,30 @@ public class HttpRemoteService : IDisposable
 
             byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(responseObj ?? new { });
             res.ContentLength64 = bytes.Length;
-            res.OutputStream.Write(bytes, 0, bytes.Length);
+            using (var output = res.OutputStream)
+            {
+                output.Write(bytes, 0, bytes.Length);
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[HTTP Remote] Request error: {ex.Message}");
-        }
-        finally
-        {
-            ctx.Response.Close();
+            Log.Error("HTTP", "Request error", ex);
+            try { ctx.Response.Close(); } catch { /* best effort */ }
         }
     }
 
-    public void Dispose() => Stop();
+    // ── IDisposable with double-dispose guard ─────────────────────────────
+    private bool _disposed = false;
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        Stop();
+        _cts?.Dispose();
+        _cts = null;
+        (_listener as IDisposable)?.Dispose();
+        _listener = null;
+    }
 }

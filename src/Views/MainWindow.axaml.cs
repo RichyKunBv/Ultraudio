@@ -8,122 +8,88 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using TagLib;
+using System.Runtime.InteropServices;
+using ManagedBass.Cd;
 using Ultraudio.Core;
 using Ultraudio.Models;
 using Ultraudio.Services;
 using Ultraudio.Views.Windows;
-using System.Runtime.InteropServices;
-using ManagedBass.Cd;
 
 namespace Ultraudio;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Playlist item view model
+// MainWindow — thin UI shell
 // ─────────────────────────────────────────────────────────────────────────────
 
-public class PlaylistItemViewModel : INotifyPropertyChanged
-{
-    public TrackModel Track { get; }
-
-    private bool _isPlaying;
-    public bool IsPlaying
-    {
-        get => _isPlaying;
-        set { _isPlaying = value; OnPropertyChanged(); OnPropertyChanged(nameof(TitleColor)); }
-    }
-
-    public string DisplayTitle => Track.DisplayTitle;
-    public string TitleColor   => _isPlaying ? "#00E576" : "#CCCCCC";
-    public string FavStar      => Track.IsFavorite ? "★" : "☆";
-    public string FavColor     => Track.IsFavorite ? "#F5C542" : "#333333";
-
-    public void RefreshFav() { OnPropertyChanged(nameof(FavStar)); OnPropertyChanged(nameof(FavColor)); }
-
-    public PlaylistItemViewModel(TrackModel track) => Track = track;
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-    private void OnPropertyChanged([CallerMemberName] string? name = null)
-        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// MainWindow
-// ─────────────────────────────────────────────────────────────────────────────
-
+/// <summary>
+/// Main application window. Delegates business logic to extracted managers:
+/// <see cref="PlaylistManager"/>, <see cref="SessionManager"/>, and coordinates
+/// services (<see cref="AudioEngine"/>, <see cref="MediaKeysService"/>, etc.).
+/// </summary>
 public partial class MainWindow : Window
 {
-    // ── Core services ─────────────────────────────────────────────────────────
-    private readonly AudioEngine          _audio;
-    private readonly PreferencesManager   _prefs;
-    private readonly CoverArtService      _coverArt;
-    private readonly SpectrumAnalyzer     _spectrum;
-    private readonly MediaKeysService     _mediaKeys;
-    private readonly HttpRemoteService    _httpRemote;
-    private readonly PlayHistory          _history;
+    // ── Core services ─────────────────────────────────────────────────────
+    private readonly AudioEngine        _audio;
+    private readonly PreferencesManager _prefs;
+    private readonly CoverArtService    _coverArt;
+    private readonly SpectrumAnalyzer   _spectrum;
+    private readonly MediaKeysService   _mediaKeys;
+    private readonly HttpRemoteService  _httpRemote;
+    private readonly PlayHistory        _history;
 
-    // ── Playlist state ────────────────────────────────────────────────────────
-    private readonly ObservableCollection<PlaylistItemViewModel> _allItems   = new();
-    private readonly ObservableCollection<PlaylistItemViewModel> _filteredItems = new();
-    private readonly List<TrackModel> _playlist = new();
-    private int _currentIndex  = -1;
-    private int[] _shuffleOrder = Array.Empty<int>();
-    private int _shufflePos = 0;
+    // ── Managers ──────────────────────────────────────────────────────────
+    private readonly PlaylistManager _playlist;
+    private readonly SessionManager  _session;
 
-    // ── Playback state ────────────────────────────────────────────────────────
+    // ── Playback UI state ─────────────────────────────────────────────────
     private bool _isDraggingSlider = false;
-    private RepeatMode _repeatMode = RepeatMode.Off;
-    private bool _shuffleEnabled = false;
-    private string _searchText = string.Empty;
     private string? _pendingNextFile; // for gapless preload
     private readonly DispatcherTimer _timer;
     private DispatcherTimer? _cdTimer;
     private bool _cdWasReady = false;
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
 
     public MainWindow()
     {
         InitializeComponent();
 
-        // ── Preferences ───────────────────────────────────────────────────────
+        // ── Preferences ───────────────────────────────────────────────────
         _prefs = new PreferencesManager();
         _prefs.Load();
 
-        // ── Audio ─────────────────────────────────────────────────────────────
+        // ── Managers ──────────────────────────────────────────────────────
+        _playlist = new PlaylistManager(_prefs);
+        _session  = new SessionManager(_prefs);
+
+        // ── Audio — exclusive DAC access ──────────────────────────────────
         _audio = new AudioEngine();
-        _audio.InicializarDispositivo(
+        _audio.InitializeDevice(
             _prefs.Settings.LastDeviceIndex,
-            44100);
-        _audio.TrackEnded         += Audio_TrackEnded;
+            UltraudioConstants.DefaultSampleRate);
+        _audio.TrackEnded          += Audio_TrackEnded;
         _audio.GaplessPreloadReady += Audio_GaplessPreloadReady;
 
-        // ── Services ──────────────────────────────────────────────────────────
+        // ── Services ──────────────────────────────────────────────────────
         _coverArt  = new CoverArtService();
         _spectrum  = new SpectrumAnalyzer(_audio);
         _history   = new PlayHistory();
         _mediaKeys = new MediaKeysService();
         _mediaKeys.OnNext  = () => Dispatcher.UIThread.Post(NextTrack);
         _mediaKeys.OnPrev  = () => Dispatcher.UIThread.Post(PrevTrack);
-        _mediaKeys.OnPlay  = () => Dispatcher.UIThread.Post(() => _audio.AlternarPausa());
-        _mediaKeys.OnPause = () => Dispatcher.UIThread.Post(() => _audio.AlternarPausa());
+        _mediaKeys.OnPlay  = () => Dispatcher.UIThread.Post(() => _audio.TogglePause());
+        _mediaKeys.OnPause = () => Dispatcher.UIThread.Post(() => _audio.TogglePause());
 
         _httpRemote = new HttpRemoteService();
         WireHttpRemote();
         if (_prefs.Settings.HttpApiEnabled)
             _httpRemote.Start(_prefs.Settings.HttpApiPort);
 
-        // ── UI devices ────────────────────────────────────────────────────────
-        // (device selector now lives in SettingsWindow)
-
-        // ── Restore preferences ───────────────────────────────────────────────
-        _shuffleEnabled = _prefs.Settings.IsShuffleEnabled;
-        _repeatMode     = Enum.TryParse<RepeatMode>(_prefs.Settings.RepeatMode, out var rm) ? rm : RepeatMode.Off;
+        // ── Restore preferences ───────────────────────────────────────────
+        _playlist.ShuffleEnabled = _prefs.Settings.IsShuffleEnabled;
+        _playlist.RepeatMode = Enum.TryParse<RepeatMode>(_prefs.Settings.RepeatMode, out var rm) ? rm : RepeatMode.Off;
         SliderVolumen.Value = _prefs.Settings.Volume;
         if (_prefs.Settings.IsMuted) _audio.ToggleMute();
 
@@ -131,61 +97,62 @@ public partial class MainWindow : Window
         UpdateShuffleButton();
         UpdateRepeatButton();
 
-        // ── Global Keyboard Shortcuts ─────────────────────────────────────────
+        // ── Global Keyboard Shortcuts ─────────────────────────────────────
         AddHandler(KeyDownEvent, Window_KeyDown, RoutingStrategies.Tunnel);
+        AddHandler(KeyUpEvent, Window_KeyUp, RoutingStrategies.Tunnel);
+        
+        // ── Fix Slider freezing ───────────────────────────────────────────
+        SliderProgreso.AddHandler(PointerPressedEvent, SliderProgreso_PointerPressed, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
+        SliderProgreso.AddHandler(PointerReleasedEvent, SliderProgreso_PointerReleased, RoutingStrategies.Tunnel | RoutingStrategies.Bubble, true);
 
-        // ── Playlist binding ─────────────────────────────────────────────────
-        ListaReproduccion.ItemsSource = _filteredItems;
+        // ── Playlist binding ─────────────────────────────────────────────
+        ListaReproduccion.ItemsSource = _playlist.FilteredItems;
 
-        // ── Restore Session ───────────────────────────────────────────────────
-        if (_prefs.Settings.SessionQueue != null && _prefs.Settings.SessionQueue.Count > 0)
+        // ── Restore Session ───────────────────────────────────────────────
+        if (_session.HasSavedSession)
         {
-            LoadPlaylist(_prefs.Settings.SessionQueue, autoPlay: false);
+            _playlist.LoadTracks(_session.SavedQueue, append: false);
 
-            if (_prefs.Settings.SessionCurrentIndex >= 0 && _prefs.Settings.SessionCurrentIndex < _playlist.Count)
+            if (_session.SavedCurrentIndex >= 0 && _session.SavedCurrentIndex < _playlist.Count)
             {
-                _currentIndex = _prefs.Settings.SessionCurrentIndex;
-                _allItems[_currentIndex].IsPlaying = true;
+                _playlist.SetCurrentIndex(_session.SavedCurrentIndex);
 
-                var track = _playlist[_currentIndex];
-                _audio.Reproducir(track.FilePath, _prefs.Settings.RamMode, track.CueStartSeconds, track.CueEndSeconds, 0);
-                _audio.AlternarPausa(); // Start paused
-                _audio.PosicionSegundos = _prefs.Settings.SessionPosition;
-                _audio.Volumen = SliderVolumen.Value;
+                var track = _playlist.CurrentTrack!;
+                _audio.Play(track.FilePath, _prefs.Settings.RamMode,
+                    track.CueStartSeconds, track.CueEndSeconds, 0);
+                _audio.TogglePause(); // Start paused
+                _audio.PositionSeconds = _session.SavedPosition;
+                _audio.Volume = SliderVolumen.Value;
 
                 UpdatePlayerUI(track);
                 _mediaKeys.UpdateNowPlaying(track);
 
                 // Scroll to selected item
-                var vm = _allItems[_currentIndex];
-                if (_filteredItems.Contains(vm))
+                var vm = _playlist.GetCurrentViewModel();
+                if (vm != null && _playlist.FilteredItems.Contains(vm))
                 {
                     ListaReproduccion.SelectedItem = vm;
                     ListaReproduccion.ScrollIntoView(vm);
                 }
-                
+
                 // Update timer UI once
                 Timer_Tick(null, EventArgs.Empty);
             }
         }
 
-        if (_shuffleEnabled) BuildShuffleOrder();
-
-        // ── Progress timer ────────────────────────────────────────────────────
+        // ── Progress timer ────────────────────────────────────────────────
         _timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         _timer.Tick += Timer_Tick;
 
-        // ── Spectrum control ─────────────────────────────────────────────────
+        // ── Spectrum control ─────────────────────────────────────────────
         SpectrumViz.Initialize(_spectrum);
         if (!_prefs.Settings.SpectrumEnabled)
             SpectrumViz.Stop();
 
-        // ── CD Button visibility and Polling ───────────────────────────────────
-        bool isCdSupported = (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) 
-                             && RuntimeInformation.OSArchitecture == Architecture.X64;
+        // ── CD Button visibility and Polling ─────────────────────────────
         BtnCargarCd.IsVisible = false;
 
-        if (isCdSupported)
+        if (UltraudioConstants.IsCdSupported)
         {
             _cdTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             _cdTimer.Tick += (s, e) =>
@@ -198,17 +165,14 @@ public partial class MainWindow : Window
 
                 try
                 {
-                    // Prevent grabbing the CD before Windows finishes mounting it.
-                    // If we call BassCd.IsReady immediately upon insertion, it locks the drive 
-                    // and causes Windows to think it's empty and eject it.
+                    // Prevent grabbing the CD before Windows finishes mounting it
                     bool windowsDriveReady = true;
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
-                        var cdDrive = DriveInfo.GetDrives().FirstOrDefault(d => d.DriveType == DriveType.CDRom);
+                        var cdDrive = DriveInfo.GetDrives()
+                            .FirstOrDefault(d => d.DriveType == DriveType.CDRom);
                         if (cdDrive != null)
-                        {
                             windowsDriveReady = cdDrive.IsReady;
-                        }
                     }
 
                     if (windowsDriveReady && BassCd.DriveCount > 0)
@@ -220,20 +184,16 @@ public partial class MainWindow : Window
                             BtnCargarCd.IsVisible = isReady;
 
                             if (isReady)
-                            {
-                                // Auto-load tracks when CD is inserted
                                 BtnCargarCd_Click(null, null!);
-                            }
                         }
                     }
                     else if (!windowsDriveReady && _cdWasReady)
                     {
-                        // Drive was removed or is busy
                         _cdWasReady = false;
                         BtnCargarCd.IsVisible = false;
                     }
                 }
-                catch { }
+                catch { /* CD polling is best-effort */ }
             };
             _cdTimer.Start();
         }
@@ -241,7 +201,7 @@ public partial class MainWindow : Window
         CheckForUpdatesAsync();
     }
 
-    // ─── Update Checker ───────────────────────────────────────────────────────
+    // ─── Update Checker ───────────────────────────────────────────────────
 
     private async void CheckForUpdatesAsync()
     {
@@ -252,64 +212,63 @@ public partial class MainWindow : Window
             Dispatcher.UIThread.Post(() =>
             {
                 BtnUpdate.IsVisible = true;
-                ToolTip.SetTip(BtnUpdate, $"New version available: {newVersion}");
+                ToolTip.SetTip(BtnUpdate, $"Nueva versión disponible: {newVersion}");
             });
         }
     }
 
-    // ─── HTTP Remote wiring ───────────────────────────────────────────────────
+    // ─── HTTP Remote wiring ───────────────────────────────────────────────
 
     private void WireHttpRemote()
     {
-        _httpRemote.OnPlay   = () => Dispatcher.UIThread.Post(() => { if (!_audio.EstaReproduciendo) _audio.AlternarPausa(); });
-        _httpRemote.OnPause  = () => Dispatcher.UIThread.Post(() => { if (_audio.EstaReproduciendo)  _audio.AlternarPausa(); });
-        _httpRemote.OnToggle = () => Dispatcher.UIThread.Post(() => _audio.AlternarPausa());
+        _httpRemote.OnPlay   = () => Dispatcher.UIThread.Post(() => { if (!_audio.IsPlaying) _audio.TogglePause(); });
+        _httpRemote.OnPause  = () => Dispatcher.UIThread.Post(() => { if (_audio.IsPlaying)  _audio.TogglePause(); });
+        _httpRemote.OnToggle = () => Dispatcher.UIThread.Post(() => _audio.TogglePause());
         _httpRemote.OnNext   = () => Dispatcher.UIThread.Post(NextTrack);
         _httpRemote.OnPrev   = () => Dispatcher.UIThread.Post(PrevTrack);
-        _httpRemote.OnStop   = () => Dispatcher.UIThread.Post(() => { _audio.Detener(); _timer.Stop(); });
-        _httpRemote.OnVolume = vol => Dispatcher.UIThread.Post(() => { SliderVolumen.Value = vol; _audio.Volumen = vol; });
+        _httpRemote.OnStop   = () => Dispatcher.UIThread.Post(() => { _audio.Stop(); _timer.Stop(); });
+        _httpRemote.OnVolume = vol => Dispatcher.UIThread.Post(() => { SliderVolumen.Value = vol; _audio.Volume = vol; });
         _httpRemote.GetStatus = () => new
         {
-            playing   = _audio.EstaReproduciendo,
-            position  = _audio.PosicionSegundos,
-            duration  = _audio.DuracionSegundos,
-            volume    = _audio.Volumen,
+            playing   = _audio.IsPlaying,
+            position  = _audio.PositionSeconds,
+            duration  = _audio.DurationSeconds,
+            volume    = _audio.Volume,
             muted     = _audio.IsMuted,
-            shuffle   = _shuffleEnabled,
-            repeat    = _repeatMode.ToString(),
-            track     = _currentIndex >= 0 ? _playlist[_currentIndex].DisplayTitle : null
+            shuffle   = _playlist.ShuffleEnabled,
+            repeat    = _playlist.RepeatMode.ToString(),
+            track     = _playlist.CurrentTrack?.DisplayTitle
         };
-        _httpRemote.GetPlaylist = () => _playlist.Select((t, i) => new
+        _httpRemote.GetPlaylist = () => _playlist.Tracks.Select((t, i) => new
         {
-            index  = i,
-            title  = t.DisplayTitle,
-            artist = t.Artist,
+            index    = i,
+            title    = t.DisplayTitle,
+            artist   = t.Artist,
             duration = t.DurationDisplay
         }).ToList();
     }
 
-    // ─── Window position persistence ──────────────────────────────────────────
+    // ─── Window position persistence ──────────────────────────────────────
 
     private void RestoreWindowPosition()
     {
-        if (_prefs.Settings.WindowLeft >= 0 && _prefs.Settings.WindowTop >= 0)
-        {
-            Position = new PixelPoint(
-                (int)_prefs.Settings.WindowLeft,
-                (int)_prefs.Settings.WindowTop);
-        }
-        Width  = _prefs.Settings.WindowWidth;
-        Height = _prefs.Settings.WindowHeight;
+        var pos = _session.GetSavedWindowPosition();
+        if (pos != null)
+            Position = new PixelPoint(pos.Value.left, pos.Value.top);
+
+        var (w, h) = _session.GetSavedWindowSize();
+        Width  = w;
+        Height = h;
     }
 
-    // ─── Timer ────────────────────────────────────────────────────────────────
+    // ─── Timer ────────────────────────────────────────────────────────────
 
     private void Timer_Tick(object? sender, EventArgs e)
     {
-        if (_isDraggingSlider || _currentIndex < 0) return;
+        if (_isDraggingSlider || _playlist.CurrentIndex < 0) return;
 
-        double pos = _audio.PosicionSegundos;
-        double len = _audio.DuracionSegundos;
+        double pos = _audio.PositionSeconds;
+        double len = _audio.DurationSeconds;
 
         SliderProgreso.Maximum = len > 0 ? len : 100;
         SliderProgreso.Value   = pos;
@@ -318,7 +277,7 @@ public partial class MainWindow : Window
         TxtTiempoTotal.Text  = TimeSpan.FromSeconds(len).ToString(@"mm\:ss");
     }
 
-    // ─── File loading ──────────────────────────────────────────────────────────
+    // ─── File loading ─────────────────────────────────────────────────────
 
     private async void BtnCargarArchivo_Click(object? sender, RoutedEventArgs e)
     {
@@ -327,13 +286,13 @@ public partial class MainWindow : Window
 
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Select audio files",
+            Title = "Seleccionar archivos de audio",
             AllowMultiple = true,
             FileTypeFilter = new[]
             {
-                new FilePickerFileType("Lossless Audio")
+                new FilePickerFileType("Audio sin pérdida")
                 {
-                    Patterns = new[] { "*.flac", "*.wav", "*.aiff", "*.aif", "*.dsf", "*.dff" }
+                    Patterns = UltraudioConstants.FilePickerPatterns
                 }
             }
         });
@@ -345,14 +304,14 @@ public partial class MainWindow : Window
                 var tracks = files
                     .Select(f => LibraryScanner.ScanFile(f.Path.LocalPath) ?? new TrackModel { FilePath = f.Path.LocalPath })
                     .ToList();
-                LoadPlaylist(tracks, autoPlay: true, append: true);
+                LoadAndPlay(tracks, append: true);
 
                 if (!string.IsNullOrEmpty(files[0].Path.LocalPath))
                     _prefs.Set(s => s.LastFolderPath = Path.GetDirectoryName(files[0].Path.LocalPath) ?? s.LastFolderPath);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading files: {ex.Message}");
+                Log.Error("FileLoader", "Error loading files", ex);
             }
         }
     }
@@ -364,7 +323,7 @@ public partial class MainWindow : Window
 
         var folders = await topLevel.StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
         {
-            Title = "Select music folder",
+            Title = "Seleccionar carpeta de música",
             AllowMultiple = false
         });
 
@@ -375,12 +334,9 @@ public partial class MainWindow : Window
                 string path = folders[0].Path.LocalPath;
                 _prefs.Set(s => s.LastFolderPath = path);
 
-                var extensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-                    { ".flac", ".wav", ".aiff", ".aif", ".dsf", ".dff" };
-
                 var files = Directory
                     .GetFiles(path, "*.*", SearchOption.TopDirectoryOnly)
-                    .Where(f => extensions.Contains(Path.GetExtension(f)))
+                    .Where(f => UltraudioConstants.LosslessExtensions.Contains(Path.GetExtension(f)))
                     .OrderBy(f => f)
                     .ToList();
 
@@ -389,12 +345,12 @@ public partial class MainWindow : Window
                     var tracks = files
                         .Select(f => LibraryScanner.ScanFile(f) ?? new TrackModel { FilePath = f })
                         .ToList();
-                    LoadPlaylist(tracks, autoPlay: true, append: true);
+                    LoadAndPlay(tracks, append: true);
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading folder: {ex.Message}");
+                Log.Error("FileLoader", "Error loading folder", ex);
             }
         }
     }
@@ -406,11 +362,11 @@ public partial class MainWindow : Window
 
         var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
-            Title = "Select CUE sheet",
+            Title = "Seleccionar hoja CUE",
             AllowMultiple = false,
             FileTypeFilter = new[]
             {
-                new FilePickerFileType("CUE Sheet") { Patterns = new[] { "*.cue" } }
+                new FilePickerFileType("Hoja CUE") { Patterns = new[] { "*.cue" } }
             }
         });
 
@@ -420,11 +376,11 @@ public partial class MainWindow : Window
             {
                 var tracks = CueParser.Parse(files[0].Path.LocalPath);
                 if (tracks.Count > 0)
-                    LoadPlaylist(tracks, autoPlay: true, append: true);
+                    LoadAndPlay(tracks, append: true);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading CUE sheet: {ex.Message}");
+                Log.Error("FileLoader", "Error loading CUE sheet", ex);
             }
         }
     }
@@ -434,118 +390,87 @@ public partial class MainWindow : Window
         try
         {
             int driveCount = BassCd.DriveCount;
-            if (driveCount <= 0)
-            {
-                // No CD drives found
-                return;
-            }
+            if (driveCount <= 0) return;
 
-            int drive = 0; // Default to first drive, might need drive selector for multiple
-            if (!BassCd.IsReady(drive))
-            {
-                return;
-            }
+            int drive = 0;
+            if (!BassCd.IsReady(drive)) return;
 
             int trackCount = BassCd.GetTracks(drive);
             if (trackCount < 0) return;
 
             // Fetch CDDB or local CD-TEXT
             string album = "CD Audio";
-            string artist = "Unknown Artist";
-            var trackNames = new string[trackCount];
-            
-            // Try CD-TEXT first
+            string artist = "Artista desconocido";
             string[] textLines = BassCd.GetIDText(drive);
+
             if (textLines != null && textLines.Length > 0)
             {
                 foreach (string line in textLines)
                 {
-                    if (line.StartsWith("TITLE=") && album == "CD Audio") album = line.Substring(6);
-                    if (line.StartsWith("PERFORMER=") && artist == "Unknown Artist") artist = line.Substring(10);
+                    if (line.StartsWith("TITLE=") && album == "CD Audio")
+                        album = line.Substring(6);
+                    if (line.StartsWith("PERFORMER=") && artist == "Artista desconocido")
+                        artist = line.Substring(10);
                 }
             }
 
             var tracks = new List<TrackModel>();
             for (int i = 0; i < trackCount; i++)
             {
-                string title = $"Track {(i + 1):00}";
-                if (textLines != null && textLines.Length > 0)
-                {
-                    // Search for TITLE= per track
-                    string trackPrefix = $"TRACK{(i + 1):00}";
-                    foreach (string line in textLines)
-                    {
-                        if (line.StartsWith("TITLE=") && line.Contains(title)) // simple heuristics, usually basscd returns it formatted if requested properly
-                        {
-                            // A better way is using BassCd.GetIDText for the track or parsing the returned array 
-                            // but in ManagedBass, GetIDText just returns array of strings. We can use a simple naming.
-                        }
-                    }
-                }
-                
                 int lenBytes = BassCd.GetTrackLength(drive, i);
-                double duration = -1;
-                if (lenBytes != -1)
-                {
-                    // BASS_CD uses 44100Hz, 16bit, stereo = 176400 bytes/sec
-                    duration = lenBytes / 176400.0;
-                }
+                double duration = lenBytes != -1 ? lenBytes / 176400.0 : 0;
 
                 tracks.Add(new TrackModel
                 {
-                    FilePath = $"cda://{drive}/{i}",
-                    Title = title,
+                    FilePath = $"{UltraudioConstants.CdProtocolPrefix}{drive}/{i}",
+                    Title = $"Pista {(i + 1):00}",
                     Album = album,
                     Artist = artist,
                     Format = "CDA",
                     BitDepth = 16,
-                    SampleRate = 44100,
+                    SampleRate = UltraudioConstants.DefaultSampleRate,
                     Bitrate = 1411,
                     Duration = TimeSpan.FromSeconds(duration > 0 ? duration : 0)
                 });
             }
 
             if (tracks.Count > 0)
-                LoadPlaylist(tracks, autoPlay: true, append: true);
+                LoadAndPlay(tracks, append: true);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[CD Error]: {ex.Message}");
+            Log.Error("CD", "CD loading error", ex);
         }
+    }
+
+    // ── Unified load + play helper ────────────────────────────────────────
+
+    private void LoadAndPlay(List<TrackModel> tracks, bool append)
+    {
+        int startIndex = _playlist.LoadTracks(tracks, append);
+        UpdatePlaylistCount();
+
+        if (!append && _playlist.Count > 0)
+            PlayTrackAtIndex(0);
+        else if (append && !_audio.IsPlaying && startIndex < _playlist.Count)
+            PlayTrackAtIndex(startIndex);
     }
 
     private void BtnClearPlaylist_Click(object? sender, RoutedEventArgs e)
     {
         _playlist.Clear();
-        _allItems.Clear();
-        _filteredItems.Clear();
-        _currentIndex = -1;
-        _audio.Detener();
+        _audio.Stop();
         _timer.Stop();
         ResetPlayerUI();
+        UpdatePlaylistCount();
     }
-    
+
     private void BtnMoveUp_Click(object? sender, RoutedEventArgs e)
     {
         if (ListaReproduccion.SelectedItem is PlaylistItemViewModel vm)
         {
-            int idx = _allItems.IndexOf(vm);
-            if (idx > 0)
-            {
-                var track = _playlist[idx];
-                _playlist.RemoveAt(idx);
-                _playlist.Insert(idx - 1, track);
-                
-                _allItems.RemoveAt(idx);
-                _allItems.Insert(idx - 1, vm);
-                
+            if (_playlist.MoveUp(vm))
                 ListaReproduccion.SelectedItem = vm;
-                
-                if (_currentIndex == idx) _currentIndex = idx - 1;
-                else if (_currentIndex == idx - 1) _currentIndex = idx;
-                
-                if (_shuffleEnabled) BuildShuffleOrder();
-            }
         }
     }
 
@@ -553,41 +478,26 @@ public partial class MainWindow : Window
     {
         if (ListaReproduccion.SelectedItem is PlaylistItemViewModel vm)
         {
-            int idx = _allItems.IndexOf(vm);
-            if (idx >= 0 && idx < _allItems.Count - 1)
-            {
-                var track = _playlist[idx];
-                _playlist.RemoveAt(idx);
-                _playlist.Insert(idx + 1, track);
-                
-                _allItems.RemoveAt(idx);
-                _allItems.Insert(idx + 1, vm);
-                
+            if (_playlist.MoveDown(vm))
                 ListaReproduccion.SelectedItem = vm;
-                
-                if (_currentIndex == idx) _currentIndex = idx + 1;
-                else if (_currentIndex == idx + 1) _currentIndex = idx;
-                
-                if (_shuffleEnabled) BuildShuffleOrder();
-            }
         }
     }
 
     private async void BtnSavePlaylist_Click(object? sender, RoutedEventArgs e)
     {
         if (_playlist.Count == 0) return;
-        
+
         var topLevel = TopLevel.GetTopLevel(this);
         if (topLevel == null) return;
-        
+
         var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Save Playlist",
+            Title = "Guardar Lista de Reproducción",
             DefaultExtension = "m3u8",
-            SuggestedFileName = "Playlist.m3u8",
-            FileTypeChoices = new[] { new FilePickerFileType("M3U8 Playlist") { Patterns = new[] { "*.m3u8" } } }
+            SuggestedFileName = "Lista.m3u8",
+            FileTypeChoices = new[] { new FilePickerFileType("Lista M3U8") { Patterns = new[] { "*.m3u8" } } }
         });
-        
+
         if (file != null)
         {
             try
@@ -595,7 +505,7 @@ public partial class MainWindow : Window
                 using var stream = await file.OpenWriteAsync();
                 using var writer = new StreamWriter(stream);
                 await writer.WriteLineAsync("#EXTM3U");
-                foreach (var track in _playlist)
+                foreach (var track in _playlist.Tracks)
                 {
                     await writer.WriteLineAsync($"#EXTINF:{(int)track.Duration.TotalSeconds},{track.Artist} - {track.DisplayTitle}");
                     await writer.WriteLineAsync(track.FilePath);
@@ -603,85 +513,33 @@ public partial class MainWindow : Window
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error saving playlist: {ex.Message}");
-            }
-        }
-    }
-
-    // ─── Playlist management ──────────────────────────────────────────────────
-
-    private void LoadPlaylist(List<TrackModel> tracks, bool autoPlay = false, bool append = false)
-    {
-        if (!append)
-        {
-            _playlist.Clear();
-            _allItems.Clear();
-        }
-
-        int startIndex = _playlist.Count;
-        _playlist.AddRange(tracks);
-
-        foreach (var t in tracks)
-        {
-            t.IsFavorite = _prefs.Settings.Favorites.Contains(t.FilePath);
-            _allItems.Add(new PlaylistItemViewModel(t));
-        }
-
-        ApplySearchFilter(_searchText);
-        UpdatePlaylistCount();
-        
-        if (_shuffleEnabled) BuildShuffleOrder();
-
-        if (autoPlay && !append && _playlist.Count > 0)
-            ReproducirIndice(0);
-        else if (autoPlay && append && !_audio.EstaReproduciendo && startIndex < _playlist.Count)
-            ReproducirIndice(startIndex);
-    }
-
-    private void ApplySearchFilter(string query)
-    {
-        _filteredItems.Clear();
-        foreach (var item in _allItems)
-        {
-            if (string.IsNullOrWhiteSpace(query) ||
-                item.Track.DisplayTitle.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                item.Track.Artist.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-                item.Track.Album.Contains(query, StringComparison.OrdinalIgnoreCase))
-            {
-                _filteredItems.Add(item);
+                Log.Error("Playlist", "Error saving playlist", ex);
             }
         }
     }
 
     private void UpdatePlaylistCount()
     {
-        TxtPlaylistCount.Text = _playlist.Count > 0 ? $"{_filteredItems.Count} tracks" : string.Empty;
+        TxtPlaylistCount.Text = _playlist.PlaylistCountText;
     }
 
-    // ─── Playback ─────────────────────────────────────────────────────────────
+    // ─── Playback ─────────────────────────────────────────────────────────
 
-    private void ReproducirIndice(int index)
+    private void PlayTrackAtIndex(int index)
     {
         if (index < 0 || index >= _playlist.Count) return;
 
-        // Update playing indicator on old item
-        if (_currentIndex >= 0 && _currentIndex < _allItems.Count)
-            _allItems[_currentIndex].IsPlaying = false;
-
-        _currentIndex = index;
-
-        if (index < _allItems.Count)
-            _allItems[index].IsPlaying = true;
+        _playlist.SetCurrentIndex(index);
 
         // Scroll to selected in filtered list
-        var vm = _allItems.Count > index ? _allItems[index] : null;
-        if (vm != null && _filteredItems.Contains(vm))
+        var vm = _playlist.GetCurrentViewModel();
+        if (vm != null && _playlist.FilteredItems.Contains(vm))
         {
             ListaReproduccion.SelectedItem = vm;
             ListaReproduccion.ScrollIntoView(vm);
         }
 
-        var track = _playlist[index];
+        var track = _playlist.CurrentTrack!;
         bool ramMode = _prefs.Settings.RamMode;
 
         // Check if we have a preloaded gapless stream for this track
@@ -692,26 +550,17 @@ public partial class MainWindow : Window
             _pendingNextFile = null;
         }
 
-        _audio.Reproducir(
-            track.FilePath,
-            ramMode,
-            track.CueStartSeconds,
-            track.CueEndSeconds,
+        _audio.Play(
+            track.FilePath, ramMode,
+            track.CueStartSeconds, track.CueEndSeconds,
             preloaded);
 
-        _audio.Volumen = SliderVolumen.Value;
+        _audio.Volume = SliderVolumen.Value;
         _timer.Start();
 
-        // ── Update UI metadata ────────────────────────────────────────────
         UpdatePlayerUI(track);
-
-        // ── History ───────────────────────────────────────────────────────
         _history.RecordPlay(track.FilePath, track.DisplayTitle);
-
-        // ── Media keys now playing ────────────────────────────────────────
         _mediaKeys.UpdateNowPlaying(track);
-
-        // ── Play button icon ──────────────────────────────────────────────
         BtnReproducir.Content = "⏸";
     }
 
@@ -746,7 +595,7 @@ public partial class MainWindow : Window
         // Favorite button
         BtnFavorite.Content = track.IsFavorite ? "★" : "☆";
 
-        // Cover art (async)
+        // Cover art
         UpdateCoverArt(track.FilePath);
     }
 
@@ -755,7 +604,7 @@ public partial class MainWindow : Window
         Bitmap? bmp = _coverArt.GetCover(filePath);
         if (bmp != null)
         {
-            ImgCoverArt.Source  = bmp;
+            ImgCoverArt.Source    = bmp;
             ImgCoverArt.IsVisible = true;
             TxtNoCover.IsVisible  = false;
         }
@@ -768,7 +617,7 @@ public partial class MainWindow : Window
 
     private void ResetPlayerUI()
     {
-        TxtTitle.Text  = "No track selected";
+        TxtTitle.Text  = "Sin pista seleccionada";
         TxtArtist.Text = string.Empty;
         TxtAlbum.Text  = string.Empty;
         BorderTechInfo.IsVisible   = false;
@@ -781,30 +630,16 @@ public partial class MainWindow : Window
         BtnReproducir.Content = "▶";
     }
 
-    // ─── Navigation ───────────────────────────────────────────────────────────
+    // ─── Navigation ───────────────────────────────────────────────────────
 
     private void NextTrack()
     {
         if (_playlist.Count == 0) return;
 
-        if (_repeatMode == RepeatMode.One)
+        int next = _playlist.GetNextIndex();
+        if (next >= 0)
         {
-            ReproducirIndice(_currentIndex);
-            return;
-        }
-
-        if (_shuffleEnabled)
-        {
-            _shufflePos = (_shufflePos + 1) % _shuffleOrder.Length;
-            ReproducirIndice(_shuffleOrder[_shufflePos]);
-        }
-        else if (_currentIndex + 1 < _playlist.Count)
-        {
-            ReproducirIndice(_currentIndex + 1);
-        }
-        else if (_repeatMode == RepeatMode.All)
-        {
-            ReproducirIndice(0);
+            PlayTrackAtIndex(next);
         }
         else
         {
@@ -815,46 +650,20 @@ public partial class MainWindow : Window
 
     private void PrevTrack()
     {
-        if (_audio.PosicionSegundos > 3)
+        if (_audio.PositionSeconds > 3)
         {
-            _audio.PosicionSegundos = 0;
+            _audio.PositionSeconds = 0;
             return;
         }
-        if (_shuffleEnabled && _shufflePos > 0)
-        {
-            _shufflePos--;
-            ReproducirIndice(_shuffleOrder[_shufflePos]);
-        }
-        else if (_currentIndex > 0)
-        {
-            ReproducirIndice(_currentIndex - 1);
-        }
+
+        int prev = _playlist.GetPreviousIndex();
+        if (prev >= 0)
+            PlayTrackAtIndex(prev);
         else
-        {
-            _audio.PosicionSegundos = 0;
-        }
+            _audio.PositionSeconds = 0;
     }
 
-    private void BuildShuffleOrder()
-    {
-        var order = Enumerable.Range(0, _playlist.Count).ToList();
-        var rng = new Random();
-        for (int i = order.Count - 1; i > 0; i--)
-        {
-            int j = rng.Next(i + 1);
-            (order[i], order[j]) = (order[j], order[i]);
-        }
-        // Put current index first if playing
-        if (_currentIndex >= 0)
-        {
-            order.Remove(_currentIndex);
-            order.Insert(0, _currentIndex);
-        }
-        _shuffleOrder = order.ToArray();
-        _shufflePos = 0;
-    }
-
-    // ─── Event handlers – playback ────────────────────────────────────────────
+    // ─── Event handlers – playback ────────────────────────────────────────
 
     private void Audio_TrackEnded(object? sender, EventArgs e)
     {
@@ -867,40 +676,26 @@ public partial class MainWindow : Window
 
     private void Audio_GaplessPreloadReady(object? sender, EventArgs e)
     {
-        // Fire gapless preload on a background thread to not block the audio callback
         if (!_prefs.Settings.GaplessEnabled) return;
-        int nextIdx = GetNextIndex();
+        int nextIdx = _playlist.PeekNextIndex();
         if (nextIdx < 0) return;
 
-        var nextTrack = _playlist[nextIdx];
+        var nextTrack = _playlist.Tracks[nextIdx];
         _pendingNextFile = nextTrack.FilePath;
-        _audio.PrecargarStream(nextTrack.FilePath, _prefs.Settings.RamMode);
+        _audio.PreloadStream(nextTrack.FilePath, _prefs.Settings.RamMode);
     }
 
-    private int GetNextIndex()
-    {
-        if (_playlist.Count == 0) return -1;
-        if (_shuffleEnabled && _shuffleOrder.Length > 0)
-        {
-            int nextShufflePos = (_shufflePos + 1) % _shuffleOrder.Length;
-            return _shuffleOrder[nextShufflePos];
-        }
-        if (_currentIndex + 1 < _playlist.Count) return _currentIndex + 1;
-        if (_repeatMode == RepeatMode.All) return 0;
-        return -1;
-    }
-
-    // ─── Transport button handlers ────────────────────────────────────────────
+    // ─── Transport button handlers ────────────────────────────────────────
 
     private void BtnReproducir_Click(object? sender, RoutedEventArgs e)
     {
-        if (_currentIndex < 0 && _playlist.Count > 0)
+        if (_playlist.CurrentIndex < 0 && _playlist.Count > 0)
         {
-            ReproducirIndice(0);
+            PlayTrackAtIndex(0);
             return;
         }
-        _audio.AlternarPausa();
-        BtnReproducir.Content = _audio.EstaReproduciendo ? "⏸" : "▶";
+        _audio.TogglePause();
+        BtnReproducir.Content = _audio.IsPlaying ? "⏸" : "▶";
     }
 
     private void BtnAnterior_Click(object? sender, RoutedEventArgs e) => PrevTrack();
@@ -914,44 +709,44 @@ public partial class MainWindow : Window
 
     private void BtnShuffle_Click(object? sender, RoutedEventArgs e)
     {
-        _shuffleEnabled = !_shuffleEnabled;
-        if (_shuffleEnabled) BuildShuffleOrder();
+        _playlist.ShuffleEnabled = !_playlist.ShuffleEnabled;
         UpdateShuffleButton();
-        _prefs.Set(s => s.IsShuffleEnabled = _shuffleEnabled);
+        _prefs.Set(s => s.IsShuffleEnabled = _playlist.ShuffleEnabled);
     }
 
     private void BtnRepeat_Click(object? sender, RoutedEventArgs e)
     {
-        _repeatMode = _repeatMode switch
+        _playlist.RepeatMode = _playlist.RepeatMode switch
         {
             RepeatMode.Off => RepeatMode.All,
             RepeatMode.All => RepeatMode.One,
             _              => RepeatMode.Off
         };
         UpdateRepeatButton();
-        _prefs.Set(s => s.RepeatMode = _repeatMode.ToString());
+        _prefs.Set(s => s.RepeatMode = _playlist.RepeatMode.ToString());
     }
 
     private void UpdateShuffleButton()
     {
         BtnShuffle.Classes.Clear();
-        BtnShuffle.Classes.Add(_shuffleEnabled ? "toggle-active" : "toggle-inactive");
+        BtnShuffle.Classes.Add(_playlist.ShuffleEnabled ? "toggle-active" : "toggle-inactive");
     }
 
     private void UpdateRepeatButton()
     {
         BtnRepeat.Classes.Clear();
-        BtnRepeat.Content = _repeatMode switch
+        BtnRepeat.Content = _playlist.RepeatMode switch
         {
             RepeatMode.One => "↺¹",
-            RepeatMode.All => "↺",
             _              => "↺"
         };
-        BtnRepeat.Classes.Add(_repeatMode != RepeatMode.Off ? "toggle-active" : "toggle-inactive");
-        if (_repeatMode != RepeatMode.Off)
-            ToolTip.SetTip(BtnRepeat, _repeatMode == RepeatMode.One ? "Repeat: One" : "Repeat: All");
-        else
-            ToolTip.SetTip(BtnRepeat, "Repeat (R)");
+        BtnRepeat.Classes.Add(_playlist.RepeatMode != RepeatMode.Off ? "toggle-active" : "toggle-inactive");
+        ToolTip.SetTip(BtnRepeat, _playlist.RepeatMode switch
+        {
+            RepeatMode.One => "Repetir: Una",
+            RepeatMode.All => "Repetir: Todas",
+            _              => "Repetir (R)"
+        });
     }
 
     private void BtnUpdate_Click(object? sender, RoutedEventArgs e)
@@ -968,16 +763,20 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Could not open update URL: {ex.Message}");
+            Log.Error("Update", "Could not open update URL", ex);
         }
     }
 
-    // ─── Favorite ─────────────────────────────────────────────────────────────
+    // ─── Favorite ─────────────────────────────────────────────────────────
 
     private void BtnFavorite_Click(object? sender, RoutedEventArgs e)
     {
-        if (_currentIndex < 0) return;
-        ToggleFavorite(_currentIndex);
+        if (_playlist.CurrentIndex < 0) return;
+        _playlist.ToggleFavorite(_playlist.CurrentIndex);
+        // Update main star button
+        var track = _playlist.CurrentTrack;
+        if (track != null)
+            BtnFavorite.Content = track.IsFavorite ? "★" : "☆";
     }
 
     private void FavButton_Click(object? sender, RoutedEventArgs e)
@@ -985,43 +784,27 @@ public partial class MainWindow : Window
         if (sender is Button btn && btn.Tag is PlaylistItemViewModel vm)
         {
             int idx = _playlist.IndexOf(vm.Track);
-            if (idx >= 0) ToggleFavorite(idx);
+            if (idx >= 0)
+            {
+                _playlist.ToggleFavorite(idx);
+                // Update main star if this is the current track
+                if (idx == _playlist.CurrentIndex)
+                    BtnFavorite.Content = vm.Track.IsFavorite ? "★" : "☆";
+            }
         }
     }
 
-    private void ToggleFavorite(int idx)
-    {
-        var track = _playlist[idx];
-        track.IsFavorite = !track.IsFavorite;
-
-        if (track.IsFavorite)
-            _prefs.Settings.Favorites.Add(track.FilePath);
-        else
-            _prefs.Settings.Favorites.Remove(track.FilePath);
-
-        _prefs.Save();
-
-        // Update VMs
-        foreach (var vm in _allItems.Where(v => v.Track == track))
-            vm.RefreshFav();
-
-        // Update main star button
-        if (idx == _currentIndex)
-            BtnFavorite.Content = track.IsFavorite ? "★" : "☆";
-    }
-
-    // ─── Settings ────────────────────────────────────────────────────────────
+    // ─── Settings ────────────────────────────────────────────────────────
 
     private async void BtnSettings_Click(object? sender, RoutedEventArgs e)
     {
-        var devices = _audio.ObtenerDispositivos();
+        var devices = _audio.GetDevices();
         var win = new SettingsWindow(_prefs.Settings, devices);
         await win.ShowDialog(this);
 
         if (win.Saved)
         {
-            // Apply changed settings
-            _audio.CambiarDispositivo(_prefs.Settings.LastDeviceIndex);
+            _audio.ChangeDevice(_prefs.Settings.LastDeviceIndex);
 
             if (_prefs.Settings.HttpApiEnabled && !_httpRemote.IsRunning)
                 _httpRemote.Start(_prefs.Settings.HttpApiPort);
@@ -1032,16 +815,12 @@ public partial class MainWindow : Window
                 SpectrumViz.Resume();
             else
                 SpectrumViz.Stop();
-                
-            // Update CD button immediately based on settings change if a CD is ready
-            bool isCdSupported = (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux)) 
-                                 && RuntimeInformation.OSArchitecture == Architecture.X64;
-            if (isCdSupported)
+
+            // Update CD button based on settings change
+            if (UltraudioConstants.IsCdSupported)
             {
                 if (!_prefs.Settings.CdEnabled)
-                {
                     BtnCargarCd.IsVisible = false;
-                }
                 else
                 {
                     try { BtnCargarCd.IsVisible = BassCd.IsReady(0); } catch { }
@@ -1050,7 +829,7 @@ public partial class MainWindow : Window
         }
     }
 
-    // ─── Seekbar ─────────────────────────────────────────────────────────────
+    // ─── Seekbar ─────────────────────────────────────────────────────────
 
     private void SliderProgreso_PointerPressed(object? sender, PointerPressedEventArgs e)
         => _isDraggingSlider = true;
@@ -1058,45 +837,44 @@ public partial class MainWindow : Window
     private void SliderProgreso_PointerReleased(object? sender, PointerReleasedEventArgs e)
     {
         _isDraggingSlider = false;
-        if (_currentIndex >= 0)
-            _audio.PosicionSegundos = SliderProgreso.Value;
+        if (_playlist.CurrentIndex >= 0)
+            _audio.PositionSeconds = SliderProgreso.Value;
     }
 
     private void SliderProgreso_ValueChanged(object? sender, RangeBaseValueChangedEventArgs e) { }
 
-    // ─── Volume ───────────────────────────────────────────────────────────────
+    // ─── Volume ───────────────────────────────────────────────────────────
 
     private void SliderVolumen_ValueChanged(object? sender, RangeBaseValueChangedEventArgs e)
     {
         if (_audio != null)
         {
-            _audio.Volumen = SliderVolumen.Value;
+            _audio.Volume = SliderVolumen.Value;
             TxtVolumePercent.Text = $"{(int)(SliderVolumen.Value * 100)}%";
         }
     }
 
-    // ─── Search ───────────────────────────────────────────────────────────────
+    // ─── Search ───────────────────────────────────────────────────────────
 
     private void TxtSearch_TextChanged(object? sender, TextChangedEventArgs e)
     {
-        _searchText = TxtSearch.Text ?? string.Empty;
-        ApplySearchFilter(_searchText);
+        _playlist.ApplySearchFilter(TxtSearch.Text ?? string.Empty);
         UpdatePlaylistCount();
     }
 
-    // ─── Playlist selection ───────────────────────────────────────────────────
+    // ─── Playlist selection ───────────────────────────────────────────────
 
     private void ListaReproduccion_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
         if (ListaReproduccion.SelectedItem is PlaylistItemViewModel vm)
         {
             int idx = _playlist.IndexOf(vm.Track);
-            if (idx >= 0 && idx != _currentIndex)
-                ReproducirIndice(idx);
+            if (idx >= 0 && idx != _playlist.CurrentIndex)
+                PlayTrackAtIndex(idx);
         }
     }
 
-    // ─── Keyboard shortcuts ───────────────────────────────────────────────────
+    // ─── Keyboard shortcuts ───────────────────────────────────────────────
 
     private void Window_KeyDown(object? sender, KeyEventArgs e)
     {
@@ -1154,7 +932,7 @@ public partial class MainWindow : Window
                 break;
             case Key.MediaStop:
                 e.Handled = true;
-                _audio.Detener();
+                _audio.Stop();
                 break;
             case Key.O when e.KeyModifiers == KeyModifiers.Control:
                 e.Handled = true;
@@ -1167,17 +945,40 @@ public partial class MainWindow : Window
         }
     }
 
-    // ─── Mouse wheel = volume ─────────────────────────────────────────────────
+    private void Window_KeyUp(object? sender, KeyEventArgs e)
+    {
+        if (TxtSearch.IsFocused) return;
+
+        switch (e.Key)
+        {
+            case Key.Space:
+            case Key.Right:
+            case Key.Left:
+            case Key.Up:
+            case Key.Down:
+            case Key.MediaPlayPause:
+            case Key.F8:
+            case Key.MediaPreviousTrack:
+            case Key.F7:
+            case Key.MediaNextTrack:
+            case Key.F9:
+            case Key.MediaStop:
+                e.Handled = true;
+                break;
+        }
+    }
+
+    // ─── Mouse wheel = volume ─────────────────────────────────────────────
 
     private void Window_PointerWheelChanged(object? sender, PointerWheelEventArgs e)
     {
-        if (ListaReproduccion.IsPointerOver) return; // Let playlist scroll naturally
+        if (ListaReproduccion.IsPointerOver) return;
         double delta = e.Delta.Y * 0.05;
         SliderVolumen.Value = Math.Clamp(SliderVolumen.Value + delta, 0, 1);
         e.Handled = true;
     }
 
-    // ─── Menu handlers ────────────────────────────────────────────────────────
+    // ─── Menu handlers ────────────────────────────────────────────────────
 
     private async void AcercaDe_Click(object? sender, EventArgs e)
     {
@@ -1199,26 +1000,22 @@ public partial class MainWindow : Window
 
     private void Salir_Click(object? sender, EventArgs e) => Close();
 
-    // ─── Window close ─────────────────────────────────────────────────────────
+    // ─── Window close ─────────────────────────────────────────────────────
 
     protected override void OnClosed(EventArgs e)
     {
-        // Save preferences
-        _prefs.Settings.Volume         = SliderVolumen.Value;
-        _prefs.Settings.IsMuted        = _audio.IsMuted;
-        _prefs.Settings.WindowWidth    = Width;
-        _prefs.Settings.WindowHeight   = Height;
-        _prefs.Settings.WindowLeft     = Position.X;
-        _prefs.Settings.WindowTop      = Position.Y;
-        _prefs.Settings.IsShuffleEnabled = _shuffleEnabled;
-        _prefs.Settings.RepeatMode     = _repeatMode.ToString();
+        // Save session via SessionManager
+        _session.SaveSession(
+            _playlist.Tracks,
+            _playlist.CurrentIndex,
+            _audio.PositionSeconds,
+            SliderVolumen.Value,
+            _audio.IsMuted,
+            _playlist.ShuffleEnabled,
+            _playlist.RepeatMode,
+            Width, Height,
+            Position.X, Position.Y);
 
-        // Save session state
-        _prefs.Settings.SessionQueue = new List<TrackModel>(_playlist);
-        _prefs.Settings.SessionCurrentIndex = _currentIndex;
-        _prefs.Settings.SessionPosition = _audio.PosicionSegundos;
-
-        _prefs.Save();
         _history.Save();
 
         // Cleanup
@@ -1228,7 +1025,7 @@ public partial class MainWindow : Window
         _httpRemote.Dispose();
         _mediaKeys.Dispose();
         _coverArt.ClearCache();
-        _audio.Liberar();
+        _audio.Release();
 
         base.OnClosed(e);
     }

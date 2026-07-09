@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Flac;
 using ManagedBass.Cd;
+using Ultraudio.Core;
 
 namespace Ultraudio;
 
@@ -12,6 +13,9 @@ namespace Ultraudio;
 // Supporting types
 // ─────────────────────────────────────────────────────────────────────────────
 
+/// <summary>
+/// Represents an audio output device available for playback.
+/// </summary>
 public class DeviceModel
 {
     public int Index { get; set; }
@@ -20,6 +24,9 @@ public class DeviceModel
     public override string ToString() => Name;
 }
 
+/// <summary>
+/// Repeat playback mode.
+/// </summary>
 public enum RepeatMode { Off, One, All }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -34,38 +41,38 @@ public enum RepeatMode { Off, One, All }
 /// </summary>
 public class AudioEngine
 {
-    // ── Active stream ────────────────────────────────────────────────────────
+    // ── Active stream ────────────────────────────────────────────────────
     private int _stream;
     private GCHandle _memoryHandle;
 
-    // ── Gapless: pre-loaded next stream ──────────────────────────────────────
+    // ── Gapless: pre-loaded next stream ──────────────────────────────────
     private int _nextStream;
     private GCHandle _nextMemoryHandle;
     private SyncProcedure? _gaplessTriggerSync;
     private SyncProcedure? _trackEndSync;
 
-    // ── Device state ─────────────────────────────────────────────────────────
+    // ── Device state ─────────────────────────────────────────────────────
     private bool _deviceInitialized = false;
-    private int _deviceSampleRate = 44100;
+    private int _deviceSampleRate = UltraudioConstants.DefaultSampleRate;
     private int _currentDevice = -1;
 
-    // ── Volume / Mute ─────────────────────────────────────────────────────────
+    // ── Volume / Mute ────────────────────────────────────────────────────
     private double _volumeBeforeMute = 1.0;
     private bool _isMuted = false;
 
-    // ── CUE virtual track bounds ──────────────────────────────────────────────
+    // ── CUE virtual track bounds ─────────────────────────────────────────
     private double _cueStart = 0;
     private double _cueEnd = -1; // -1 = play to file end
 
-    // ── Events ───────────────────────────────────────────────────────────────
+    // ── Events ───────────────────────────────────────────────────────────
     public event EventHandler? TrackEnded;
     public event EventHandler? GaplessPreloadReady;
 
-    // ── FFT buffer ────────────────────────────────────────────────────────────
+    // ── FFT buffer ───────────────────────────────────────────────────────
     private const int FftSize = 2048;
     private readonly float[] _fftBuffer = new float[FftSize / 2];
 
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────
     public AudioEngine()
     {
         _trackEndSync = new SyncProcedure(OnTrackEnd);
@@ -73,7 +80,7 @@ public class AudioEngine
         LoadBassPlugins();
     }
 
-    // ─── Plugin loading ───────────────────────────────────────────────────────
+    // ─── Plugin loading ──────────────────────────────────────────────────
 
     private void LoadBassPlugins()
     {
@@ -105,22 +112,25 @@ public class AudioEngine
             {
                 if (!File.Exists(pluginPath))
                 {
-                    Console.WriteLine($"[BASS] Plugin not found: {pluginPath}");
+                    Log.Warn("BASS", $"Plugin not found: {pluginPath}");
                     continue;
                 }
                 Bass.PluginLoad(pluginPath);
-                Console.WriteLine($"[BASS] Plugin loaded: {pluginFile}");
+                Log.Info("BASS", $"Plugin loaded: {pluginFile}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[BASS] Could not load {pluginFile}: {ex.Message}");
+                Log.Warn("BASS", $"Could not load {pluginFile}: {ex.Message}");
             }
         }
     }
 
-    // ─── Device management ────────────────────────────────────────────────────
+    // ─── Device management ───────────────────────────────────────────────
 
-    public List<DeviceModel> ObtenerDispositivos()
+    /// <summary>
+    /// Enumerates all enabled audio output devices (excluding "No Sound").
+    /// </summary>
+    public List<DeviceModel> GetDevices()
     {
         var list = new List<DeviceModel>();
         int deviceCount = Bass.DeviceCount;
@@ -133,7 +143,12 @@ public class AudioEngine
         return list;
     }
 
-    public bool InicializarDispositivo(int deviceIndex = -1, int sampleRate = 44100)
+    /// <summary>
+    /// Initializes (or reinitializes) BASS for a given device and sample rate.
+    /// Re-initialization happens automatically when the file's native sample rate
+    /// differs from the current device sample rate (bit-perfect playback).
+    /// </summary>
+    public bool InitializeDevice(int deviceIndex = -1, int sampleRate = 44100)
     {
         try
         {
@@ -161,17 +176,20 @@ public class AudioEngine
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[BASS] Exception initializing device: {ex}");
+            Log.Error("BASS", "Exception initializing device", ex);
             return false;
         }
     }
 
-    public void CambiarDispositivo(int deviceIndex)
+    /// <summary>
+    /// Switches the audio output to a different device without stopping playback.
+    /// </summary>
+    public void ChangeDevice(int deviceIndex)
     {
         if (deviceIndex == _currentDevice) return;
 
         bool wasPlaying = _stream != 0 && Bass.ChannelIsActive(_stream) == PlaybackState.Playing;
-        InicializarDispositivo(deviceIndex, _deviceSampleRate);
+        InitializeDevice(deviceIndex, _deviceSampleRate);
 
         if (_stream != 0)
         {
@@ -180,7 +198,7 @@ public class AudioEngine
         }
     }
 
-    // ─── Playback ─────────────────────────────────────────────────────────────
+    // ─── Playback ────────────────────────────────────────────────────────
 
     /// <summary>
     /// Begin playback of a file (or virtual CUE segment).
@@ -190,27 +208,27 @@ public class AudioEngine
     /// <param name="cueStart">CUE start offset in seconds (0 = beginning).</param>
     /// <param name="cueEnd">CUE end offset in seconds (-1 = file end).</param>
     /// <param name="preloadedStream">Already-preloaded stream from gapless engine (0 = none).</param>
-    public void Reproducir(
+    public void Play(
         string filePath,
         bool memoryPlayback = false,
         double cueStart = 0,
         double cueEnd = -1,
         int preloadedStream = 0)
     {
-        LiberarStream();
+        ReleaseStream();
 
         _cueStart = cueStart;
         _cueEnd = cueEnd;
 
         string ext = Path.GetExtension(filePath).ToLower();
         bool isFlac = ext == ".flac";
-        bool isCd = filePath.StartsWith("cda://", StringComparison.OrdinalIgnoreCase);
+        bool isCd = filePath.StartsWith(UltraudioConstants.CdProtocolPrefix, StringComparison.OrdinalIgnoreCase);
 
-        // ── Detect sample rate ─────────────────────────────────────────────
+        // ── Detect sample rate ────────────────────────────────────────────
         int infoStream = 0;
         if (isCd)
         {
-            var parts = filePath.Replace("cda://", "").Split('/');
+            var parts = filePath.Replace(UltraudioConstants.CdProtocolPrefix, "").Split('/');
             if (parts.Length == 2 && int.TryParse(parts[0], out int drive) && int.TryParse(parts[1], out int track))
             {
                 infoStream = BassCd.CreateStream(drive, track, BassFlags.Decode);
@@ -223,26 +241,26 @@ public class AudioEngine
                 : Bass.CreateStream(filePath, 0, 0, BassFlags.Decode);
         }
 
-        float freqf = 44100f;
+        float freqf = UltraudioConstants.DefaultSampleRate;
         if (infoStream != 0)
         {
             Bass.ChannelGetAttribute(infoStream, ChannelAttribute.Frequency, out freqf);
             Bass.StreamFree(infoStream);
         }
-        int fileRate = Math.Max(8000, Math.Min(384000, (int)Math.Round(freqf)));
+        int fileRate = Math.Max(UltraudioConstants.MinSampleRate,
+                      Math.Min(UltraudioConstants.MaxSampleRate, (int)Math.Round(freqf)));
 
-        // ── Reinit device at file's native sample rate ─────────────────────
+        // ── Reinit device at file's native sample rate ────────────────────
         if (!_deviceInitialized || _deviceSampleRate != fileRate)
         {
-            if (!InicializarDispositivo(_currentDevice, fileRate))
-                InicializarDispositivo(_currentDevice, 44100);
+            if (!InitializeDevice(_currentDevice, fileRate))
+                InitializeDevice(_currentDevice, UltraudioConstants.DefaultSampleRate);
         }
 
-        // ── Use preloaded stream or create new one ─────────────────────────
+        // ── Use preloaded stream or create new one ────────────────────────
         if (preloadedStream != 0)
         {
             _stream = preloadedStream;
-            // Absorb ownership of the preloaded memory handle
             if (_nextMemoryHandle.IsAllocated)
             {
                 _memoryHandle = _nextMemoryHandle;
@@ -260,7 +278,7 @@ public class AudioEngine
         }
         else if (isCd)
         {
-            var parts = filePath.Replace("cda://", "").Split('/');
+            var parts = filePath.Replace(UltraudioConstants.CdProtocolPrefix, "").Split('/');
             if (parts.Length == 2 && int.TryParse(parts[0], out int drive) && int.TryParse(parts[1], out int track))
             {
                 _stream = BassCd.CreateStream(drive, track, BassFlags.Default);
@@ -275,18 +293,17 @@ public class AudioEngine
 
         if (_stream == 0)
         {
-            Console.WriteLine($"[BASS] Stream creation failed: {Bass.LastError}");
+            Log.Error("BASS", $"Stream creation failed: {Bass.LastError}");
             return;
         }
 
-        // ── Seek to CUE start if needed ────────────────────────────────────
+        // ── Seek to CUE start if needed ─────────────────────────────────
         if (cueStart > 0)
             Bass.ChannelSetPosition(_stream, Bass.ChannelSeconds2Bytes(_stream, cueStart));
 
-        // ── Register end sync ──────────────────────────────────────────────
+        // ── Register end sync ───────────────────────────────────────────
         if (cueEnd > 0)
         {
-            // Stop at CUE end position
             long endPos = Bass.ChannelSeconds2Bytes(_stream, cueEnd);
             Bass.ChannelSetSync(_stream, SyncFlags.Position, endPos, _trackEndSync!);
         }
@@ -295,36 +312,35 @@ public class AudioEngine
             Bass.ChannelSetSync(_stream, SyncFlags.End, 0, _trackEndSync!);
         }
 
-        // ── Gapless trigger: fire 2s before end ────────────────────────────
-        double duration = cueEnd > 0 ? cueEnd - cueStart : DuracionSegundos;
+        // ── Gapless trigger: fire 2s before end ─────────────────────────
+        double duration = cueEnd > 0 ? cueEnd - cueStart : DurationSeconds;
         if (duration > 4)
         {
-            double triggerAt = (cueEnd > 0 ? cueEnd : DuracionSegundos) - 2.0;
+            double triggerAt = (cueEnd > 0 ? cueEnd : DurationSeconds) - 2.0;
             long triggerPos = Bass.ChannelSeconds2Bytes(_stream, triggerAt);
             Bass.ChannelSetSync(_stream, SyncFlags.Position | SyncFlags.Onetime, triggerPos, _gaplessTriggerSync!);
         }
 
-        // ── Apply mute / volume ────────────────────────────────────────────
+        // ── Apply mute / volume ─────────────────────────────────────────
         double vol = _isMuted ? 0 : _volumeBeforeMute;
         Bass.ChannelSetAttribute(_stream, ChannelAttribute.Volume, (float)vol);
 
         Bass.ChannelPlay(_stream);
     }
 
-    // ─── Gapless preload (called externally to pre-buffer next track) ─────────
+    // ─── Gapless preload ─────────────────────────────────────────────────
 
     /// <summary>
-    /// Pre-create the next stream in the background so it's ready for gapless handoff.
-    /// Returns the stream handle (store it and pass as preloadedStream when calling Reproducir).
+    /// Pre-create the next stream so it's ready for gapless handoff.
+    /// Returns the stream handle (store it and pass as preloadedStream when calling Play).
     /// </summary>
-    public int PrecargarStream(string filePath, bool memoryPlayback = false)
+    public int PreloadStream(string filePath, bool memoryPlayback = false)
     {
-        // Free any previously preloaded stream
         FreeNextStream();
 
         string ext = Path.GetExtension(filePath).ToLower();
         bool isFlac = ext == ".flac";
-        bool isCd = filePath.StartsWith("cda://", StringComparison.OrdinalIgnoreCase);
+        bool isCd = filePath.StartsWith(UltraudioConstants.CdProtocolPrefix, StringComparison.OrdinalIgnoreCase);
 
         try
         {
@@ -338,7 +354,7 @@ public class AudioEngine
             }
             else if (isCd)
             {
-                var parts = filePath.Replace("cda://", "").Split('/');
+                var parts = filePath.Replace(UltraudioConstants.CdProtocolPrefix, "").Split('/');
                 if (parts.Length == 2 && int.TryParse(parts[0], out int drive) && int.TryParse(parts[1], out int track))
                 {
                     _nextStream = BassCd.CreateStream(drive, track, BassFlags.Default);
@@ -351,11 +367,11 @@ public class AudioEngine
                     : Bass.CreateStream(filePath, 0, 0, BassFlags.Default);
             }
 
-            Console.WriteLine($"[Gapless] Pre-loaded stream {_nextStream} for: {Path.GetFileName(filePath)}");
+            Log.Debug("Gapless", $"Pre-loaded stream {_nextStream} for: {Path.GetFileName(filePath)}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Gapless] Preload failed: {ex.Message}");
+            Log.Error("Gapless", "Preload failed", ex);
             _nextStream = 0;
         }
 
@@ -364,14 +380,16 @@ public class AudioEngine
 
     public int GetPreloadedStream() => _nextStream;
 
-    // ─── Transport controls ───────────────────────────────────────────────────
+    // ─── Transport controls ──────────────────────────────────────────────
 
-    public void Detener()
+    /// <summary>Stops playback of the current stream.</summary>
+    public void Stop()
     {
         if (_stream != 0) Bass.ChannelStop(_stream);
     }
 
-    public void AlternarPausa()
+    /// <summary>Toggles between play and pause states.</summary>
+    public void TogglePause()
     {
         if (_stream != 0)
         {
@@ -382,12 +400,14 @@ public class AudioEngine
         }
     }
 
-    public bool EstaReproduciendo =>
+    /// <summary>Whether audio is currently playing.</summary>
+    public bool IsPlaying =>
         _stream != 0 && Bass.ChannelIsActive(_stream) == PlaybackState.Playing;
 
-    // ─── Volume / Mute ────────────────────────────────────────────────────────
+    // ─── Volume / Mute ───────────────────────────────────────────────────
 
-    public double Volumen
+    /// <summary>Gets or sets the playback volume (0.0 to 1.0).</summary>
+    public double Volume
     {
         get
         {
@@ -404,8 +424,10 @@ public class AudioEngine
         }
     }
 
+    /// <summary>Whether the audio is currently muted.</summary>
     public bool IsMuted => _isMuted;
 
+    /// <summary>Toggles mute on/off.</summary>
     public void ToggleMute()
     {
         _isMuted = !_isMuted;
@@ -416,9 +438,10 @@ public class AudioEngine
         }
     }
 
-    // ─── Position / Duration ──────────────────────────────────────────────────
+    // ─── Position / Duration ─────────────────────────────────────────────
 
-    public double PosicionSegundos
+    /// <summary>Gets or sets the current playback position in seconds (CUE-aware).</summary>
+    public double PositionSeconds
     {
         get
         {
@@ -436,7 +459,8 @@ public class AudioEngine
         }
     }
 
-    public double DuracionSegundos
+    /// <summary>Gets the total duration of the current track in seconds (CUE-aware).</summary>
+    public double DurationSeconds
     {
         get
         {
@@ -447,7 +471,7 @@ public class AudioEngine
         }
     }
 
-    // ─── FFT Spectrum Data ────────────────────────────────────────────────────
+    // ─── FFT Spectrum Data ───────────────────────────────────────────────
 
     /// <summary>
     /// Fills <paramref name="buffer"/> with the current FFT spectrum data.
@@ -461,7 +485,7 @@ public class AudioEngine
         return result > 0;
     }
 
-    // ─── Sync callbacks ───────────────────────────────────────────────────────
+    // ─── Sync callbacks ──────────────────────────────────────────────────
 
     private void OnTrackEnd(int handle, int channel, int data, IntPtr user)
     {
@@ -473,9 +497,9 @@ public class AudioEngine
         GaplessPreloadReady?.Invoke(this, EventArgs.Empty);
     }
 
-    // ─── Stream cleanup ───────────────────────────────────────────────────────
+    // ─── Stream cleanup ──────────────────────────────────────────────────
 
-    private void LiberarStream()
+    private void ReleaseStream()
     {
         if (_stream != 0)
         {
@@ -501,11 +525,42 @@ public class AudioEngine
         }
     }
 
-    public void Liberar()
+    /// <summary>Releases all resources: streams, preloaded streams, and BASS itself.</summary>
+    public void Release()
     {
-        LiberarStream();
+        ReleaseStream();
         FreeNextStream();
         Bass.Free();
         _deviceInitialized = false;
     }
+
+    // ─── Legacy API compatibility (deprecated, will be removed) ──────────
+    // These methods delegate to the new English-named API for backwards compat
+    // during the transition period.
+
+    [Obsolete("Use GetDevices() instead")]
+    public List<DeviceModel> ObtenerDispositivos() => GetDevices();
+    [Obsolete("Use InitializeDevice() instead")]
+    public bool InicializarDispositivo(int deviceIndex = -1, int sampleRate = 44100) => InitializeDevice(deviceIndex, sampleRate);
+    [Obsolete("Use ChangeDevice() instead")]
+    public void CambiarDispositivo(int deviceIndex) => ChangeDevice(deviceIndex);
+    [Obsolete("Use Play() instead")]
+    public void Reproducir(string filePath, bool memoryPlayback = false, double cueStart = 0, double cueEnd = -1, int preloadedStream = 0)
+        => Play(filePath, memoryPlayback, cueStart, cueEnd, preloadedStream);
+    [Obsolete("Use Stop() instead")]
+    public void Detener() => Stop();
+    [Obsolete("Use TogglePause() instead")]
+    public void AlternarPausa() => TogglePause();
+    [Obsolete("Use IsPlaying instead")]
+    public bool EstaReproduciendo => IsPlaying;
+    [Obsolete("Use Volume instead")]
+    public double Volumen { get => Volume; set => Volume = value; }
+    [Obsolete("Use PositionSeconds instead")]
+    public double PosicionSegundos { get => PositionSeconds; set => PositionSeconds = value; }
+    [Obsolete("Use DurationSeconds instead")]
+    public double DuracionSegundos => DurationSeconds;
+    [Obsolete("Use PreloadStream() instead")]
+    public int PrecargarStream(string filePath, bool memoryPlayback = false) => PreloadStream(filePath, memoryPlayback);
+    [Obsolete("Use Release() instead")]
+    public void Liberar() => Release();
 }

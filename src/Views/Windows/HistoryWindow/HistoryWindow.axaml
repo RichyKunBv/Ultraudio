@@ -1,6 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        x:Class="Ultraudio.HistoryWindow"
+        x:Class="Ultraudio.Views.Windows.HistoryWindow"
         Title="Historial de Ultraudio"
         Width="450" Height="300"
         CanResize="False"

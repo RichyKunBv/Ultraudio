@@ -153,24 +153,24 @@
                     <!-- Track title + favorite + tech badge -->
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto,Auto" Margin="0,0,0,4">
                         <TextBlock Grid.Column="0" Name="TxtTitle"
-                                   Text="No track selected"
+                                   Text="Sin pista seleccionada"
                                    FontSize="17" FontWeight="SemiBold"
                                    Foreground="White"
                                    TextTrimming="CharacterEllipsis"/>
                         <!-- Update Button -->
                         <Button Grid.Column="1" Name="BtnUpdate"
                                 Classes="transport" FontSize="18"
-                                Content="✨" ToolTip.Tip="New version available"
+                                Content="✨" ToolTip.Tip="Nueva versión disponible"
                                 Click="BtnUpdate_Click" Margin="8,0,0,0" IsVisible="False"/>
                         <!-- Favorite star -->
                         <Button Grid.Column="2" Name="BtnFavorite"
                                 Classes="transport" FontSize="18"
-                                Content="☆" ToolTip.Tip="Mark as favorite"
+                                Content="☆" ToolTip.Tip="Marcar como favorito"
                                 Click="BtnFavorite_Click" Margin="8,0,0,0"/>
                         <!-- Settings gear -->
                         <Button Grid.Column="3" Name="BtnSettings"
                                 Classes="transport" Content="⚙"
-                                ToolTip.Tip="Settings"
+                                ToolTip.Tip="Configuración"
                                 Click="BtnSettings_Click"/>
                     </Grid>
 
@@ -210,8 +210,6 @@
                                    FontSize="11" VerticalAlignment="Center"/>
                         <Slider Grid.Column="1" Name="SliderProgreso"
                                 Minimum="0" Maximum="100"
-                                PointerPressed="SliderProgreso_PointerPressed"
-                                PointerReleased="SliderProgreso_PointerReleased"
                                 ValueChanged="SliderProgreso_ValueChanged"/>
                         <TextBlock Grid.Column="2" Name="TxtTiempoTotal"
                                    Text="00:00" Foreground="#666666"
@@ -234,21 +232,21 @@
                     <StackPanel Grid.Column="0" Orientation="Horizontal"
                                 Spacing="4" VerticalAlignment="Center">
                         <Button Name="BtnAnterior" Classes="transport" Content="⏮"
-                                ToolTip.Tip="Previous (←)" Click="BtnAnterior_Click"/>
+                                ToolTip.Tip="Anterior (←)" Click="BtnAnterior_Click"/>
                         <Button Name="BtnReproducir" Classes="transport-primary" Content="▶"
-                                ToolTip.Tip="Play/Pause (Space)" Click="BtnReproducir_Click"/>
+                                ToolTip.Tip="Reproducir/Pausar (Espacio)" Click="BtnReproducir_Click"/>
                         <Button Name="BtnSiguiente" Classes="transport" Content="⏭"
-                                ToolTip.Tip="Next (→)" Click="BtnSiguiente_Click"/>
+                                ToolTip.Tip="Siguiente (→)" Click="BtnSiguiente_Click"/>
 
                         <!-- Separator -->
                         <Border Width="1" Height="20" Background="#2A2A2A" Margin="6,0"/>
 
                         <Button Name="BtnShuffle" Classes="toggle-inactive" Content="⇄"
-                                ToolTip.Tip="Shuffle (S)" Click="BtnShuffle_Click"/>
+                                ToolTip.Tip="Aleatorio (S)" Click="BtnShuffle_Click"/>
                         <Button Name="BtnRepeat" Classes="toggle-inactive" Content="↺"
-                                ToolTip.Tip="Repeat (R)" Click="BtnRepeat_Click"/>
+                                ToolTip.Tip="Repetir (R)" Click="BtnRepeat_Click"/>
                         <Button Name="BtnMute" Classes="transport" Content="🔊"
-                                ToolTip.Tip="Mute (M)" Click="BtnMute_Click"/>
+                                ToolTip.Tip="Silenciar (M)" Click="BtnMute_Click"/>
                     </StackPanel>
 
                     <!-- Right: volume -->
@@ -268,7 +266,7 @@
             <!-- Search bar -->
             <Grid Grid.Row="1" Margin="18,10,18,6" ColumnDefinitions="*,Auto">
                 <TextBox Grid.Column="0" Name="TxtSearch" Classes="search"
-                         PlaceholderText="🔍  Search tracks, artists, albums..."
+                         PlaceholderText="🔍  Buscar pistas, artistas, álbumes..."
                          TextChanged="TxtSearch_TextChanged"/>
                 <TextBlock Grid.Column="1" Name="TxtPlaylistCount"
                            Foreground="#444444" FontSize="11"
@@ -322,23 +320,23 @@
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <Button Name="BtnCargarArchivo" Classes="load-btn"
-                                Content="📄 Add Files" Click="BtnCargarArchivo_Click"/>
+                                Content="📄 Añadir Archivos" Click="BtnCargarArchivo_Click"/>
                         <Button Name="BtnCargarCarpeta" Classes="load-btn"
-                                Content="📁 Add Folder" Click="BtnCargarCarpeta_Click"/>
+                                Content="📁 Añadir Carpeta" Click="BtnCargarCarpeta_Click"/>
                         <Button Name="BtnCargarCue" Classes="load-btn"
-                                Content="📋 CUE Sheet" Click="BtnCargarCue_Click"/>
+                                Content="📋 Hoja CUE" Click="BtnCargarCue_Click"/>
                         <Button Name="BtnCargarCd" Classes="load-btn"
                                 Content="💿 CD Audio" Click="BtnCargarCd_Click"/>
                         <Border Width="1" Height="20" Background="#2A2A2A" Margin="2,0"/>
                         <Button Name="BtnMoveUp" Classes="load-btn"
-                                Content="↑" Click="BtnMoveUp_Click" ToolTip.Tip="Move Selected Up"/>
+                                Content="↑" Click="BtnMoveUp_Click" ToolTip.Tip="Subir selección"/>
                         <Button Name="BtnMoveDown" Classes="load-btn"
-                                Content="↓" Click="BtnMoveDown_Click" ToolTip.Tip="Move Selected Down"/>
+                                Content="↓" Click="BtnMoveDown_Click" ToolTip.Tip="Bajar selección"/>
                         <Border Width="1" Height="20" Background="#2A2A2A" Margin="2,0"/>
                         <Button Name="BtnSavePlaylist" Classes="load-btn"
-                                Content="💾 Save" Click="BtnSavePlaylist_Click"/>
+                                Content="💾 Guardar" Click="BtnSavePlaylist_Click"/>
                         <Button Name="BtnClearPlaylist" Classes="load-btn"
-                                Content="✕ Clear" Click="BtnClearPlaylist_Click"/>
+                                Content="✕ Limpiar" Click="BtnClearPlaylist_Click"/>
                     </StackPanel>
                 </ScrollViewer>
             </Border>

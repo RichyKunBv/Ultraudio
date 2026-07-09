@@ -1,3 +1,4 @@
+using Ultraudio.Core;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -61,7 +62,7 @@ public partial class UpdateWindow : Window
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Could not open update URL: {ex.Message}");
+            Log.Error("Update", "Could not open update URL", ex);
         }
     }
 

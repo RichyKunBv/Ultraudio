@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 
-namespace Ultraudio;
+namespace Ultraudio.Views.Windows;
 
 public partial class AboutWindow : Window
 {

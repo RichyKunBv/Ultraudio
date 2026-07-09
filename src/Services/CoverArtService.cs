@@ -2,19 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Avalonia.Media.Imaging;
+using Ultraudio.Core;
 
 namespace Ultraudio.Services;
 
 /// <summary>
 /// Extracts embedded cover art from audio files via TagLib and caches
-/// the resulting Avalonia bitmaps (LRU, max 20 entries).
+/// the resulting Avalonia bitmaps using an O(1) LRU cache.
 /// </summary>
 public class CoverArtService
 {
-    private const int CacheCapacity = 20;
+    private const int CacheCapacity = 50;
 
-    // Simple ordered dictionary acting as LRU cache
+    // O(1) LRU: LinkedList for order + Dictionary mapping key → node
     private readonly LinkedList<string> _lruOrder = new();
+    private readonly Dictionary<string, LinkedListNode<string>> _lruNodes = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, Bitmap?> _cache = new(StringComparer.OrdinalIgnoreCase);
 
     // Default placeholder (null means "show placeholder icon")
@@ -22,26 +24,29 @@ public class CoverArtService
 
     /// <summary>
     /// Returns the cover art Bitmap for the given file, or null if none found.
-    /// Results are cached.
+    /// Results are cached with O(1) LRU eviction.
     /// </summary>
     public Bitmap? GetCover(string filePath)
     {
         if (string.IsNullOrEmpty(filePath))
             return DefaultCover;
 
-        if (filePath.StartsWith("cda://", StringComparison.OrdinalIgnoreCase))
+        if (filePath.StartsWith(UltraudioConstants.CdProtocolPrefix, StringComparison.OrdinalIgnoreCase))
             return DefaultCover;
 
-        // ── Cache hit ──────────────────────────────────────────────────────
+        // ── Cache hit — O(1) promote to front ─────────────────────────────
         if (_cache.TryGetValue(filePath, out var cached))
         {
-            // Move to front (most recently used)
-            _lruOrder.Remove(filePath);
-            _lruOrder.AddFirst(filePath);
+            // Move to front using node reference (O(1) instead of O(n) search)
+            if (_lruNodes.TryGetValue(filePath, out var node))
+            {
+                _lruOrder.Remove(node);
+                _lruOrder.AddFirst(node);
+            }
             return cached;
         }
 
-        // ── Cache miss: extract from file ──────────────────────────────────
+        // ── Cache miss: extract from file ─────────────────────────────────
         Bitmap? bitmap = null;
         try
         {
@@ -56,16 +61,18 @@ public class CoverArtService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[CoverArt] Failed to extract from {Path.GetFileName(filePath)}: {ex.Message}");
+            Log.Warn("CoverArt", $"Failed to extract from {Path.GetFileName(filePath)}: {ex.Message}");
             bitmap = null;
         }
 
-        // ── Insert into LRU ────────────────────────────────────────────────
+        // ── Insert into LRU — evict if at capacity ────────────────────────
         if (_cache.Count >= CacheCapacity)
         {
-            // Evict least recently used
-            var lruKey = _lruOrder.Last!.Value;
+            // Evict least recently used (tail of list)
+            var lruNode = _lruOrder.Last!;
+            string lruKey = lruNode.Value;
             _lruOrder.RemoveLast();
+            _lruNodes.Remove(lruKey);
             if (_cache.TryGetValue(lruKey, out var evicted))
             {
                 evicted?.Dispose();
@@ -74,17 +81,19 @@ public class CoverArtService
         }
 
         _cache[filePath] = bitmap;
-        _lruOrder.AddFirst(filePath);
+        var newNode = _lruOrder.AddFirst(filePath);
+        _lruNodes[filePath] = newNode;
 
         return bitmap ?? DefaultCover;
     }
 
-    /// <summary>Clear the entire cover art cache.</summary>
+    /// <summary>Clear the entire cover art cache and dispose all bitmaps.</summary>
     public void ClearCache()
     {
         foreach (var bmp in _cache.Values)
             bmp?.Dispose();
         _cache.Clear();
         _lruOrder.Clear();
+        _lruNodes.Clear();
     }
 }
