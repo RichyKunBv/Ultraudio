@@ -1,6 +1,6 @@
 # Ultraudio 🎵
 
-[![Versión](https://img.shields.io/badge/Versión-0.8.0-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Versión](https://img.shields.io/badge/Versión-0.9.1-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Estable](https://img.shields.io/badge/Estado-desarrollo-red.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Licencia](https://img.shields.io/badge/Licencia-Apache-green.svg)](https://github.com/RichyKunBv/Ultraudio/blob/main/LICENSE)
 [![Licencia](https://img.shields.io/badge/Licencia-BASS%20No%20Commercial-green.svg)](https://www.un4seen.com/bass.html#license)
@@ -83,7 +83,7 @@ sudo xattr -cr /Applications/Ultraudio.app
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - Las bibliotecas nativas de BASS están configuradas en el directorio `lib/` y se copian automáticamente al compilar según el Sistema Operativo.
 
-### Compilación y Ejecución
+### Compilación y Ejecución (General)
 Asegúrate de ejecutar los comandos desde el directorio raíz del proyecto (donde se encuentra `Ultraudio.slnx`):
 
 ```bash
@@ -94,8 +94,28 @@ dotnet build
 dotnet run --project src/Ultraudio.csproj
 ```
 
+### Usando Makefile (Linux & Unix-like)
 
-Para la creación y empaquetado de la aplicación, dispones de scripts automatizados en el directorio `scripts/`:
+Para usuarios de sistemas basados en Unix (Linux, macOS), el proyecto incluye un `Makefile` que simplifica la compilación, ejecución y permite instalar la aplicación de forma nativa en el sistema:
+
+```bash
+# Compilar el proyecto
+make build
+
+# Ejecutar el reproductor
+make run
+
+# Empaquetar la aplicación
+make package
+
+# Instalar la aplicación en el sistema (añade icono y acceso directo .desktop)
+sudo make install
+
+# Desinstalar la aplicación
+sudo make uninstall
+```
+
+Para la creación y empaquetado de la aplicación, dispones también de scripts automatizados en el directorio `scripts/`:
 
 - **macOS**: `scripts/build_ultraudio_in_macos.sh` (empaqueta como `.app` nativa y también compila para Windows y Linux).
 - **Windows**: `scripts/PRE_build_ultraudio_in_windows.ps1` (facilita la creación de paquetes para múltiples sistemas y arquitecturas).
