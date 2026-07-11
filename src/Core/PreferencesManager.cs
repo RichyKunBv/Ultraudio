@@ -16,6 +16,7 @@ public class PreferencesManager
     {
         WriteIndented = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.Never,
+        NumberHandling = JsonNumberHandling.AllowNamedFloatingPointLiterals,
         Converters = { new JsonStringEnumConverter() }
     };
 

@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework Condition="$([MSBuild]::IsOSPlatform('Windows'))">net10.0-windows10.0.19041.0</TargetFramework>
+    <TargetFramework Condition="!$([MSBuild]::IsOSPlatform('Windows'))">net10.0</TargetFramework>
     
     <!-- Información de la Aplicación -->
     <Product>Ultraudio</Product>
@@ -60,6 +61,16 @@
     <!-- Mapeo de arquitectura a nombres de carpeta en lib/Windows/ -->
     <WindowsArch>x64</WindowsArch>
     <WindowsArch Condition="'$(TargetArch)' == 'aarch64'">arm64</WindowsArch>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetOS)' == 'Windows'">
+    <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetOS)' == 'OSX'">
+    <DefineConstants>$(DefineConstants);MACOS</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetOS)' == 'Linux'">
+    <DefineConstants>$(DefineConstants);LINUX</DefineConstants>
   </PropertyGroup>
 
   <!-- Genera Info.plist automáticamente desde el template, inyectando la versión del .csproj -->

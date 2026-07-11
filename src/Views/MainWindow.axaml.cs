@@ -79,8 +79,8 @@ public partial class MainWindow : Window
         _mediaKeys = new MediaKeysService();
         _mediaKeys.OnNext  = () => Dispatcher.UIThread.Post(NextTrack);
         _mediaKeys.OnPrev  = () => Dispatcher.UIThread.Post(PrevTrack);
-        _mediaKeys.OnPlay  = () => Dispatcher.UIThread.Post(() => _audio.TogglePause());
-        _mediaKeys.OnPause = () => Dispatcher.UIThread.Post(() => _audio.TogglePause());
+        _mediaKeys.OnPlay  = () => Dispatcher.UIThread.Post(TogglePlayback);
+        _mediaKeys.OnPause = () => Dispatcher.UIThread.Post(TogglePlayback);
 
         _httpRemote = new HttpRemoteService();
         WireHttpRemote();
@@ -125,7 +125,7 @@ public partial class MainWindow : Window
                 _audio.Volume = SliderVolumen.Value;
 
                 UpdatePlayerUI(track);
-                _mediaKeys.UpdateNowPlaying(track);
+                _mediaKeys.UpdateNowPlaying(track, false);
 
                 // Scroll to selected item
                 var vm = _playlist.GetCurrentViewModel();
@@ -221,9 +221,9 @@ public partial class MainWindow : Window
 
     private void WireHttpRemote()
     {
-        _httpRemote.OnPlay   = () => Dispatcher.UIThread.Post(() => { if (!_audio.IsPlaying) _audio.TogglePause(); });
-        _httpRemote.OnPause  = () => Dispatcher.UIThread.Post(() => { if (_audio.IsPlaying)  _audio.TogglePause(); });
-        _httpRemote.OnToggle = () => Dispatcher.UIThread.Post(() => _audio.TogglePause());
+        _httpRemote.OnPlay   = () => Dispatcher.UIThread.Post(() => { if (!_audio.IsPlaying) TogglePlayback(); });
+        _httpRemote.OnPause  = () => Dispatcher.UIThread.Post(() => { if (_audio.IsPlaying) TogglePlayback(); });
+        _httpRemote.OnToggle = () => Dispatcher.UIThread.Post(TogglePlayback);
         _httpRemote.OnNext   = () => Dispatcher.UIThread.Post(NextTrack);
         _httpRemote.OnPrev   = () => Dispatcher.UIThread.Post(PrevTrack);
         _httpRemote.OnStop   = () => Dispatcher.UIThread.Post(() => { _audio.Stop(); _timer.Stop(); });
@@ -560,7 +560,7 @@ public partial class MainWindow : Window
 
         UpdatePlayerUI(track);
         _history.RecordPlay(track.FilePath, track.DisplayTitle);
-        _mediaKeys.UpdateNowPlaying(track);
+        _mediaKeys.UpdateNowPlaying(track, true);
         BtnReproducir.Content = "⏸";
     }
 
@@ -694,8 +694,17 @@ public partial class MainWindow : Window
             PlayTrackAtIndex(0);
             return;
         }
-        _audio.TogglePause();
-        BtnReproducir.Content = _audio.IsPlaying ? "⏸" : "▶";
+        TogglePlayback();
+    }
+
+    private void TogglePlayback()
+    {
+        if (_playlist.CurrentIndex >= 0)
+        {
+            _audio.TogglePause();
+            BtnReproducir.Content = _audio.IsPlaying ? "⏸" : "▶";
+            _mediaKeys.UpdateNowPlaying(_playlist.CurrentTrack, _audio.IsPlaying);
+        }
     }
 
     private void BtnAnterior_Click(object? sender, RoutedEventArgs e) => PrevTrack();

@@ -2,7 +2,17 @@ using Ultraudio.Core;
 using System;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using Ultraudio.Models;
+
+#if WINDOWS
+using Windows.Media;
+using Windows.Media.Playback;
+#endif
+
+#if LINUX
+using Tmds.DBus;
+#endif
 
 namespace Ultraudio.Services;
 
@@ -10,15 +20,13 @@ namespace Ultraudio.Services;
 /// Cross-platform OS media key / Now Playing integration.
 /// Windows: System Media Transport Controls (SMTC) via WinRT
 /// macOS:   MPNowPlayingInfoCenter + MPRemoteCommandCenter via ObjC P/Invoke
-/// Linux:   MPRIS2 via D-Bus (Tmds.DBus) — requires tmds.dbus.protocol package
+/// Linux:   MPRIS2 via D-Bus (Tmds.DBus)
 /// </summary>
 public class MediaKeysService : IDisposable
 {
-    // Platform dispatch
-    private readonly Action<TrackModel?>? _updateNowPlaying;
+    private readonly Action<TrackModel?, bool>? _updateNowPlaying;
     private readonly Action? _dispose;
 
-    // ── Callbacks that the player wires up ────────────────────────────────────
     public Action? OnPlay    { get; set; }
     public Action? OnPause   { get; set; }
     public Action? OnNext    { get; set; }
@@ -27,29 +35,35 @@ public class MediaKeysService : IDisposable
 
     public MediaKeysService()
     {
+#if MACOS
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             var mac = new MacMediaKeys(this);
             _updateNowPlaying = mac.Update;
             _dispose = mac.Dispose;
         }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+#endif
+#if LINUX
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             var linux = new LinuxMpris(this);
             _updateNowPlaying = linux.Update;
             _dispose = linux.Dispose;
         }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+#endif
+#if WINDOWS
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             var win = new WindowsSmtc(this);
             _updateNowPlaying = win.Update;
             _dispose = win.Dispose;
         }
+#endif
     }
 
-    public void UpdateNowPlaying(TrackModel? track)
+    public void UpdateNowPlaying(TrackModel? track, bool isPlaying)
     {
-        try { _updateNowPlaying?.Invoke(track); }
+        try { _updateNowPlaying?.Invoke(track, isPlaying); }
         catch (Exception ex) { Log.Warn("MediaKeys", $"UpdateNowPlaying error: {ex.Message}"); }
     }
 
@@ -59,16 +73,19 @@ public class MediaKeysService : IDisposable
         catch { /* ignore */ }
     }
 
+#if MACOS
     // ═════════════════════════════════════════════════════════════════════════
     // macOS implementation
     // ═════════════════════════════════════════════════════════════════════════
-
     private sealed class MacMediaKeys
     {
         private readonly MediaKeysService _parent;
 
         [DllImport("/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation")]
         private static extern IntPtr CFStringCreateWithCString(IntPtr alloc, string str, int encoding);
+        
+        [DllImport("/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation")]
+        private static extern void CFRelease(IntPtr cf);
 
         [DllImport("/usr/lib/libobjc.dylib")]
         private static extern IntPtr objc_getClass(string name);
@@ -80,6 +97,8 @@ public class MediaKeysService : IDisposable
         private static extern IntPtr objc_msgSend_dict(IntPtr receiver, IntPtr selector, IntPtr val, IntPtr key);
         [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
         private static extern void objc_msgSend_set(IntPtr receiver, IntPtr selector, IntPtr arg);
+        [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+        private static extern void objc_msgSend_nuint(IntPtr receiver, IntPtr selector, nuint arg);
         [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "sel_registerName")]
         private static extern IntPtr sel_registerName(string name);
         
@@ -92,7 +111,6 @@ public class MediaKeysService : IDisposable
 
         private delegate long CommandHandlerDelegate(IntPtr self, IntPtr cmd, IntPtr eventPtr);
 
-        // Keep delegates alive to prevent GC collection
         private readonly CommandHandlerDelegate _playDel;
         private readonly CommandHandlerDelegate _pauseDel;
         private readonly CommandHandlerDelegate _toggleDel;
@@ -106,7 +124,7 @@ public class MediaKeysService : IDisposable
 
             _playDel = (s, c, e) => { _parent.OnPlay?.Invoke(); return 0; };
             _pauseDel = (s, c, e) => { _parent.OnPause?.Invoke(); return 0; };
-            _toggleDel = (s, c, e) => { _parent.OnPlay?.Invoke(); return 0; }; // _parent.OnPlay maps to TogglePause
+            _toggleDel = (s, c, e) => { _parent.OnPlay?.Invoke(); return 0; }; 
             _nextDel = (s, c, e) => { _parent.OnNext?.Invoke(); return 0; };
             _prevDel = (s, c, e) => { _parent.OnPrev?.Invoke(); return 0; };
 
@@ -131,7 +149,6 @@ public class MediaKeysService : IDisposable
                 class_addMethod(myClass, sel_registerName("onPrev:"), _prevDel, "q@:@");
 
                 objc_registerClassPair(myClass);
-
                 _target = objc_msgSend(objc_msgSend(myClass, sel_registerName("alloc")), sel_registerName("init"));
 
                 IntPtr commandCenterClass = objc_getClass("MPRemoteCommandCenter");
@@ -148,22 +165,6 @@ public class MediaKeysService : IDisposable
                         Log.Info("MediaKeys", "macOS MPRemoteCommandCenter initialized.");
                     }
                 }
-                
-                // Claim Now Playing to ensure the OS routes media keys to us instead of Apple Music
-                IntPtr infoCenterClass = objc_getClass("MPNowPlayingInfoCenter");
-                IntPtr dictClass = objc_getClass("NSDictionary");
-                if (infoCenterClass != IntPtr.Zero && dictClass != IntPtr.Zero)
-                {
-                    IntPtr defaultCenter = objc_msgSend(infoCenterClass, sel_registerName("defaultCenter"));
-                    if (defaultCenter != IntPtr.Zero)
-                    {
-                        IntPtr titleKey = CFStringCreateWithCString(IntPtr.Zero, "title", 0x08000100);
-                        IntPtr titleVal = CFStringCreateWithCString(IntPtr.Zero, "Ultraudio", 0x08000100);
-                        IntPtr dict = objc_msgSend_dict(dictClass, sel_registerName("dictionaryWithObject:forKey:"), titleVal, titleKey);
-                        objc_msgSend_set(defaultCenter, sel_registerName("setNowPlayingInfo:"), dict);
-                        Log.Info("MediaKeys", "macOS MPNowPlayingInfoCenter claimed.");
-                    }
-                }
             }
             catch (Exception ex)
             {
@@ -177,52 +178,130 @@ public class MediaKeysService : IDisposable
             if (command != IntPtr.Zero)
             {
                 objc_msgSend_add(command, sel_registerName("addTarget:action:"), target, sel_registerName(selName));
+                objc_msgSend_set(command, sel_registerName("setEnabled:"), (IntPtr)1);
             }
         }
 
-        public void Update(TrackModel? track)
+        public void Update(TrackModel? track, bool isPlaying)
         {
-            if (track != null)
-                Log.Debug("MediaKeys", $"macOS now playing: {track.DisplayTitle}");
+            try
+            {
+                IntPtr infoCenterClass = objc_getClass("MPNowPlayingInfoCenter");
+                IntPtr dictClass = objc_getClass("NSMutableDictionary");
+                if (infoCenterClass == IntPtr.Zero || dictClass == IntPtr.Zero) return;
+
+                IntPtr defaultCenter = objc_msgSend(infoCenterClass, sel_registerName("defaultCenter"));
+                if (defaultCenter == IntPtr.Zero) return;
+
+                // 1 = Playing, 2 = Paused, 0 = Stopped
+                nuint playbackState = (nuint)(track != null ? (isPlaying ? 1 : 2) : 0);
+                objc_msgSend_nuint(defaultCenter, sel_registerName("setPlaybackState:"), playbackState);
+
+                if (track != null)
+                {
+                    IntPtr dict = objc_msgSend(objc_msgSend(dictClass, sel_registerName("alloc")), sel_registerName("init"));
+                    
+                    IntPtr titleKey = CFStringCreateWithCString(IntPtr.Zero, "title", 0x08000100);
+                    IntPtr titleVal = CFStringCreateWithCString(IntPtr.Zero, track.DisplayTitle, 0x08000100);
+                    objc_msgSend_dict(dict, sel_registerName("setObject:forKey:"), titleVal, titleKey);
+                    CFRelease(titleKey); CFRelease(titleVal);
+
+                    if (!string.IsNullOrEmpty(track.Artist))
+                    {
+                        IntPtr artistKey = CFStringCreateWithCString(IntPtr.Zero, "artist", 0x08000100);
+                        IntPtr artistVal = CFStringCreateWithCString(IntPtr.Zero, track.Artist, 0x08000100);
+                        objc_msgSend_dict(dict, sel_registerName("setObject:forKey:"), artistVal, artistKey);
+                        CFRelease(artistKey); CFRelease(artistVal);
+                    }
+
+                    objc_msgSend_set(defaultCenter, sel_registerName("setNowPlayingInfo:"), dict);
+                    objc_msgSend(dict, sel_registerName("release"));
+                }
+                else
+                {
+                    objc_msgSend_set(defaultCenter, sel_registerName("setNowPlayingInfo:"), IntPtr.Zero);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("MediaKeys", $"macOS update error: {ex.Message}");
+            }
         }
 
         public void Dispose() { }
     }
+#endif
 
+#if LINUX
     // ═════════════════════════════════════════════════════════════════════════
     // Linux MPRIS2 implementation
     // ═════════════════════════════════════════════════════════════════════════
 
-    private sealed class LinuxMpris
+    [DBusInterface("org.mpris.MediaPlayer2")]
+    public interface IMediaPlayer2 : IDBusObject
     {
+        Task QuitAsync();
+        Task RaiseAsync();
+        Task<bool> GetCanQuitAsync();
+        Task<bool> GetCanRaiseAsync();
+        Task<bool> GetHasTrackListAsync();
+        Task<string> GetIdentityAsync();
+        Task<string[]> GetSupportedUriSchemesAsync();
+        Task<string[]> GetSupportedMimeTypesAsync();
+    }
+
+    [DBusInterface("org.mpris.MediaPlayer2.Player")]
+    public interface IMediaPlayer2Player : IDBusObject
+    {
+        Task NextAsync();
+        Task PreviousAsync();
+        Task PauseAsync();
+        Task PlayPauseAsync();
+        Task StopAsync();
+        Task PlayAsync();
+        Task SeekAsync(long offset);
+        Task SetPositionAsync(ObjectPath trackId, long position);
+        Task OpenUriAsync(string uri);
+        Task<string> GetPlaybackStatusAsync();
+        Task<string> GetLoopStatusAsync();
+        Task<double> GetRateAsync();
+        Task<bool> GetShuffleAsync();
+        Task<IDictionary<string, object>> GetMetadataAsync();
+        Task<double> GetVolumeAsync();
+        Task<long> GetPositionAsync();
+        Task<double> GetMinimumRateAsync();
+        Task<double> GetMaximumRateAsync();
+        Task<bool> GetCanGoNextAsync();
+        Task<bool> GetCanGoPreviousAsync();
+        Task<bool> GetCanPlayAsync();
+        Task<bool> GetCanPauseAsync();
+        Task<bool> GetCanSeekAsync();
+        Task<bool> GetCanControlAsync();
+    }
+
+    private sealed class LinuxMpris : IMediaPlayer2, IMediaPlayer2Player
+    {
+        public ObjectPath ObjectPath => new ObjectPath("/org/mpris/MediaPlayer2");
         private readonly MediaKeysService _parent;
-        private bool _available = false;
+        private IConnection? _connection;
+        private TrackModel? _currentTrack;
+        private bool _isPlaying;
 
         public LinuxMpris(MediaKeysService parent)
         {
             _parent = parent;
-            TryInit();
+            _ = TryInitAsync();
         }
 
-        private void TryInit()
+        private async Task TryInitAsync()
         {
             try
             {
-                // Check if D-Bus is available
-                string? dbusAddr = Environment.GetEnvironmentVariable("DBUS_SESSION_BUS_ADDRESS");
-                if (string.IsNullOrEmpty(dbusAddr))
-                {
-                    Log.Info("MediaKeys", "MPRIS2: D-Bus session bus not available.");
-                    return;
-                }
-
-                // Full MPRIS2 implementation via Tmds.DBus would go here.
-                // The interface requires registering:
-                //   org.mpris.MediaPlayer2
-                //   org.mpris.MediaPlayer2.Player
-                // on the session bus with service name "org.mpris.MediaPlayer2.Ultraudio"
-                Log.Info("MediaKeys", "MPRIS2: D-Bus detected. Full MPRIS2 requires Tmds.DBus package.");
-                _available = true;
+                _connection = Connection.Session;
+                await _connection.ConnectAsync();
+                await _connection.RegisterObjectAsync(this);
+                await _connection.RegisterServiceAsync("org.mpris.MediaPlayer2.Ultraudio");
+                Log.Info("MediaKeys", "MPRIS2 service registered.");
             }
             catch (Exception ex)
             {
@@ -230,23 +309,74 @@ public class MediaKeysService : IDisposable
             }
         }
 
-        public void Update(TrackModel? track)
+        public void Update(TrackModel? track, bool isPlaying)
         {
-            if (_available && track != null)
-                Log.Debug("MediaKeys", $"MPRIS2 now playing: {track.DisplayTitle}");
+            _currentTrack = track;
+            _isPlaying = isPlaying;
         }
 
         public void Dispose() { }
-    }
 
+        // IMediaPlayer2
+        public Task QuitAsync() => Task.CompletedTask;
+        public Task RaiseAsync() => Task.CompletedTask;
+        public Task<bool> GetCanQuitAsync() => Task.FromResult(false);
+        public Task<bool> GetCanRaiseAsync() => Task.FromResult(false);
+        public Task<bool> GetHasTrackListAsync() => Task.FromResult(false);
+        public Task<string> GetIdentityAsync() => Task.FromResult("Ultraudio");
+        public Task<string[]> GetSupportedUriSchemesAsync() => Task.FromResult(Array.Empty<string>());
+        public Task<string[]> GetSupportedMimeTypesAsync() => Task.FromResult(Array.Empty<string>());
+
+        // IMediaPlayer2Player
+        public Task NextAsync() { _parent.OnNext?.Invoke(); return Task.CompletedTask; }
+        public Task PreviousAsync() { _parent.OnPrev?.Invoke(); return Task.CompletedTask; }
+        public Task PauseAsync() { _parent.OnPause?.Invoke(); return Task.CompletedTask; }
+        public Task PlayPauseAsync() { _parent.OnPlay?.Invoke(); return Task.CompletedTask; }
+        public Task StopAsync() { _parent.OnStop?.Invoke(); return Task.CompletedTask; }
+        public Task PlayAsync() { _parent.OnPlay?.Invoke(); return Task.CompletedTask; }
+        public Task SeekAsync(long offset) => Task.CompletedTask;
+        public Task SetPositionAsync(ObjectPath trackId, long position) => Task.CompletedTask;
+        public Task OpenUriAsync(string uri) => Task.CompletedTask;
+        public Task<string> GetPlaybackStatusAsync() => Task.FromResult(_currentTrack != null ? (_isPlaying ? "Playing" : "Paused") : "Stopped");
+        public Task<string> GetLoopStatusAsync() => Task.FromResult("None");
+        public Task<double> GetRateAsync() => Task.FromResult(1.0);
+        public Task<bool> GetShuffleAsync() => Task.FromResult(false);
+        
+        public Task<IDictionary<string, object>> GetMetadataAsync()
+        {
+            var dict = new Dictionary<string, object>();
+            if (_currentTrack != null)
+            {
+                dict["mpris:trackid"] = new ObjectPath($"/org/mpris/MediaPlayer2/TrackList/{Guid.NewGuid():N}");
+                dict["xesam:title"] = _currentTrack.DisplayTitle;
+                if (!string.IsNullOrEmpty(_currentTrack.Artist)) dict["xesam:artist"] = new[] { _currentTrack.Artist };
+                if (!string.IsNullOrEmpty(_currentTrack.Album)) dict["xesam:album"] = _currentTrack.Album;
+            }
+            return Task.FromResult<IDictionary<string, object>>(dict);
+        }
+
+        public Task<double> GetVolumeAsync() => Task.FromResult(1.0);
+        public Task<long> GetPositionAsync() => Task.FromResult(0L);
+        public Task<double> GetMinimumRateAsync() => Task.FromResult(1.0);
+        public Task<double> GetMaximumRateAsync() => Task.FromResult(1.0);
+        public Task<bool> GetCanGoNextAsync() => Task.FromResult(true);
+        public Task<bool> GetCanGoPreviousAsync() => Task.FromResult(true);
+        public Task<bool> GetCanPlayAsync() => Task.FromResult(true);
+        public Task<bool> GetCanPauseAsync() => Task.FromResult(true);
+        public Task<bool> GetCanSeekAsync() => Task.FromResult(false);
+        public Task<bool> GetCanControlAsync() => Task.FromResult(true);
+    }
+#endif
+
+#if WINDOWS
     // ═════════════════════════════════════════════════════════════════════════
     // Windows SMTC implementation
     // ═════════════════════════════════════════════════════════════════════════
-
     private sealed class WindowsSmtc
     {
         private readonly MediaKeysService _parent;
-        private bool _available = false;
+        private MediaPlayer? _player;
+        private SystemMediaTransportControls? _smtc;
 
         public WindowsSmtc(MediaKeysService parent)
         {
@@ -258,15 +388,17 @@ public class MediaKeysService : IDisposable
         {
             try
             {
-                // Windows.Media.SystemMediaTransportControls requires a valid window handle
-                // which is only available after the Avalonia window is fully initialized.
-                // Full implementation would use:
-                //   SystemMediaTransportControlsInterop.GetForWindow(hwnd)
-                //   smtc.IsPlayEnabled = smtc.IsPauseEnabled = smtc.IsNextEnabled = smtc.IsPreviousEnabled = true;
-                //   smtc.ButtonPressed += (s, e) => { ... }
-                //   smtc.DisplayUpdater.Type = MediaPlaybackType.Music;
-                Log.Info("MediaKeys", "Windows SMTC requires Avalonia window handle. Will init post-load.");
-                _available = true;
+                // Instantiate a WinRT MediaPlayer just to acquire its SMTC globally
+                _player = new MediaPlayer();
+                _player.CommandManager.IsEnabled = true;
+                _smtc = _player.SystemMediaTransportControls;
+                _smtc.IsPlayEnabled = true;
+                _smtc.IsPauseEnabled = true;
+                _smtc.IsNextEnabled = true;
+                _smtc.IsPreviousEnabled = true;
+                _smtc.ButtonPressed += Smtc_ButtonPressed;
+                
+                Log.Info("MediaKeys", "Windows SMTC initialized.");
             }
             catch (Exception ex)
             {
@@ -274,12 +406,45 @@ public class MediaKeysService : IDisposable
             }
         }
 
-        public void Update(TrackModel? track)
+        private void Smtc_ButtonPressed(SystemMediaTransportControls sender, SystemMediaTransportControlsButtonPressedEventArgs args)
         {
-            if (_available && track != null)
-                Log.Debug("MediaKeys", $"SMTC now playing: {track.DisplayTitle}");
+            switch (args.Button)
+            {
+                case SystemMediaTransportControlsButton.Play: _parent.OnPlay?.Invoke(); break;
+                case SystemMediaTransportControlsButton.Pause: _parent.OnPause?.Invoke(); break;
+                case SystemMediaTransportControlsButton.Next: _parent.OnNext?.Invoke(); break;
+                case SystemMediaTransportControlsButton.Previous: _parent.OnPrev?.Invoke(); break;
+            }
         }
 
-        public void Dispose() { }
+        public void Update(TrackModel? track, bool isPlaying)
+        {
+            if (_smtc != null)
+            {
+                if (track != null)
+                {
+                    var updater = _smtc.DisplayUpdater;
+                    updater.Type = MediaPlaybackType.Music;
+                    updater.MusicProperties.Title = track.DisplayTitle;
+                    updater.MusicProperties.Artist = track.Artist;
+                    updater.Update();
+                    _smtc.PlaybackStatus = isPlaying ? MediaPlaybackStatus.Playing : MediaPlaybackStatus.Paused;
+                }
+                else
+                {
+                    _smtc.PlaybackStatus = MediaPlaybackStatus.Stopped;
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_smtc != null)
+            {
+                _smtc.ButtonPressed -= Smtc_ButtonPressed;
+            }
+            _player?.Dispose();
+        }
     }
+#endif
 }
