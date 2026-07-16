@@ -54,7 +54,7 @@ jobs:
         id: get_version
         shell: bash
         run: |
-          VERSION=$(awk -F'[><]' '/<Version>/{print $3}' src/Ultraudio.csproj | head -n 1)
+          VERSION=$(awk -F'[><]' '/<Version>/{print $3}' src/Ultraudio.csproj | head -n 1 | tr -d '\r')
           if [ -z "$VERSION" ]; then VERSION="0.0.0"; fi
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -91,7 +91,7 @@ jobs:
           )
 
           echo Ejecutando NSIS...
-          "C:\PROGRA~2\NSIS\makensis.exe" /DARCH=${{ matrix.arch }} /DVERSION=${{ env.VERSION }} /DPUBLISH_DIR=${{ github.workspace }}\src\publish_out /DOUTFILE=${{ github.workspace }}\${{ matrix.asset_name }} scripts\build\installer.nsi
+          "C:\PROGRA~2\NSIS\makensis.exe" /DARCH=${{ matrix.arch }} /DVERSION="${{ env.VERSION }}" "/DPUBLISH_DIR=${{ github.workspace }}\src\publish_out" "/DOUTFILE=${{ github.workspace }}\${{ matrix.asset_name }}" scripts\build\installer.nsi
 
           echo Verificando instalador en la raíz...
           dir "${{ github.workspace }}\${{ matrix.asset_name }}"
