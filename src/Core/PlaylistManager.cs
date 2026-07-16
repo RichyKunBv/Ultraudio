@@ -135,8 +135,19 @@ public class PlaylistManager
 
         if (_shuffleEnabled && _shuffleOrder.Length > 0)
         {
-            _shufflePos = (_shufflePos + 1) % _shuffleOrder.Length;
-            return _shuffleOrder[_shufflePos];
+            if (_shufflePos + 1 < _shuffleOrder.Length)
+            {
+                _shufflePos++;
+                return _shuffleOrder[_shufflePos];
+            }
+            
+            if (_repeatMode == RepeatMode.All)
+            {
+                _shufflePos = 0;
+                return _shuffleOrder[_shufflePos];
+            }
+            
+            return -1;
         }
 
         if (_currentIndex + 1 < _tracks.Count)
@@ -157,8 +168,13 @@ public class PlaylistManager
 
         if (_shuffleEnabled && _shuffleOrder.Length > 0)
         {
-            int nextShufflePos = (_shufflePos + 1) % _shuffleOrder.Length;
-            return _shuffleOrder[nextShufflePos];
+            if (_shufflePos + 1 < _shuffleOrder.Length)
+                return _shuffleOrder[_shufflePos + 1];
+                
+            if (_repeatMode == RepeatMode.All)
+                return _shuffleOrder[0];
+                
+            return -1;
         }
 
         if (_currentIndex + 1 < _tracks.Count)
@@ -175,10 +191,14 @@ public class PlaylistManager
     /// </summary>
     public int GetPreviousIndex()
     {
-        if (_shuffleEnabled && _shufflePos > 0)
+        if (_shuffleEnabled)
         {
-            _shufflePos--;
-            return _shuffleOrder[_shufflePos];
+            if (_shufflePos > 0)
+            {
+                _shufflePos--;
+                return _shuffleOrder[_shufflePos];
+            }
+            return -1; // Caller should reset position to 0
         }
 
         if (_currentIndex > 0)

@@ -316,7 +316,8 @@ public class AudioEngine
         double duration = cueEnd > 0 ? cueEnd - cueStart : DurationSeconds;
         if (duration > 4)
         {
-            double triggerAt = (cueEnd > 0 ? cueEnd : DurationSeconds) - 2.0;
+            double totalDur = Bass.ChannelBytes2Seconds(_stream, Bass.ChannelGetLength(_stream));
+            double triggerAt = (cueEnd > 0 ? cueEnd : totalDur) - 2.0;
             long triggerPos = Bass.ChannelSeconds2Bytes(_stream, triggerAt);
             Bass.ChannelSetSync(_stream, SyncFlags.Position | SyncFlags.Onetime, triggerPos, _gaplessTriggerSync!);
         }

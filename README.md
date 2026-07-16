@@ -263,3 +263,19 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 </details>
 
+---
+
+<details>
+<summary>NOTAS GENERALES</summary>
+
+**Sobre la reproducción "Bit-Perfect" y el mezclador del Sistema Operativo**
+
+Actualmente, Ultraudio utiliza la salida estándar de la librería de audio (WASAPI en Modo Compartido para Windows), la cual adapta automáticamente la frecuencia de muestreo del dispositivo a la del archivo original para ofrecer una excelente calidad. Sin embargo, en la versión actual la señal aún pasa por el mezclador del sistema operativo (OS mixer). 
+
+Sabemos que en el mundo audiófilo es fundamental contar con rutas de audio de hardware puras. Por lo tanto, el soporte explícito para **WASAPI Exclusive** y **ASIO** (en Windows), así como **ALSA Direct** (en Linux) y **Hog Mode** (en macOS), está estimado para llegar en la **versión 1.1.0**. Esto permitirá saltarse por completo el mezclador del sistema y lograr un verdadero modo Bit-Perfect exclusivo.
+
+**Biblioteca Inteligente (Por definir)**
+
+Está en los planes implementar una gestión de biblioteca más inteligente y automática. La idea es que la aplicación analice una carpeta dedicada (por ejemplo, `Música/Ultraudio`) y detecte u organice el contenido internamente por formatos (FLAC, DSD, WAV, etc.). Esto permitirá a los usuarios tener toda su música y álbumes en una sola carpeta, y disfrutar de una experiencia fluida, cómoda y amigable como la de un reproductor moderno, sin sacrificar la esencia purista del audio. *(Versión por definir)*
+
+</details>
