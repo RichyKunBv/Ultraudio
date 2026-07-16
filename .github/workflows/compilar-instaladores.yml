@@ -62,7 +62,7 @@ jobs:
       - name: Compilar aplicación
         run: |
           cd src
-          dotnet publish -c Release -r ${{ matrix.rid }} --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None
+          dotnet publish -c Release -r ${{ matrix.rid }} --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=None -o publish_out
 
       # --- EMPAQUETADO WINDOWS ---
       - name: Generar Instalador (Windows)
@@ -71,7 +71,7 @@ jobs:
         run: |
           @echo on
           echo Eliminando .pdb...
-          del /q /s "src\bin\Release\net10.0\${{ matrix.rid }}\publish\*.pdb" 2>nul || ver>nul
+          del /q /s "src\publish_out\*.pdb" 2>nul || ver>nul
 
           if not exist "C:\PROGRA~2\NSIS\makensis.exe" (
             echo Instalando NSIS...
@@ -91,7 +91,7 @@ jobs:
           )
 
           echo Ejecutando NSIS...
-          "C:\PROGRA~2\NSIS\makensis.exe" /DARCH=${{ matrix.arch }} /DVERSION=${{ env.VERSION }} /DPUBLISH_DIR=${{ github.workspace }}\src\bin\Release\net10.0\${{ matrix.rid }}\publish /DOUTFILE=${{ github.workspace }}\${{ matrix.asset_name }} scripts\build\installer.nsi
+          "C:\PROGRA~2\NSIS\makensis.exe" /DARCH=${{ matrix.arch }} /DVERSION=${{ env.VERSION }} /DPUBLISH_DIR=${{ github.workspace }}\src\publish_out /DOUTFILE=${{ github.workspace }}\${{ matrix.asset_name }} scripts\build\installer.nsi
 
           echo Verificando instalador en la raíz...
           dir "${{ github.workspace }}\${{ matrix.asset_name }}"
@@ -108,7 +108,7 @@ jobs:
           mkdir -p AppDir/usr/share/applications
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
           
-          cp -r src/bin/Release/net10.0/${{ matrix.rid }}/publish/* AppDir/usr/bin/
+          cp -r src/publish_out/* AppDir/usr/bin/
           chmod +x AppDir/usr/bin/Ultraudio
           
           cp src/Assets/icon.png AppDir/usr/share/icons/hicolor/256x256/apps/Ultraudio.png
@@ -161,7 +161,7 @@ jobs:
           mkdir -p "$APP_DIR/Contents/MacOS"
           mkdir -p "$APP_DIR/Contents/Resources"
           
-          cp -a src/bin/Release/net10.0/${{ matrix.rid }}/publish/. "$APP_DIR/Contents/MacOS/"
+          cp -a src/publish_out/. "$APP_DIR/Contents/MacOS/"
           
           cp src/Assets/icon.icns "$APP_DIR/Contents/Resources/" || true
           cp src/Info.plist.template "$APP_DIR/Contents/Info.plist"
@@ -211,4 +211,4 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: debug-${{ matrix.rid }}
-          path: src/bin/Release/net10.0/${{ matrix.rid }}/publish
+          path: src/publish_out
