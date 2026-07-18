@@ -43,6 +43,10 @@ public partial class MainWindow : Window
     private readonly PlaylistManager _playlist;
     private readonly SessionManager  _session;
 
+    // ── Platform Modifiers ────────────────────────────────────────────────
+    private KeyModifiers ShortcutModifier =>
+        RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? KeyModifiers.Meta : KeyModifiers.Control;
+
     // ── Playback UI state ─────────────────────────────────────────────────
     private bool _isDraggingSlider = false;
     private string? _pendingNextFile; // for gapless preload
@@ -899,7 +903,7 @@ public partial class MainWindow : Window
                 e.Handled = true;
                 BtnReproducir_Click(null, new RoutedEventArgs());
                 break;
-            case Key.Right when e.KeyModifiers == KeyModifiers.Control:
+            case Key.Right when e.KeyModifiers == ShortcutModifier:
                 e.Handled = true;
                 NextTrack();
                 break;
@@ -908,7 +912,7 @@ public partial class MainWindow : Window
                 if (_audio.IsPlaying || _audio.PositionSeconds > 0)
                     _audio.PositionSeconds = Math.Max(0, _audio.PositionSeconds + 5);
                 break;
-            case Key.Left when e.KeyModifiers == KeyModifiers.Control:
+            case Key.Left when e.KeyModifiers == ShortcutModifier:
                 e.Handled = true;
                 PrevTrack();
                 break;
@@ -917,31 +921,31 @@ public partial class MainWindow : Window
                 if (_audio.IsPlaying || _audio.PositionSeconds > 0)
                     _audio.PositionSeconds = Math.Max(0, _audio.PositionSeconds - 5);
                 break;
-            case Key.Up when e.KeyModifiers == KeyModifiers.Control:
+            case Key.Up when e.KeyModifiers == ShortcutModifier:
                 e.Handled = true;
                 SliderVolumen.Value = Math.Min(1.0, SliderVolumen.Value + 0.1);
                 break;
-            case Key.Down when e.KeyModifiers == KeyModifiers.Control:
+            case Key.Down when e.KeyModifiers == ShortcutModifier:
                 e.Handled = true;
                 SliderVolumen.Value = Math.Max(0.0, SliderVolumen.Value - 0.1);
                 break;
-            case Key.M when e.KeyModifiers == KeyModifiers.Control:
+            case Key.M when e.KeyModifiers == ShortcutModifier:
                 e.Handled = true;
                 BtnMute_Click(null, new RoutedEventArgs());
                 break;
-            case Key.S when e.KeyModifiers == KeyModifiers.Control:
+            case Key.S when e.KeyModifiers == ShortcutModifier:
                 e.Handled = true;
                 BtnShuffle_Click(null, new RoutedEventArgs());
                 break;
-            case Key.R when e.KeyModifiers == KeyModifiers.Control:
+            case Key.R when e.KeyModifiers == ShortcutModifier:
                 e.Handled = true;
                 BtnRepeat_Click(null, new RoutedEventArgs());
                 break;
-            case Key.B when e.KeyModifiers == KeyModifiers.Control:
+            case Key.B when e.KeyModifiers == ShortcutModifier:
                 e.Handled = true;
                 BtnFavorite_Click(null, new RoutedEventArgs());
                 break;
-            case Key.F when e.KeyModifiers == KeyModifiers.Control:
+            case Key.F when e.KeyModifiers == ShortcutModifier:
                 e.Handled = true;
                 TxtSearch.Focus();
                 break;
@@ -964,11 +968,11 @@ public partial class MainWindow : Window
                 e.Handled = true;
                 _audio.Stop();
                 break;
-            case Key.O when e.KeyModifiers == KeyModifiers.Control:
+            case Key.O when e.KeyModifiers == ShortcutModifier:
                 e.Handled = true;
                 BtnCargarArchivo_Click(null, new RoutedEventArgs());
                 break;
-            case Key.O when e.KeyModifiers == (KeyModifiers.Control | KeyModifiers.Shift):
+            case Key.O when e.KeyModifiers == (ShortcutModifier | KeyModifiers.Shift):
                 e.Handled = true;
                 BtnCargarCarpeta_Click(null, new RoutedEventArgs());
                 break;
@@ -995,7 +999,7 @@ public partial class MainWindow : Window
             case Key.Left:
             case Key.Up:
             case Key.Down:
-                if (e.KeyModifiers == KeyModifiers.Control || e.KeyModifiers == KeyModifiers.None)
+                if (e.KeyModifiers == ShortcutModifier || e.KeyModifiers == KeyModifiers.None)
                     e.Handled = true;
                 break;
         }
