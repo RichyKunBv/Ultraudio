@@ -11,7 +11,7 @@
     <Company>EsMeSolutions</Company>
     <Authors>RichyKunBv</Authors>
     <Description>Reproductor Hi-Fi Bit-Perfect para formatos sin pérdida.</Description>
-    <Version>0.9.2</Version>
+    <Version>0.9.3</Version>
 
     <!-- Forzar que AssemblyInformationalVersion use solo la versión que defines arriba -->
     <AssemblyInformationalVersion>$(Version)</AssemblyInformationalVersion>

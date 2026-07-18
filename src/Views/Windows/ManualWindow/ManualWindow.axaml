@@ -1,0 +1,87 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Ultraudio.Views.Windows.ManualWindow"
+        Title="Manual de Usuario – Ultraudio"
+        Width="700" Height="600"
+        Background="#0F0F0F"
+        WindowStartupLocation="CenterOwner"
+        Icon="avares://Ultraudio/Assets/icon.ico">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.h1">
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
+        <Style Selector="TextBlock.h2">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#00E576"/>
+            <Setter Property="Margin" Value="0,24,0,8"/>
+        </Style>
+        <Style Selector="TextBlock.p">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+            <Setter Property="LineHeight" Value="20"/>
+        </Style>
+        <Style Selector="TextBlock.bullet">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="16,0,0,4"/>
+            <Setter Property="LineHeight" Value="20"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="*,Auto" Margin="30">
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="0,0,16,0">
+            <StackPanel>
+                <TextBlock Text="Manual de Usuario de Ultraudio" Classes="h1"/>
+                <TextBlock Classes="p" Text="Bienvenido a Ultraudio, el reproductor de audio diseñado para audiófilos que buscan la más alta fidelidad sin compromisos. Este manual detalla todas las características y modos de funcionamiento para que obtengas la mejor experiencia sonora."/>
+
+                <TextBlock Text="1. Gestión de la Biblioteca y Listas" Classes="h2"/>
+                <TextBlock Classes="bullet" Text="• Añadir Archivos: Carga archivos de audio individuales sin pérdida (FLAC, WAV, etc.)."/>
+                <TextBlock Classes="bullet" Text="• Añadir Carpeta: Importa todos los archivos compatibles de un directorio de forma recursiva."/>
+                <TextBlock Classes="bullet" Text="• Hoja CUE: Carga un archivo .cue para dividir automáticamente una pista grande (ej. un álbum completo en un solo archivo FLAC) en canciones individuales. El reproductor respetará los límites de tiempo exactos de cada pista virtual."/>
+                <TextBlock Classes="bullet" Text="• CD Audio: Si tienes activada la opción en ajustes y un disco insertado, podrás leer pistas directamente del CD (extraídas bit a bit)."/>
+                <TextBlock Classes="bullet" Text="• Guardar Lista (M3U8): Puedes exportar tu cola de reproducción actual para uso futuro."/>
+                <TextBlock Classes="bullet" Text="• Búsqueda (Ctrl+F): Filtra rápidamente la lista de reproducción por título, artista o álbum."/>
+
+                <TextBlock Text="2. Modos de Reproducción Avanzados" Classes="h2"/>
+                <TextBlock Classes="p" Text="Desde la ventana de Configuración (engranaje), puedes activar tecnologías diseñadas para puristas del audio:"/>
+                <TextBlock Classes="bullet" Text="• Modo Exclusivo (WASAPI en Windows / Hog Mode en macOS): Toma control directo y exclusivo de tu DAC o tarjeta de sonido, evitando el mezclador del sistema operativo. Esto garantiza que el audio sea completamente &quot;Bit-Perfect&quot;, es decir, sin ninguna alteración de volumen ni remuestreo por parte del sistema."/>
+                <TextBlock Classes="bullet" Text="• Modo RAM: Carga el archivo completo a la memoria RAM antes de comenzar a reproducirlo. Esto evita lecturas del disco duro durante la reproducción, reduciendo la latencia y posibles ruidos eléctricos en equipos de alta fidelidad muy sensibles. (Si es un CD, se reproducirá directamente desde el disco sin cargarse a RAM para mantener la estabilidad)."/>
+                <TextBlock Classes="bullet" Text="• Reproducción sin pausas (Gapless): Pre-carga la siguiente canción un par de segundos antes de que termine la actual, logrando una transición perfecta sin milisegundos de silencio (ideal para conciertos en vivo o álbumes continuos)."/>
+
+                <TextBlock Text="3. Atajos de Teclado" Classes="h2"/>
+                <TextBlock Classes="p" Text="Ultraudio puede controlarse ágilmente con el teclado de tu ordenador o con las teclas multimedia:"/>
+                <TextBlock Classes="bullet" Text="• Espacio: Reproducir / Pausar"/>
+                <TextBlock Classes="bullet" Text="• ← / →: Atrasar / Adelantar 5 segundos"/>
+                <TextBlock Classes="bullet" Text="• Ctrl + ← / →: Pista Anterior / Siguiente"/>
+                <TextBlock Classes="bullet" Text="• Ctrl + ↑ / ↓: Subir / Bajar volumen un 10%"/>
+                <TextBlock Classes="bullet" Text="• Ctrl + M: Silenciar (Mute)"/>
+                <TextBlock Classes="bullet" Text="• Ctrl + S: Alternar modo Aleatorio"/>
+                <TextBlock Classes="bullet" Text="• Ctrl + R: Cambiar modo Repetir"/>
+                <TextBlock Classes="bullet" Text="• Ctrl + B: Marcar/Desmarcar pista como Favorita"/>
+                <TextBlock Classes="bullet" Text="• Ctrl + F: Enfocar la barra de búsqueda"/>
+
+                <TextBlock Text="4. API Remota (HTTP)" Classes="h2"/>
+                <TextBlock Classes="p" Text="Ultraudio incluye un servidor web integrado que te permite controlar el reproductor desde el navegador de otro dispositivo (como tu teléfono móvil o tablet) siempre que estés en la misma red local."/>
+                <TextBlock Classes="bullet" Text="• Para usarlo, actívalo en Configuración -> Habilitar HTTP API."/>
+                <TextBlock Classes="bullet" Text="• Accede a la URL indicada (por ejemplo, http://[Tu-IP-Local]:[Puerto]/status) para ver los metadatos de la pista actual o interactuar con los controles de reproducción mediante comandos de API."/>
+
+                <TextBlock Text="5. Visualizador y Metadatos" Classes="h2"/>
+                <TextBlock Classes="p" Text="El reproductor analiza en tiempo real el audio con una transformada rápida de Fourier (FFT) para dibujar el visualizador de espectro sin consumir demasiados recursos (aunque se puede desactivar en ajustes)."/>
+                <TextBlock Classes="p" Text="Si tus pistas tienen información técnica destacable, el reproductor mostrará un identificador (Tech Badge), como por ejemplo 'FLAC 24/192' para denotar audio Hi-Res. Si el archivo cuenta con etiquetas ReplayGain, se mostrará el valor RG detectado en pantalla."/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Button Grid.Row="1" Content="Entendido" HorizontalAlignment="Right" 
+                Background="#1B6B3A" Foreground="White" Padding="24,10" Margin="0,20,0,0"
+                Cursor="Hand" CornerRadius="6"
+                Click="BtnClose_Click"/>
+    </Grid>
+</Window>

@@ -110,4 +110,10 @@ public partial class SettingsWindow : Window
         var w = new HistoryWindow();
         await w.ShowDialog(this);
     }
+
+    private async void BtnOpenManualWindow_Click(object? sender, RoutedEventArgs e)
+    {
+        var w = new ManualWindow();
+        await w.ShowDialog(this);
+    }
 }

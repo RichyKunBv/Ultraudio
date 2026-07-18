@@ -232,21 +232,21 @@
                     <StackPanel Grid.Column="0" Orientation="Horizontal"
                                 Spacing="4" VerticalAlignment="Center">
                         <Button Name="BtnAnterior" Classes="transport" Content="⏮"
-                                ToolTip.Tip="Anterior (←)" Click="BtnAnterior_Click"/>
+                                ToolTip.Tip="Anterior (Ctrl+←)" Click="BtnAnterior_Click"/>
                         <Button Name="BtnReproducir" Classes="transport-primary" Content="▶"
                                 ToolTip.Tip="Reproducir/Pausar (Espacio)" Click="BtnReproducir_Click"/>
                         <Button Name="BtnSiguiente" Classes="transport" Content="⏭"
-                                ToolTip.Tip="Siguiente (→)" Click="BtnSiguiente_Click"/>
+                                ToolTip.Tip="Siguiente (Ctrl+→)" Click="BtnSiguiente_Click"/>
 
                         <!-- Separator -->
                         <Border Width="1" Height="20" Background="#2A2A2A" Margin="6,0"/>
 
                         <Button Name="BtnShuffle" Classes="toggle-inactive" Content="⇄"
-                                ToolTip.Tip="Aleatorio (S)" Click="BtnShuffle_Click"/>
+                                ToolTip.Tip="Aleatorio (Ctrl+S)" Click="BtnShuffle_Click"/>
                         <Button Name="BtnRepeat" Classes="toggle-inactive" Content="↺"
-                                ToolTip.Tip="Repetir (R)" Click="BtnRepeat_Click"/>
+                                ToolTip.Tip="Repetir (Ctrl+R)" Click="BtnRepeat_Click"/>
                         <Button Name="BtnMute" Classes="transport" Content="🔊"
-                                ToolTip.Tip="Silenciar (M)" Click="BtnMute_Click"/>
+                                ToolTip.Tip="Silenciar (Ctrl+M)" Click="BtnMute_Click"/>
                     </StackPanel>
 
                     <!-- Right: volume -->
@@ -266,7 +266,7 @@
             <!-- Search bar -->
             <Grid Grid.Row="1" Margin="18,10,18,6" ColumnDefinitions="*,Auto">
                 <TextBox Grid.Column="0" Name="TxtSearch" Classes="search"
-                         PlaceholderText="🔍  Buscar pistas, artistas, álbumes..."
+                         PlaceholderText="🔍  Buscar pistas, artistas, álbumes... (Ctrl+F)"
                          TextChanged="TxtSearch_TextChanged"/>
                 <TextBlock Grid.Column="1" Name="TxtPlaylistCount"
                            Foreground="#444444" FontSize="11"

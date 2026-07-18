@@ -676,13 +676,16 @@ public partial class MainWindow : Window
 
     private void Audio_GaplessPreloadReady(object? sender, EventArgs e)
     {
-        if (!_prefs.Settings.GaplessEnabled) return;
-        int nextIdx = _playlist.PeekNextIndex();
-        if (nextIdx < 0) return;
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (!_prefs.Settings.GaplessEnabled) return;
+            int nextIdx = _playlist.PeekNextIndex();
+            if (nextIdx < 0) return;
 
-        var nextTrack = _playlist.Tracks[nextIdx];
-        _pendingNextFile = nextTrack.FilePath;
-        _audio.PreloadStream(nextTrack.FilePath, _prefs.Settings.RamMode);
+            var nextTrack = _playlist.Tracks[nextIdx];
+            _pendingNextFile = nextTrack.FilePath;
+            _audio.PreloadStream(nextTrack.FilePath, _prefs.Settings.RamMode);
+        });
     }
 
     // ─── Transport button handlers ────────────────────────────────────────
@@ -896,33 +899,51 @@ public partial class MainWindow : Window
                 e.Handled = true;
                 BtnReproducir_Click(null, new RoutedEventArgs());
                 break;
-            case Key.Right:
+            case Key.Right when e.KeyModifiers == KeyModifiers.Control:
                 e.Handled = true;
                 NextTrack();
                 break;
-            case Key.Left:
+            case Key.Right when e.KeyModifiers == KeyModifiers.None:
+                e.Handled = true;
+                if (_audio.IsPlaying || _audio.PositionSeconds > 0)
+                    _audio.PositionSeconds = Math.Max(0, _audio.PositionSeconds + 5);
+                break;
+            case Key.Left when e.KeyModifiers == KeyModifiers.Control:
                 e.Handled = true;
                 PrevTrack();
                 break;
-            case Key.Up:
+            case Key.Left when e.KeyModifiers == KeyModifiers.None:
+                e.Handled = true;
+                if (_audio.IsPlaying || _audio.PositionSeconds > 0)
+                    _audio.PositionSeconds = Math.Max(0, _audio.PositionSeconds - 5);
+                break;
+            case Key.Up when e.KeyModifiers == KeyModifiers.Control:
                 e.Handled = true;
                 SliderVolumen.Value = Math.Min(1.0, SliderVolumen.Value + 0.1);
                 break;
-            case Key.Down:
+            case Key.Down when e.KeyModifiers == KeyModifiers.Control:
                 e.Handled = true;
                 SliderVolumen.Value = Math.Max(0.0, SliderVolumen.Value - 0.1);
                 break;
-            case Key.M:
+            case Key.M when e.KeyModifiers == KeyModifiers.Control:
+                e.Handled = true;
                 BtnMute_Click(null, new RoutedEventArgs());
                 break;
-            case Key.S:
+            case Key.S when e.KeyModifiers == KeyModifiers.Control:
+                e.Handled = true;
                 BtnShuffle_Click(null, new RoutedEventArgs());
                 break;
-            case Key.R:
+            case Key.R when e.KeyModifiers == KeyModifiers.Control:
+                e.Handled = true;
                 BtnRepeat_Click(null, new RoutedEventArgs());
                 break;
-            case Key.F:
+            case Key.B when e.KeyModifiers == KeyModifiers.Control:
+                e.Handled = true;
                 BtnFavorite_Click(null, new RoutedEventArgs());
+                break;
+            case Key.F when e.KeyModifiers == KeyModifiers.Control:
+                e.Handled = true;
+                TxtSearch.Focus();
                 break;
             case Key.MediaPlayPause:
             case Key.F8:
@@ -961,10 +982,6 @@ public partial class MainWindow : Window
         switch (e.Key)
         {
             case Key.Space:
-            case Key.Right:
-            case Key.Left:
-            case Key.Up:
-            case Key.Down:
             case Key.MediaPlayPause:
             case Key.F8:
             case Key.MediaPreviousTrack:
@@ -973,6 +990,13 @@ public partial class MainWindow : Window
             case Key.F9:
             case Key.MediaStop:
                 e.Handled = true;
+                break;
+            case Key.Right:
+            case Key.Left:
+            case Key.Up:
+            case Key.Down:
+                if (e.KeyModifiers == KeyModifiers.Control || e.KeyModifiers == KeyModifiers.None)
+                    e.Handled = true;
                 break;
         }
     }

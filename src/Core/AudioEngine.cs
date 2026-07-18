@@ -268,7 +268,7 @@ public class AudioEngine
             }
             _nextStream = 0;
         }
-        else if (memoryPlayback)
+        else if (memoryPlayback && !isCd)
         {
             byte[] fileBytes = File.ReadAllBytes(filePath);
             _memoryHandle = GCHandle.Alloc(fileBytes, GCHandleType.Pinned);
