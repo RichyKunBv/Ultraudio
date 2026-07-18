@@ -167,7 +167,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ⬜ | Windows 11 Home | 25h2 | i7-1255U | 16 GB | |  |
+| ⬜ | Windows 11 Home | 25h2 | i7-1255U | 16 GB |  |  |
 | ✅ | Windows 10 Pro | 22h2 | i5-4200M | 16 GB | v0.3.1 | soporte extendido y sin dotnet |
 
 </details>
@@ -221,9 +221,9 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ⬜ | Fedora | 44 | i7-1255U | 16 GB | |  |
-| ⬜ | Arch | | i5-5250U | 4 GB | |  |
-| ⬜ | Debian | 13 | Celeron N3350 | 4 GB | |  |
+| ⬜ | Fedora | 44 | i7-1255U | 16 GB |  |  |
+| ⬜ | Arch | | i5-5250U | 4 GB |  |  |
+| ⬜ | Debian | 13 | Celeron N3350 | 4 GB |  |  |
 | ✅ | Fedora | 44 | i5 M520 | 8 GB | PRE v1.0.0 | Clonado y compilado, prueba del lector de CD (si funciona) |
 
 </details>
@@ -232,7 +232,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 ### 🎶 Canciones de Prueba
 
-> Pistas utilizadas para verificar la fidelidad Bit-Perfect de la reproducción (Ejemplos de 15 segundos de las canciones probadas en la carpeta `res/Samples/`).
+> Pistas utilizadas para verificar la fidelidad Bit-Perfect de la reproducción.
 
 | # | Nombre | Artista | Álbum | Formato | Version de app que se probó |
 | :---: | :--- | :--- | :--- | :--- | :---: |
