@@ -156,7 +156,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :--- | :--- | :--- | :--- | :--- | :--- |
-| ✅ | Windows 11 Pro | 25h2 | 4 núcleos | 4 GB | v0.3.1 | Virtualizado en VMware Fusion, sin instalar nada de .NET |
+| ✅ | Windows 11 Pro | 25h2 | 4 núcleos | 4 GB | PRE v1.0.0 | Virtualizado en VMware Fusion, sin instalar nada de .NET |
 
 </details>
 
@@ -169,7 +169,6 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
 | ⬜ | Windows 11 Home | 25h2 | i7-1255U | 16 GB | |  |
 | ✅ | Windows 10 Pro | 22h2 | i5-4200M | 16 GB | v0.3.1 | soporte extendido y sin dotnet |
-| ⬜ | Windows 10 Pro | 22h2 | i5-3230M | 10 GB | |  |
 
 </details>
 
@@ -184,8 +183,8 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ✅ | macOS 27 Golden Gate | 27 | M1 | 8 GB | v0.3.0 | Beta de macOS con dotnet 10 instalado |
-| ✅ | macOS Tahoe | 26.5.1 | A18 Pro | 8 GB | v0.5.0 | dotnet 10 instalado |
+| ✅ | macOS 27 Golden Gate | 27 | M1 | 8 GB | PRE v1.0.0 | Beta de macOS con dotnet 10 instalado |
+| ✅ | macOS Tahoe | 26.5.1 | A18 Pro | 8 GB | PRE v1.0.0 | dotnet 10 instalado |
 
 </details>
 
@@ -196,7 +195,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ✅ | macOS 15.7.7 | 15.7.7 | i5 (2 Puertos Thunderbolt) | 8 GB | v0.3.0 | dotnet no instalado |
+| ✅ | macOS Sequoia | 15.7.7 | i5 (2 Puertos Thunderbolt) | 8 GB | PRE v1.0.0 | dotnet no instalado |
 
 </details>
 
@@ -211,7 +210,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ✅ | Fedora | 44 | 4 núcleos | 4 GB | v0.3.0 | Virtualizado en VMware Fusion |
+| ✅ | Fedora | 44 | 4 núcleos | 4 GB | PRE v1.0.0 | Virtualizado en VMware Fusion |
 
 </details>
 
@@ -225,7 +224,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 | ⬜ | Fedora | 44 | i7-1255U | 16 GB | |  |
 | ⬜ | Arch | | i5-5250U | 4 GB | |  |
 | ⬜ | Debian | 13 | Celeron N3350 | 4 GB | |  |
-| ✅ | Fedora | 44 | i5 M520 | 8 GB | v0.6.0 | Clonado y compilado, prueba del lector de CD (si funciona) |
+| ✅ | Fedora | 44 | i5 M520 | 8 GB | PRE v1.0.0 | Clonado y compilado, prueba del lector de CD (si funciona) |
 
 </details>
 
@@ -235,7 +234,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 > Pistas utilizadas para verificar la fidelidad Bit-Perfect de la reproducción (Ejemplos de 15 segundos de las canciones probadas en la carpeta `res/Samples/`).
 
-| # | Nombre | Artista | Álbum | Formato | Version de app |
+| # | Nombre | Artista | Álbum | Formato | Version de app que se probó |
 | :---: | :--- | :--- | :--- | :--- | :---: |
 | 1 | Massive Explosion (Instrumental) | 石元丈晴 | DISSIDIA FINAL FANTASY NT: Ultimate Collector's Edition Official Soundtrack | `FLAC` | v0.1.2 |
 | 2 | Over Each Other | Linkin Park | From Zero | `FLAC` | v0.2.0 |
