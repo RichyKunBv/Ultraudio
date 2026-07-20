@@ -84,13 +84,7 @@
     <WriteLinesToFile File="$(OutputPath)Info.plist" Lines="$(InfoPlistContent)" Overwrite="true" />
   </Target>
 
-  <!-- Genera metainfo.xml automáticamente desde el template para Linux/Flatpak -->
-  <Target Name="GenerateMetainfo" BeforeTargets="Build" Condition="'$(TargetOS)' == 'Linux'">
-    <PropertyGroup>
-      <MetainfoContent>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/../flatpak/io.github.RichyKunBv.Ultraudio.metainfo.xml.template').Replace('@APP_VERSION@', '$(Version)').Replace('@APP_DATE@', '$([System.DateTime]::Now.ToString(`yyyy-MM-dd`))'))</MetainfoContent>
-    </PropertyGroup>
-    <WriteLinesToFile File="$(MSBuildProjectDirectory)/../flatpak/io.github.RichyKunBv.Ultraudio.metainfo.xml" Lines="$(MetainfoContent)" Overwrite="true" />
-  </Target>
+
 
   <ItemGroup Condition="'$(TargetOS)' == 'OSX'">
     <None Include="..\lib\macOS\libbass.dylib">
