@@ -38,7 +38,7 @@ public class LibraryScanner
                 if (!Directory.Exists(root)) continue;
 
                 var files = Directory.EnumerateFiles(root, "*.*", SearchOption.AllDirectories)
-                    .Where(f => _supportedExtensions.Contains(Path.GetExtension(f)));
+                    .Where(f => _supportedExtensions.Contains(Path.GetExtension(f)) && !Path.GetFileName(f).StartsWith("._"));
 
                 foreach (string filePath in files)
                 {

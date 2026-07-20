@@ -113,7 +113,7 @@
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0">
                             <TextBlock Text="Habilitar Audio CD" Classes="label"/>
-                            <TextBlock Text="Mostrar el botón de Audio CD (requiere librerías basscd)" Classes="value" Margin="0,2,0,0"/>
+                            <TextBlock Text="Solo compatible con Windows y Linux" Classes="value" Margin="0,2,0,0"/>
                         </StackPanel>
                         <ToggleSwitch Grid.Column="1" Name="ToggleCd" VerticalAlignment="Center"/>
                     </Grid>

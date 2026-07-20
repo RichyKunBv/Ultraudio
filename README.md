@@ -1,6 +1,6 @@
 # Ultraudio 🎵
 
-[![Versión](https://img.shields.io/badge/Versión-0.9.3-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Versión](https://img.shields.io/badge/Versión-0.9.5-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Estable](https://img.shields.io/badge/Estado-desarrollo-red.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Licencia](https://img.shields.io/badge/Licencia-Apache-green.svg)](https://github.com/RichyKunBv/Ultraudio/blob/main/LICENSE)
 [![Licencia](https://img.shields.io/badge/Licencia-BASS%20No%20Commercial-green.svg)](https://www.un4seen.com/bass.html#license)
@@ -11,13 +11,21 @@
 ![Windows](https://img.shields.io/badge/Windows-000000?style=for-the-badge&logo=windows&logoColor=white)
 ![macOS](https://img.shields.io/badge/macOS-000000?style=for-the-badge&logo=apple&logoColor=white)
 
+[![Descargar desde GitHub](https://img.shields.io/badge/Descargar-desde%20GitHub-black.svg)](https://github.com/RichyKunBv/Ultraudio/releases/latest)
+
+[![Descargar desde Microsoft Store](https://img.shields.io/badge/Descargar-desde%20Microsoft%20Store%20(Proximamente)-%23E6E6E6)]()
+
+[![Descargar desde Itich](https://img.shields.io/badge/Descargar-desde%20Itich%20(Proximamente)-%23fa5c5c)]()
+
+[![Descargar desde Flathub](https://img.shields.io/badge/Descargar-desde%20Flathub%20(Proximamente)-%23af7faf)]()
+
 Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicamente para formatos sin pérdida (lossless). Desarrollado con el objetivo de ofrecer la máxima calidad de sonido directamente a tu DAC (Digital-to-Analog Converter), evitando alteraciones en la señal de audio original.
 
 ## ✨ Características Principales
 
 - **Bit-Perfect Audio**: Reproducción exacta, entregando la señal a tu DAC con la mayor fidelidad posible.
 - **Soporte Amplio de Formatos**: Compatible con formatos Lossless y Hi-Res como FLAC, WAV, AIFF, y DSD (DSF/DFF).
-- **Reproducción de CD**: Soporte nativo para lectura y reproducción de audio desde discos compactos.
+- **Reproducción de CD**: Soporte nativo para lectura y reproducción de audio desde discos compactos. (Solo Windows y Linux)
 - **Gapless Playback & CUE**: Reproducción continua sin pausas entre pistas y soporte completo de hojas CUE para álbumes.
 - **Visualizador de Espectro**: Análisis de frecuencias de audio (FFT) en tiempo real integrado en la interfaz.
 - **Gestión Avanzada de Librería**: Escaneo veloz con lectura de metadatos (incluyendo ReplayGain), extracción automática de portadas (Cover Art), registro de historial y búsqueda filtrada.

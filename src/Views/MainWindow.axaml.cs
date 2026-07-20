@@ -306,6 +306,7 @@ public partial class MainWindow : Window
             try
             {
                 var tracks = files
+                    .Where(f => !Path.GetFileName(f.Path.LocalPath).StartsWith("._"))
                     .Select(f => LibraryScanner.ScanFile(f.Path.LocalPath) ?? new TrackModel { FilePath = f.Path.LocalPath })
                     .ToList();
                 LoadAndPlay(tracks, append: true);
@@ -340,7 +341,7 @@ public partial class MainWindow : Window
 
                 var files = Directory
                     .GetFiles(path, "*.*", SearchOption.TopDirectoryOnly)
-                    .Where(f => UltraudioConstants.LosslessExtensions.Contains(Path.GetExtension(f)))
+                    .Where(f => UltraudioConstants.LosslessExtensions.Contains(Path.GetExtension(f)) && !Path.GetFileName(f).StartsWith("._"))
                     .OrderBy(f => f)
                     .ToList();
 
@@ -880,13 +881,27 @@ public partial class MainWindow : Window
 
     // ─── Playlist selection ───────────────────────────────────────────────
 
-    private void ListaReproduccion_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    private void ListaReproduccion_DoubleTapped(object? sender, TappedEventArgs e)
     {
         if (ListaReproduccion.SelectedItem is PlaylistItemViewModel vm)
         {
             int idx = _playlist.IndexOf(vm.Track);
             if (idx >= 0 && idx != _playlist.CurrentIndex)
                 PlayTrackAtIndex(idx);
+        }
+    }
+
+    private void ListaReproduccion_KeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.Enter)
+        {
+            if (ListaReproduccion.SelectedItem is PlaylistItemViewModel vm)
+            {
+                int idx = _playlist.IndexOf(vm.Track);
+                if (idx >= 0 && idx != _playlist.CurrentIndex)
+                    PlayTrackAtIndex(idx);
+            }
+            e.Handled = true;
         }
     }
 

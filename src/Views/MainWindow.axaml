@@ -278,10 +278,11 @@
                     Background="#0D0D0D" ClipToBounds="True">
                 <ListBox Name="ListaReproduccion"
                          Background="Transparent"
-                         SelectionChanged="ListaReproduccion_SelectionChanged">
+                         DoubleTapped="ListaReproduccion_DoubleTapped"
+                         KeyDown="ListaReproduccion_KeyDown">
                     <ListBox.ItemTemplate>
                         <DataTemplate DataType="{x:Type local:PlaylistItemViewModel}">
-                            <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+                            <Grid ColumnDefinitions="Auto,*,*,Auto,Auto,Auto">
                                 <!-- Playing indicator -->
                                 <TextBlock Grid.Column="0" Name="TxtPlayingDot"
                                            Text="▶" Foreground="#00E576" FontSize="9"
@@ -292,18 +293,23 @@
                                            Foreground="{Binding TitleColor}"
                                            FontSize="13" VerticalAlignment="Center"
                                            TextTrimming="CharacterEllipsis"/>
+                                <!-- Album -->
+                                <TextBlock Grid.Column="2" Text="{Binding Track.Album}"
+                                           Foreground="#777777" FontSize="11"
+                                           VerticalAlignment="Center" Margin="8,0"
+                                           TextTrimming="CharacterEllipsis"/>
                                 <!-- Artist -->
-                                <TextBlock Grid.Column="2" Text="{Binding Track.Artist}"
+                                <TextBlock Grid.Column="3" Text="{Binding Track.Artist}"
                                            Foreground="#555555" FontSize="11"
                                            VerticalAlignment="Center" Margin="8,0"
                                            TextTrimming="CharacterEllipsis" MaxWidth="140"/>
                                 <!-- Duration -->
-                                <TextBlock Grid.Column="3" Text="{Binding Track.DurationDisplay}"
+                                <TextBlock Grid.Column="4" Text="{Binding Track.DurationDisplay}"
                                            Foreground="#444444" FontSize="11"
                                            VerticalAlignment="Center" Width="40"
                                            TextAlignment="Right"/>
                                 <!-- Favorite star -->
-                                <Button Grid.Column="4" Content="{Binding FavStar}"
+                                <Button Grid.Column="5" Content="{Binding FavStar}"
                                         Foreground="{Binding FavColor}"
                                         Background="Transparent" BorderThickness="0"
                                         Padding="4,0" FontSize="14"

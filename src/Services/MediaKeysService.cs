@@ -248,6 +248,7 @@ public class MediaKeysService : IDisposable
         Task<string> GetIdentityAsync();
         Task<string[]> GetSupportedUriSchemesAsync();
         Task<string[]> GetSupportedMimeTypesAsync();
+        Task<string> GetDesktopEntryAsync();
     }
 
     [DBusInterface("org.mpris.MediaPlayer2.Player")]
@@ -324,6 +325,7 @@ public class MediaKeysService : IDisposable
         public Task<bool> GetCanRaiseAsync() => Task.FromResult(false);
         public Task<bool> GetHasTrackListAsync() => Task.FromResult(false);
         public Task<string> GetIdentityAsync() => Task.FromResult("Ultraudio");
+        public Task<string> GetDesktopEntryAsync() => Task.FromResult("Ultraudio");
         public Task<string[]> GetSupportedUriSchemesAsync() => Task.FromResult(Array.Empty<string>());
         public Task<string[]> GetSupportedMimeTypesAsync() => Task.FromResult(Array.Empty<string>());
 
