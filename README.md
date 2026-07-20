@@ -38,6 +38,7 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 - **Ctrl + M**: Silenciar (Mute)
 - **Ctrl + S / R / B**: Aleatorio / Repetir / Favorito
 - **Ctrl + F**: Buscar en la lista
+- **Ctrl** es **Command** para macOS.
 
 ### Interfaz Principal
 <img src="res/docs/ultraudio sin pista.png" width="762" alt="Ultraudio sin pista"/>
