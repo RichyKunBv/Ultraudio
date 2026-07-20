@@ -87,9 +87,9 @@
   <!-- Genera metainfo.xml automáticamente desde el template para Linux/Flatpak -->
   <Target Name="GenerateMetainfo" BeforeTargets="Build" Condition="'$(TargetOS)' == 'Linux'">
     <PropertyGroup>
-      <MetainfoContent>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/../flatpak/com.esmesolutions.Ultraudio.metainfo.xml.template').Replace('@APP_VERSION@', '$(Version)').Replace('@APP_DATE@', '$([System.DateTime]::Now.ToString(`yyyy-MM-dd`))'))</MetainfoContent>
+      <MetainfoContent>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/../flatpak/io.github.RichyKunBv.Ultraudio.metainfo.xml.template').Replace('@APP_VERSION@', '$(Version)').Replace('@APP_DATE@', '$([System.DateTime]::Now.ToString(`yyyy-MM-dd`))'))</MetainfoContent>
     </PropertyGroup>
-    <WriteLinesToFile File="$(MSBuildProjectDirectory)/../flatpak/com.esmesolutions.Ultraudio.metainfo.xml" Lines="$(MetainfoContent)" Overwrite="true" />
+    <WriteLinesToFile File="$(MSBuildProjectDirectory)/../flatpak/io.github.RichyKunBv.Ultraudio.metainfo.xml" Lines="$(MetainfoContent)" Overwrite="true" />
   </Target>
 
   <ItemGroup Condition="'$(TargetOS)' == 'OSX'">

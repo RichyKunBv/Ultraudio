@@ -50,5 +50,5 @@ packages/
 # Binarios y símbolos generados
 *.pdb
 *.mdb
-*.cache
-flatpak/com.esmesolutions.Ultraudio.metainfo.xml
+# Flatpak generated
+flatpak/io.github.RichyKunBv.Ultraudio.metainfo.xml

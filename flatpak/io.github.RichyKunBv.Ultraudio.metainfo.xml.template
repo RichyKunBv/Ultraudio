@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>com.esmesolutions.Ultraudio</id>
+  <id>io.github.RichyKunBv.Ultraudio</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>Apache-2.0</project_license>
   <name>Ultraudio</name>
@@ -18,7 +18,7 @@
     </ul>
   </description>
 
-  <launchable type="desktop-id">com.esmesolutions.Ultraudio.desktop</launchable>
+  <launchable type="desktop-id">io.github.RichyKunBv.Ultraudio.desktop</launchable>
 
   <screenshots>
     <screenshot type="default">
