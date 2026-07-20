@@ -51,3 +51,4 @@ packages/
 *.pdb
 *.mdb
 *.cache
+flatpak/com.esmesolutions.Ultraudio.metainfo.xml

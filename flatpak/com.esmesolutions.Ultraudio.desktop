@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Ultraudio
+Comment=Reproductor Hi-Fi Bit-Perfect para formatos sin pérdida.
+Exec=Ultraudio
+Icon=com.esmesolutions.Ultraudio
+Terminal=false
+Type=Application
+Categories=AudioVideo;Audio;Player;
+Keywords=Audio;Flac;Lossless;HiFi;Player;
+StartupWMClass=Ultraudio

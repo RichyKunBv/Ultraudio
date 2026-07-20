@@ -11,7 +11,7 @@
     <Company>EsMeSolutions</Company>
     <Authors>RichyKunBv</Authors>
     <Description>Reproductor Hi-Fi Bit-Perfect para formatos sin pérdida.</Description>
-    <Version>0.9.5</Version>
+    <Version>0.9.6</Version>
 
     <!-- Forzar que AssemblyInformationalVersion use solo la versión que defines arriba -->
     <AssemblyInformationalVersion>$(Version)</AssemblyInformationalVersion>
@@ -82,6 +82,14 @@
       <InfoPlistContent>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/Info.plist.template').Replace('@APP_VERSION@', '$(Version)'))</InfoPlistContent>
     </PropertyGroup>
     <WriteLinesToFile File="$(OutputPath)Info.plist" Lines="$(InfoPlistContent)" Overwrite="true" />
+  </Target>
+
+  <!-- Genera metainfo.xml automáticamente desde el template para Linux/Flatpak -->
+  <Target Name="GenerateMetainfo" BeforeTargets="Build" Condition="'$(TargetOS)' == 'Linux'">
+    <PropertyGroup>
+      <MetainfoContent>$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/../flatpak/com.esmesolutions.Ultraudio.metainfo.xml.template').Replace('@APP_VERSION@', '$(Version)').Replace('@APP_DATE@', '$([System.DateTime]::Now.ToString(`yyyy-MM-dd`))'))</MetainfoContent>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(MSBuildProjectDirectory)/../flatpak/com.esmesolutions.Ultraudio.metainfo.xml" Lines="$(MetainfoContent)" Overwrite="true" />
   </Target>
 
   <ItemGroup Condition="'$(TargetOS)' == 'OSX'">
