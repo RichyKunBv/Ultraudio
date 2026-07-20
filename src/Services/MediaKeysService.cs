@@ -301,7 +301,9 @@ public class MediaKeysService : IDisposable
                 _connection = Connection.Session;
                 await _connection.ConnectAsync();
                 await _connection.RegisterObjectAsync(this);
-                await _connection.RegisterServiceAsync("org.mpris.MediaPlayer2.Ultraudio");
+                // Flatpak restricts DBus name ownership.
+                // Usando el app-id para cumplir con las reglas de Flatpak.
+                await _connection.RegisterServiceAsync("org.mpris.MediaPlayer2.io.github.RichyKunBv.Ultraudio");
                 Log.Info("MediaKeys", "MPRIS2 service registered.");
             }
             catch (Exception ex)
