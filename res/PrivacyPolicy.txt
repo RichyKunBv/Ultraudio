@@ -1,0 +1,25 @@
+Privacy Policy for Ultraudio
+
+Last Updated: July 20, 2026
+
+1. Introduction
+Thank you for using Ultraudio ("the Application"). Ultraudio is a bit-perfect Hi-Fi audio player designed for lossless formats, developed by EsMeSolutions (RichyKunBv). 
+This Privacy Policy explains our approach to any information you provide or that is generated when using the Application.
+
+2. Data Collection and Usage
+Ultraudio is a completely offline, local desktop application. 
+- We DO NOT collect, store, transmit, or share any personal information.
+- We DO NOT use telemetry, trackers, or analytics of any kind.
+- We DO NOT transmit any audio files, metadata, or playback history to our servers or any third parties.
+
+3. Local Access
+The Application only accesses local audio files and directories on your device that you explicitly choose to open or play. All processing of audio files (such as reading metadata or album art) happens strictly locally on your machine.
+
+4. Network Access
+Ultraudio may require limited network permissions on certain operating systems (such as Linux/Flatpak or Windows) strictly for inter-process communication (IPC) or communicating with local system services (like MPRIS/D-Bus for media keys). It does not use the internet to send or receive personal data.
+
+5. Changes to This Policy
+Since the Application does not collect data, this policy is unlikely to change significantly. However, if we introduce online features in the future, this document will be updated accordingly.
+
+6. Contact
+If you have any questions or concerns regarding this Privacy Policy or the Application, please contact us through the official GitHub repository: https://github.com/RichyKunBv/Ultraudio
