@@ -1,6 +1,6 @@
 # Ultraudio 🎵
 
-[![Versión](https://img.shields.io/badge/Versión-0.9.6-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Versión](https://img.shields.io/badge/Versión-0.9.7-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Estable](https://img.shields.io/badge/Estado-desarrollo-red.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Licencia](https://img.shields.io/badge/Licencia-Apache-green.svg)](https://github.com/RichyKunBv/Ultraudio/blob/main/LICENSE)
 [![Licencia](https://img.shields.io/badge/Licencia-BASS%20No%20Commercial-green.svg)](https://www.un4seen.com/bass.html#license)
@@ -17,7 +17,6 @@
 
 [![Descargar desde Itich](https://img.shields.io/badge/Descargar-desde%20Itich%20(Proximamente)-%23fa5c5c)]()
 
-[![Descargar desde Flathub](https://img.shields.io/badge/Descargar-desde%20Flathub%20(Proximamente)-%23af7faf)]()
 
 Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicamente para formatos sin pérdida (lossless). Desarrollado con el objetivo de ofrecer la máxima calidad de sonido directamente a tu DAC (Digital-to-Analog Converter), evitando alteraciones en la señal de audio original.
 
@@ -295,5 +294,9 @@ Sabemos que en el mundo audiófilo es fundamental contar con rutas de audio de h
 **Biblioteca Inteligente (Por definir)**
 
 Está en los planes implementar una gestión de biblioteca más inteligente y automática. La idea es que la aplicación analice una carpeta dedicada (por ejemplo, `Música/Ultraudio`) y detecte u organice el contenido internamente por formatos (FLAC, DSD, WAV, etc.). Esto permitirá a los usuarios tener toda su música y álbumes en una sola carpeta, y disfrutar de una experiencia fluida, cómoda y amigable como la de un reproductor moderno, sin sacrificar la esencia purista del audio. *(Versión por definir)*
+
+---
+
+Se hizo lo que se pudo mi gente, pero Flathub no me aceptó por un poco de uso de IA asi que adios a Flathub
 
 </details>
