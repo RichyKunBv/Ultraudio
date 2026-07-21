@@ -198,6 +198,14 @@ jobs:
         with:
           files: ${{ github.workspace }}/${{ matrix.asset_name }}
           
+      - name: Subir Artefacto temporal para Pages
+        if: github.event_name == 'release' && runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: installers-windows-${{ matrix.arch }}
+          path: ${{ github.workspace }}/${{ matrix.asset_name }}
+          retention-days: 1
+          
       - name: Subir Artefacto para PR o Manual
         if: github.event_name != 'release'
         uses: actions/upload-artifact@v5
@@ -212,3 +220,26 @@ jobs:
         with:
           name: debug-${{ matrix.rid }}
           path: src/publish_out
+
+  deploy-pages:
+    name: Publicar Instaladores en GitHub Pages
+    needs: build-and-package
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    permissions:
+      contents: write
+    steps:
+      - name: Descargar instaladores de Windows
+        uses: actions/download-artifact@v4
+        with:
+          path: public-installers
+          pattern: installers-windows-*
+          merge-multiple: true
+
+      - name: Publicar en GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public-installers
+          keep_files: false
+          force_orphan: true
