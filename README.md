@@ -13,9 +13,9 @@
 
 [![Descargar desde GitHub](https://img.shields.io/badge/Descargar-desde%20GitHub-black.svg)](https://github.com/RichyKunBv/Ultraudio/releases/latest)
 
-[![Descargar desde Microsoft Store](https://img.shields.io/badge/Descargar-desde%20Microsoft%20Store%20(Proximamente)-%23E6E6E6)]()
+[![Descargar desde Microsoft Store](https://img.shields.io/badge/Descargar-desde%20Microsoft%20Store%20(Proximamente)-%23E6E6E6)](https://apps.microsoft.com/detail/9N3VRGCRFQ2K)
 
-[![Descargar desde Itich](https://img.shields.io/badge/Descargar-desde%20Itich%20(Proximamente)-%23fa5c5c)]()
+[![Descargar desde Itich](https://img.shields.io/badge/Descargar-desde%20Itich%20(Proximamente)-%23fa5c5c)](https://ricoc.itch.io/ultraudio)
 
 
 Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicamente para formatos sin pérdida (lossless). Desarrollado con el objetivo de ofrecer la máxima calidad de sonido directamente a tu DAC (Digital-to-Analog Converter), evitando alteraciones en la señal de audio original.
