@@ -1,6 +1,6 @@
 # Ultraudio 🎵
 
-[![Versión](https://img.shields.io/badge/Versión-0.9.8-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Versión](https://img.shields.io/badge/Versión-0.9.9-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Estable](https://img.shields.io/badge/Estado-desarrollo-red.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Licencia](https://img.shields.io/badge/Licencia-Apache-green.svg)](https://github.com/RichyKunBv/Ultraudio/blob/main/LICENSE)
 [![Licencia](https://img.shields.io/badge/Licencia-BASS%20No%20Commercial-green.svg)](https://www.un4seen.com/bass.html#license)
