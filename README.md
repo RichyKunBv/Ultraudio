@@ -7,18 +7,23 @@
 [![Lenguaje](https://img.shields.io/badge/Lenguaje-C%23.NET-lightgrey.svg)](https://dotnet.microsoft.com/es-es/download/dotnet/10.0)
 [![GUI](https://img.shields.io/badge/GUI-Avalonia%20UI-purple.svg)](https://avaloniaui.net)
 
-![Linux](https://img.shields.io/badge/Linux-000000?style=for-the-badge&logo=linux&logoColor=white)
-![Windows](https://img.shields.io/badge/Windows-000000?style=for-the-badge&logo=windows&logoColor=white)
-![macOS](https://img.shields.io/badge/macOS-000000?style=for-the-badge&logo=apple&logoColor=white)
-
-[![Descargar desde GitHub](https://img.shields.io/badge/Descargar-desde%20GitHub-black.svg)](https://github.com/RichyKunBv/Ultraudio/releases/latest)
-
-[![Descargar desde Microsoft Store](https://img.shields.io/badge/Descargar-desde%20Microsoft%20Store%20(Proximamente)-%23E6E6E6)](https://apps.microsoft.com/detail/9N3VRGCRFQ2K)
-
-[![Descargar desde Itich](https://img.shields.io/badge/Descargar-desde%20Itich%20(Proximamente)-%23fa5c5c)](https://ricoc.itch.io/ultraudio)
-
 
 Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicamente para formatos sin pérdida (lossless). Desarrollado con el objetivo de ofrecer la máxima calidad de sonido directamente a tu DAC (Digital-to-Analog Converter), evitando alteraciones en la señal de audio original.
+
+
+### Descargar para:
+
+| ![Windows](https://img.shields.io/badge/Windows-000000?style=for-the-badge&logo=windows&logoColor=white) | ![macOS](https://img.shields.io/badge/macOS-000000?style=for-the-badge&logo=apple&logoColor=white) | ![Linux](https://img.shields.io/badge/Linux-000000?style=for-the-badge&logo=linux&logoColor=white) |
+| :---: | :---: | :---: |
+| [![Windows ARM](https://img.shields.io/badge/Windows%20ARM-000000?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/RichyKunBv/Ultraudio/releases/latest/download/Ultraudio-arm64.exe) | [![macOS ARM](https://img.shields.io/badge/macOS%20ARM-000000?style=for-the-badge&logoColor=white)](https://github.com/RichyKunBv/Ultraudio/releases/latest/download/Ultraudio-arm64.dmg) | [![Linux ARM](https://img.shields.io/badge/Linux%20ARM-000000?style=for-the-badge&logoColor=white)](https://github.com/RichyKunBv/Ultraudio/releases/latest/download/Ultraudio-arm64.AppImage) |
+| [![Windows X64](https://img.shields.io/badge/Windows%20X64-000000?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/RichyKunBv/Ultraudio/releases/latest/download/Ultraudio-x64.exe) | [![macOS X64](https://img.shields.io/badge/macOS%20X64-000000?style=for-the-badge&logoColor=white)](https://github.com/RichyKunBv/Ultraudio/releases/latest/download/Ultraudio-x64.dmg) | [![Linux X64](https://img.shields.io/badge/Linux%20X64-000000?style=for-the-badge&logoColor=white)](https://github.com/RichyKunBv/Ultraudio/releases/latest/download/Ultraudio-x64.AppImage) |
+
+### Distribuido en:
+[![Descargar desde GitHub](https://img.shields.io/badge/Descargar-desde%20GitHub-black.svg)](https://github.com/RichyKunBv/Ultraudio/releases/latest)
+
+[![Descargar desde Microsoft Store](https://img.shields.io/badge/Descargar-desde%20Microsoft%20Store-%23E6E6E6)](https://apps.microsoft.com/detail/9n3vrgcrfq2k)
+
+[![Descargar desde Itch](https://img.shields.io/badge/Descargar-desde%20Itich-%23fa5c5c)](https://ricoc.itch.io/ultraudio)
 
 ## ✨ Características Principales
 
@@ -84,7 +89,7 @@ El proyecto está desarrollado en **C# (.NET 10)** y se apoya en las siguientes 
 
 ## ⬇️ Descargas / Instalación
 
-Puedes descargar los binarios precompilados listos para usar desde la sección de **[Releases](https://github.com/RichyKunBv/Ultraudio/releases/latest)**.
+Puedes descargar los binarios precompilados listos para usar desde la sección de arriba o desde     **[Releases](https://github.com/RichyKunBv/Ultraudio/releases/latest)**.
 
 Están disponibles para todos los sistemas operativos principales (**Windows, macOS y Linux**) en las arquitecturas más utilizadas:
 - **x64** (Procesadores Intel y AMD)
