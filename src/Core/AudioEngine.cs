@@ -92,17 +92,29 @@ public class AudioEngine
             pluginFiles.Add("bassflac.dll");
             pluginFiles.Add("bassdsd.dll");
             pluginFiles.Add("basscd.dll");
+            pluginFiles.Add("bassalac.dll");
+            pluginFiles.Add("bass_tta.dll");
+            pluginFiles.Add("bass_ofr.dll");
+            pluginFiles.Add("bassape.dll");
+            pluginFiles.Add("basswv.dll");
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
             pluginFiles.Add("libbassflac.dylib");
             pluginFiles.Add("libbassdsd.dylib");
+            pluginFiles.Add("libbass_tta.dylib");
+            pluginFiles.Add("libbassape.dylib");
+            pluginFiles.Add("libbasswv.dylib");
         }
         else
         {
             pluginFiles.Add("libbassflac.so");
             pluginFiles.Add("libbassdsd.so");
             pluginFiles.Add("libbasscd.so");
+            pluginFiles.Add("libbassalac.so");
+            pluginFiles.Add("libbass_tta.so");
+            pluginFiles.Add("libbassape.so");
+            pluginFiles.Add("libbasswv.so");
         }
 
         foreach (var pluginFile in pluginFiles)
@@ -220,9 +232,9 @@ public class AudioEngine
         _cueStart = cueStart;
         _cueEnd = cueEnd;
 
+        filePath = ResolveFilePath(filePath, out bool isCd);
         string ext = Path.GetExtension(filePath).ToLower();
         bool isFlac = ext == ".flac";
-        bool isCd = filePath.StartsWith(UltraudioConstants.CdProtocolPrefix, StringComparison.OrdinalIgnoreCase);
 
         // ── Detect sample rate ────────────────────────────────────────────
         int infoStream = 0;
@@ -339,9 +351,9 @@ public class AudioEngine
     {
         FreeNextStream();
 
+        filePath = ResolveFilePath(filePath, out bool isCd);
         string ext = Path.GetExtension(filePath).ToLower();
         bool isFlac = ext == ".flac";
-        bool isCd = filePath.StartsWith(UltraudioConstants.CdProtocolPrefix, StringComparison.OrdinalIgnoreCase);
 
         try
         {
@@ -496,6 +508,38 @@ public class AudioEngine
     private void OnGaplessTrigger(int handle, int channel, int data, IntPtr user)
     {
         GaplessPreloadReady?.Invoke(this, EventArgs.Empty);
+    }
+
+    // ─── Path Resolution ─────────────────────────────────────────────────
+
+    private string ResolveFilePath(string filePath, out bool isCd)
+    {
+        isCd = filePath.StartsWith(UltraudioConstants.CdProtocolPrefix, StringComparison.OrdinalIgnoreCase);
+        
+        if (isCd && RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            var parts = filePath.Replace(UltraudioConstants.CdProtocolPrefix, "").Split('/');
+            if (parts.Length == 2 && int.TryParse(parts[1], out int track))
+            {
+                string trackStr = track.ToString("D2");
+                try
+                {
+                    var volumes = Directory.GetDirectories("/Volumes");
+                    foreach (var v in volumes)
+                    {
+                        string p = Path.Combine(v, $"Track {trackStr}.aiff");
+                        if (File.Exists(p))
+                        {
+                            isCd = false;
+                            return p;
+                        }
+                    }
+                }
+                catch { /* Ignore access errors */ }
+            }
+        }
+        
+        return filePath;
     }
 
     // ─── Stream cleanup ──────────────────────────────────────────────────
