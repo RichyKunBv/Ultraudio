@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using ManagedBass.Cd;
 using Ultraudio.Core;
 using Ultraudio.Models;
@@ -342,7 +343,7 @@ public partial class MainWindow : Window
                 var files = Directory
                     .GetFiles(path, "*.*", SearchOption.TopDirectoryOnly)
                     .Where(f => UltraudioConstants.LosslessExtensions.Contains(Path.GetExtension(f)) && !Path.GetFileName(f).StartsWith("._"))
-                    .OrderBy(f => f)
+                    .OrderBy(f => Regex.Replace(f, @"\d+", match => match.Value.PadLeft(10, '0')))
                     .ToList();
 
                 if (files.Count > 0)
