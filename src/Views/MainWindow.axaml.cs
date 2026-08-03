@@ -391,61 +391,80 @@ public partial class MainWindow : Window
         }
     }
 
-    private void BtnCargarCd_Click(object? sender, RoutedEventArgs e)
+    private async void BtnCargarCd_Click(object? sender, RoutedEventArgs e)
     {
+        var btn = sender as Avalonia.Controls.Button;
+        if (btn != null)
+        {
+            btn.IsEnabled = false;
+            btn.Content = "Cargando...";
+        }
+
         try
         {
-            int driveCount = BassCd.DriveCount;
-            if (driveCount <= 0) return;
-
-            int drive = 0;
-            if (!BassCd.IsReady(drive)) return;
-
-            int trackCount = BassCd.GetTracks(drive);
-            if (trackCount < 0) return;
-
-            // Fetch CDDB or local CD-TEXT
-            string album = "CD Audio";
-            string artist = "Artista desconocido";
-            string[] textLines = BassCd.GetIDText(drive);
-
-            if (textLines != null && textLines.Length > 0)
+            var tracks = await System.Threading.Tasks.Task.Run(() =>
             {
-                foreach (string line in textLines)
+                int driveCount = BassCd.DriveCount;
+                if (driveCount <= 0) return null;
+
+                int drive = 0;
+                if (!BassCd.IsReady(drive)) return null;
+
+                int trackCount = BassCd.GetTracks(drive);
+                if (trackCount < 0) return null;
+
+                // Fetch CDDB or local CD-TEXT
+                string album = "CD Audio";
+                string artist = "Artista desconocido";
+                string[] textLines = BassCd.GetIDText(drive);
+
+                if (textLines != null && textLines.Length > 0)
                 {
-                    if (line.StartsWith("TITLE=") && album == "CD Audio")
-                        album = line.Substring(6);
-                    if (line.StartsWith("PERFORMER=") && artist == "Artista desconocido")
-                        artist = line.Substring(10);
+                    foreach (string line in textLines)
+                    {
+                        if (line.StartsWith("TITLE=") && album == "CD Audio")
+                            album = line.Substring(6);
+                        if (line.StartsWith("PERFORMER=") && artist == "Artista desconocido")
+                            artist = line.Substring(10);
+                    }
                 }
-            }
 
-            var tracks = new List<TrackModel>();
-            for (int i = 0; i < trackCount; i++)
-            {
-                int lenBytes = BassCd.GetTrackLength(drive, i);
-                double duration = lenBytes != -1 ? lenBytes / 176400.0 : 0;
-
-                tracks.Add(new TrackModel
+                var list = new List<TrackModel>();
+                for (int i = 0; i < trackCount; i++)
                 {
-                    FilePath = $"{UltraudioConstants.CdProtocolPrefix}{drive}/{i}",
-                    Title = $"Pista {(i + 1):00}",
-                    Album = album,
-                    Artist = artist,
-                    Format = "CDA",
-                    BitDepth = 16,
-                    SampleRate = UltraudioConstants.DefaultSampleRate,
-                    Bitrate = 1411,
-                    Duration = TimeSpan.FromSeconds(duration > 0 ? duration : 0)
-                });
-            }
+                    int lenBytes = BassCd.GetTrackLength(drive, i);
+                    double duration = lenBytes != -1 ? lenBytes / 176400.0 : 0;
 
-            if (tracks.Count > 0)
+                    list.Add(new TrackModel
+                    {
+                        FilePath = $"{UltraudioConstants.CdProtocolPrefix}{drive}/{i}",
+                        Title = $"Pista {(i + 1):00}",
+                        Album = album,
+                        Artist = artist,
+                        Format = "CDA",
+                        BitDepth = 16,
+                        SampleRate = UltraudioConstants.DefaultSampleRate,
+                        Bitrate = 1411,
+                        Duration = TimeSpan.FromSeconds(duration > 0 ? duration : 0)
+                    });
+                }
+                return list;
+            });
+
+            if (tracks != null && tracks.Count > 0)
                 LoadAndPlay(tracks, append: true);
         }
         catch (Exception ex)
         {
             Log.Error("CD", "CD loading error", ex);
+        }
+        finally
+        {
+            if (btn != null)
+            {
+                btn.IsEnabled = true;
+                btn.Content = "💿 CD Audio";
+            }
         }
     }
 

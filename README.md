@@ -1,9 +1,9 @@
 # Ultraudio 🎵
 
-[![Versión](https://img.shields.io/badge/Versión-0.9.10-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
-[![Estable](https://img.shields.io/badge/Estado-desarrollo-red.svg)](https://github.com/RichyKunBv/Ultraudio)
-[![Licencia](https://img.shields.io/badge/Licencia-Apache-green.svg)](https://github.com/RichyKunBv/Ultraudio/blob/main/LICENSE)
-[![Licencia](https://img.shields.io/badge/Licencia-BASS%20No%20Commercial-green.svg)](https://www.un4seen.com/bass.html#license)
+[![Versión](https://img.shields.io/badge/Versión-v0.9.10-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Pre-Release](https://img.shields.io/badge/Estado-pre--release-red.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Licencia](https://img.shields.io/badge/Licencia-Apache-orange.svg)](https://github.com/RichyKunBv/Ultraudio/blob/main/LICENSE)
+[![Licencia](https://img.shields.io/badge/Licencia-BASS%20No%20Commercial-orange.svg)](https://www.un4seen.com/bass.html#license)
 [![Lenguaje](https://img.shields.io/badge/Lenguaje-C%23.NET-lightgrey.svg)](https://dotnet.microsoft.com/es-es/download/dotnet/10.0)
 [![GUI](https://img.shields.io/badge/GUI-Avalonia%20UI-purple.svg)](https://avaloniaui.net)
 
@@ -29,14 +29,15 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 
 - **Bit-Perfect Audio**: Reproducción exacta, entregando la señal a tu DAC con la mayor fidelidad posible.
 - **Soporte Amplio de Formatos**: Compatible con formatos Lossless y Hi-Res como FLAC, WAV, AIFF, y DSD (DSF/DFF).
-- **Reproducción de CD**: Soporte nativo para lectura y reproducción de audio desde discos compactos. (Solo Windows y Linux)
+- **Reproducción de CD**: Soporte nativo para lectura y reproducción de audio desde discos compactos en Windows y Linux. *(En macOS, el CD se debe abrir desde la aplicación como una carpeta; las pistas se reproducirán en formato AIFF, o sea, el formato sin compresión de Apple).*
+- **Reproducción en RAM**: Capacidad para cargar las pistas de audio directamente en la memoria RAM para eliminar latencias de lectura del disco (activable en la configuración).
 - **Gapless Playback & CUE**: Reproducción continua sin pausas entre pistas y soporte completo de hojas CUE para álbumes.
 - **Visualizador de Espectro**: Análisis de frecuencias de audio (FFT) en tiempo real integrado en la interfaz.
 - **Gestión Avanzada de Librería**: Escaneo veloz con lectura de metadatos (incluyendo ReplayGain), extracción automática de portadas (Cover Art), registro de historial y búsqueda filtrada.
 - **Gestión de Listas de Reproducción**: Guarda tus listas en formato `.m3u8`, limpia la cola de reproducción y reordena las pistas a tu gusto.
-- **Ventana de Configuración Avanzada**: Selector de DAC (dispositivo de salida) dedicado y persistencia de preferencias.
+- **Favoritos**: Posibilidad de marcar tus pistas preferidas para un acceso rápido.
+- **Ventana de Configuración Avanzada**: Selector de DAC (dispositivo de salida) dedicado, persistencia de preferencias y configuración del puerto de API HTTP.
 - **Manual Integrado**: Documentación completa de uso y funciones accesible directamente desde los ajustes.
-- **Control y Accesibilidad**: Atajos de teclado para navegación y volumen, soporte nativo de Teclas Multimedia (Media Keys), integración en la barra de menú (macOS) y servicio de control HTTP remoto.
 - **Verificación de Actualizaciones**: Notificación de nuevas versiones disponibles.
 - **Multiplataforma**: Construido sobre Avalonia UI y .NET 10, para Windows, macOS y Linux.
 
@@ -190,7 +191,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ⬜ | Windows 11 Home | 25h2 | i7-1255U | 16 GB |  |  |
+| ✅ | Windows 11 Home | 25h2 | i7-1255U | 16 GB | v0.9.10 |  |
 | ✅ | Windows 10 Pro | 22h2 | i5-4200M | 16 GB | v0.3.1 | soporte extendido y sin dotnet |
 
 </details>
@@ -244,9 +245,9 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ⬜ | Fedora | 44 | i7-1255U | 16 GB |  |  |
-| ⬜ | Arch | | i5-5250U | 4 GB |  |  |
-| ⬜ | Debian | 13 | Celeron N3350 | 4 GB |  |  |
+| ✅ | Fedora | 44 | i7-1255U | 16 GB | v0.9.8 |  |
+| ✅ | Arch | | i5-5250U | 4 GB | v0.9.9 |  |
+| ✅ | Debian | 13 | Celeron N3350 | 4 GB | v0.9.10 |  |
 | ✅ | Fedora | 44 | i5 M520 | 8 GB | PRE v1.0.0 | Clonado y compilado, prueba del lector de CD (si funciona) |
 
 </details>
@@ -271,6 +272,9 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 | :---: | :--- | :--- | :---: |
 | 1 | Greatest Hits | Limp Bizkit | v0.6.0 |
 | 2 | DISSIDIA FINAL FANTASY NT: Ultimate Collector's Edition Official Soundtrack | 石元丈晴 | v0.6.0 |
+| 3 | Hybrid Theory | Linkin Park | v0.9.0 |
+| 5 | One More Ligth Live | Linkin Park | v0.9.10 |
+
 
 ### 🎶 Audifonos y Bocinas de Prueba
 

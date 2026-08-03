@@ -40,6 +40,12 @@
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="CornerRadius" Value="18"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2"/>
+                    <BrushTransition Property="Foreground" Duration="0:0:0.2"/>
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Button.transport:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="#1E1E1E"/>
@@ -56,6 +62,11 @@
             <Setter Property="FontSize" Value="18"/>
             <Setter Property="CornerRadius" Value="22"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2"/>
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Button.transport-primary:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="#22883F"/>
@@ -69,6 +80,11 @@
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="CornerRadius" Value="6"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2"/>
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Button.load-btn:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="#2A2A2A"/>
@@ -86,6 +102,12 @@
             <Setter Property="CornerRadius" Value="18"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2"/>
+                    <BrushTransition Property="Foreground" Duration="0:0:0.2"/>
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="Button.toggle-inactive">
             <Setter Property="Background" Value="Transparent"/>
@@ -99,6 +121,12 @@
             <Setter Property="CornerRadius" Value="18"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2"/>
+                    <BrushTransition Property="Foreground" Duration="0:0:0.2"/>
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="TextBox.search">
             <Setter Property="Background" Value="#141414"/>
@@ -115,6 +143,11 @@
         <Style Selector="ListBoxItem">
             <Setter Property="Padding" Value="8,5"/>
             <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.2"/>
+                </Transitions>
+            </Setter>
         </Style>
         <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="#141414"/>
