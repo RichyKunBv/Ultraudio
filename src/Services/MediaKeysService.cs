@@ -80,110 +80,199 @@ public class MediaKeysService : IDisposable
     private sealed class MacMediaKeys
     {
         private readonly MediaKeysService _parent;
-
-        [DllImport("/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation")]
-        private static extern IntPtr CFStringCreateWithCString(IntPtr alloc, string str, int encoding);
-        
-        [DllImport("/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation")]
-        private static extern void CFRelease(IntPtr cf);
+        private bool _currentlyPlaying;
 
         [DllImport("/usr/lib/libobjc.dylib")]
         private static extern IntPtr objc_getClass(string name);
+
         [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
         private static extern IntPtr objc_msgSend(IntPtr receiver, IntPtr selector);
+
         [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-        private static extern IntPtr objc_msgSend_add(IntPtr receiver, IntPtr selector, IntPtr target, IntPtr action);
+        private static extern IntPtr objc_msgSend_IntPtr(IntPtr receiver, IntPtr selector, IntPtr arg);
+
         [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-        private static extern IntPtr objc_msgSend_dict(IntPtr receiver, IntPtr selector, IntPtr val, IntPtr key);
+        private static extern IntPtr objc_msgSend_addTarget(IntPtr receiver, IntPtr selector, IntPtr target, IntPtr action);
+
         [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-        private static extern void objc_msgSend_set(IntPtr receiver, IntPtr selector, IntPtr arg);
+        private static extern void objc_msgSend_bool(IntPtr receiver, IntPtr selector, [MarshalAs(UnmanagedType.I1)] bool arg);
+
         [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
-        private static extern void objc_msgSend_nuint(IntPtr receiver, IntPtr selector, nuint arg);
+        private static extern void objc_msgSend_NSInteger(IntPtr receiver, IntPtr selector, nint arg);
+
+        [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+        private static extern void objc_msgSend_dict(IntPtr receiver, IntPtr selector, IntPtr val, IntPtr key);
+
         [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "sel_registerName")]
         private static extern IntPtr sel_registerName(string name);
+
+
+        [DllImport("/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation")]
+        private static extern IntPtr CFStringCreateWithCString(IntPtr alloc, string str, int encoding);
+
+        [DllImport("/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation")]
+        private static extern void CFRelease(IntPtr cf);
+
+        // CGEventTap Implementation Constants
+        private const string CoreGraphicsLibrary = "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics";
+        public const uint kCGSessionEventTap = 1; // 1 = Session, 0 = HID
+        public const uint kCGHeadInsertEventTap = 0;
+        public const ulong NSSystemDefinedEventMask = 1UL << 14; 
         
-        [DllImport("/usr/lib/libobjc.dylib")]
-        private static extern IntPtr objc_allocateClassPair(IntPtr superclass, string name, IntPtr extraBytes);
-        [DllImport("/usr/lib/libobjc.dylib")]
-        private static extern void objc_registerClassPair(IntPtr cls);
-        [DllImport("/usr/lib/libobjc.dylib")]
-        private static extern bool class_addMethod(IntPtr cls, IntPtr name, CommandHandlerDelegate imp, string types);
+        public delegate IntPtr CGEventTapCallBack(IntPtr proxy, uint type, IntPtr @event, IntPtr refcon);
 
-        private delegate long CommandHandlerDelegate(IntPtr self, IntPtr cmd, IntPtr eventPtr);
+        [DllImport(CoreGraphicsLibrary)]
+        public static extern IntPtr CGEventTapCreate(uint tap, uint place, uint options, ulong eventsOfInterest, CGEventTapCallBack callback, IntPtr refcon);
 
-        private readonly CommandHandlerDelegate _playDel;
-        private readonly CommandHandlerDelegate _pauseDel;
-        private readonly CommandHandlerDelegate _toggleDel;
-        private readonly CommandHandlerDelegate _nextDel;
-        private readonly CommandHandlerDelegate _prevDel;
-        private IntPtr _target;
+        [DllImport(CoreGraphicsLibrary)]
+        public static extern IntPtr CFMachPortCreateRunLoopSource(IntPtr allocator, IntPtr tap, IntPtr order);
+
+        [DllImport("/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation")]
+        public static extern IntPtr CFRunLoopGetCurrent();
+
+        [DllImport("/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation")]
+        public static extern void CFRunLoopAddSource(IntPtr rl, IntPtr source, IntPtr mode);
+
+        [DllImport("/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation")]
+        public static extern IntPtr CFRunLoopCopyCurrentMode(IntPtr rl);
+
+        [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "objc_msgSend")]
+        private static extern IntPtr objc_msgSend_double(IntPtr receiver, IntPtr selector, double arg);
+
+        private CGEventTapCallBack _tapCallback = null!;
+        private IntPtr _eventTap;
 
         public MacMediaKeys(MediaKeysService parent)
         {
             _parent = parent;
-
-            _playDel = (s, c, e) => { _parent.OnPlay?.Invoke(); return 0; };
-            _pauseDel = (s, c, e) => { _parent.OnPause?.Invoke(); return 0; };
-            _toggleDel = (s, c, e) => { _parent.OnPlay?.Invoke(); return 0; }; 
-            _nextDel = (s, c, e) => { _parent.OnNext?.Invoke(); return 0; };
-            _prevDel = (s, c, e) => { _parent.OnPrev?.Invoke(); return 0; };
-
-            TryRegisterRemoteCommands();
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => TryRegisterRemoteCommands(), Avalonia.Threading.DispatcherPriority.Background);
         }
 
         private void TryRegisterRemoteCommands()
         {
             try
             {
-                IntPtr nsObjectClass = objc_getClass("NSObject");
-                if (nsObjectClass == IntPtr.Zero) return;
+                // CGEventTap para interceptar teclas multimedia a nivel sistema
+                _tapCallback = EventTapCallback;
+                
+                // kCGSessionEventTap (1) es más seguro en macOS moderno que kCGHIDEventTap (0)
+                _eventTap = CGEventTapCreate(
+                    kCGSessionEventTap,
+                    kCGHeadInsertEventTap,
+                    0, // kCGEventTapOptionDefault (0) para poder consumir el evento
+                    NSSystemDefinedEventMask,
+                    _tapCallback,
+                    IntPtr.Zero
+                );
 
-                string className = "UltraudioMediaKeys_" + Guid.NewGuid().ToString("N");
-                IntPtr myClass = objc_allocateClassPair(nsObjectClass, className, IntPtr.Zero);
-                if (myClass == IntPtr.Zero) return;
-
-                class_addMethod(myClass, sel_registerName("onPlay:"), _playDel, "q@:@");
-                class_addMethod(myClass, sel_registerName("onPause:"), _pauseDel, "q@:@");
-                class_addMethod(myClass, sel_registerName("onToggle:"), _toggleDel, "q@:@");
-                class_addMethod(myClass, sel_registerName("onNext:"), _nextDel, "q@:@");
-                class_addMethod(myClass, sel_registerName("onPrev:"), _prevDel, "q@:@");
-
-                objc_registerClassPair(myClass);
-                _target = objc_msgSend(objc_msgSend(myClass, sel_registerName("alloc")), sel_registerName("init"));
-
-                IntPtr commandCenterClass = objc_getClass("MPRemoteCommandCenter");
-                if (commandCenterClass != IntPtr.Zero)
+                if (_eventTap == IntPtr.Zero)
                 {
-                    IntPtr center = objc_msgSend(commandCenterClass, sel_registerName("sharedCommandCenter"));
-                    if (center != IntPtr.Zero)
-                    {
-                        RegisterCommand(center, "playCommand", _target, "onPlay:");
-                        RegisterCommand(center, "pauseCommand", _target, "onPause:");
-                        RegisterCommand(center, "togglePlayPauseCommand", _target, "onToggle:");
-                        RegisterCommand(center, "nextTrackCommand", _target, "onNext:");
-                        RegisterCommand(center, "previousTrackCommand", _target, "onPrev:");
-                        Log.Info("MediaKeys", "macOS MPRemoteCommandCenter initialized.");
-                    }
+                    Log.Warn("MediaKeys", "CGEventTapCreate devolvió IntPtr.Zero. Se requieren permisos de Accesibilidad.");
+                    return;
                 }
+
+                IntPtr runLoopSource = CFMachPortCreateRunLoopSource(IntPtr.Zero, _eventTap, IntPtr.Zero);
+                IntPtr currentRunLoop = CFRunLoopGetCurrent();
+                
+                // Obtenemos el modo actual (usualmente kCFRunLoopDefaultMode)
+                IntPtr currentMode = CFRunLoopCopyCurrentMode(currentRunLoop);
+                if (currentMode == IntPtr.Zero)
+                {
+                    // Fallback explícito a kCFRunLoopDefaultMode si no hay un modo actual activo
+                    IntPtr nsRunLoopClass = objc_getClass("NSRunLoop");
+                    IntPtr nsRunLoop = objc_msgSend(nsRunLoopClass, sel_registerName("mainRunLoop"));
+                    currentMode = objc_msgSend(nsRunLoop, sel_registerName("currentMode"));
+                }
+
+                CFRunLoopAddSource(currentRunLoop, runLoopSource, currentMode);
+                Log.Info("MediaKeys", "CGEventTap registrado correctamente.");
             }
             catch (Exception ex)
             {
-                Log.Warn("MediaKeys", $"macOS init error: {ex.Message}");
+                Log.Warn("MediaKeys", $"Error al registrar CGEventTap: {ex.Message}");
             }
         }
 
-        private void RegisterCommand(IntPtr center, string cmdName, IntPtr target, string selName)
+        private IntPtr EventTapCallback(IntPtr proxy, uint type, IntPtr @event, IntPtr refcon)
         {
-            IntPtr command = objc_msgSend(center, sel_registerName(cmdName));
-            if (command != IntPtr.Zero)
+            if (type == 14) // NSSystemDefined
             {
-                objc_msgSend_add(command, sel_registerName("addTarget:action:"), target, sel_registerName(selName));
-                objc_msgSend_set(command, sel_registerName("setEnabled:"), (IntPtr)1);
+                try
+                {
+                    IntPtr nsEventClass = objc_getClass("NSEvent");
+                    if (nsEventClass != IntPtr.Zero)
+                    {
+                        IntPtr nsEvent = objc_msgSend_IntPtr(nsEventClass, sel_registerName("eventWithCGEvent:"), @event);
+                        if (nsEvent != IntPtr.Zero)
+                        {
+                            long data1 = (long)objc_msgSend(nsEvent, sel_registerName("data1"));
+                            int keyCode = (int)((data1 >> 16) & 0xFFFF);
+                            int keyFlags = (int)(data1 & 0xFFFF);
+                            bool isKeyDown = ((keyFlags & 0xFF00) >> 8) == 0x0A;
+
+                            if (isKeyDown)
+                            {
+                                switch (keyCode)
+                                {
+                                    case 16: // NX_KEYTYPE_PLAY
+                                        Avalonia.Threading.Dispatcher.UIThread.Post(() => 
+                                        {
+                                            if (_currentlyPlaying) _parent.OnPause?.Invoke();
+                                            else _parent.OnPlay?.Invoke();
+                                        });
+                                        return IntPtr.Zero; // Consume el evento
+                                    case 17: // NX_KEYTYPE_NEXT
+                                        Avalonia.Threading.Dispatcher.UIThread.Post(() => _parent.OnNext?.Invoke());
+                                        return IntPtr.Zero;
+                                    case 18: // NX_KEYTYPE_PREVIOUS
+                                        Avalonia.Threading.Dispatcher.UIThread.Post(() => _parent.OnPrev?.Invoke());
+                                        return IntPtr.Zero;
+                                }
+                            }
+                            else
+                            {
+                                // Si es un evento de KeyUp para las mismas teclas, también lo consumimos para que no llegue a macOS
+                                if (keyCode == 16 || keyCode == 17 || keyCode == 18)
+                                    return IntPtr.Zero;
+                            }
+                        }
+                    }
+                }
+                catch { /* Ignorar errores de P/Invoke en el tap */ }
             }
+            
+            return @event; // Dejar pasar otros eventos
         }
+
+        [DllImport("/usr/lib/libSystem.dylib")]
+        private static extern IntPtr dlsym(IntPtr handle, string symbol);
+
+        [DllImport("/usr/lib/libSystem.dylib")]
+        private static extern IntPtr dlopen(string path, int mode);
+
+        private static IntPtr GetMediaPlayerSymbol(string symbol)
+        {
+            // First try RTLD_DEFAULT
+            IntPtr RTLD_DEFAULT = new IntPtr(-2);
+            IntPtr sym = dlsym(RTLD_DEFAULT, symbol);
+            if (sym != IntPtr.Zero) return sym;
+
+            // Fallback to explicitly loading the framework
+            IntPtr lib = dlopen("/System/Library/Frameworks/MediaPlayer.framework/MediaPlayer", 1);
+            if (lib != IntPtr.Zero) return dlsym(lib, symbol);
+
+            return IntPtr.Zero;
+        }
+
+        private static IntPtr MPMediaItemPropertyTitle = GetMediaPlayerSymbol("MPMediaItemPropertyTitle");
+        private static IntPtr MPMediaItemPropertyArtist = GetMediaPlayerSymbol("MPMediaItemPropertyArtist");
+        private static IntPtr MPMediaItemPropertyAlbumTitle = GetMediaPlayerSymbol("MPMediaItemPropertyAlbumTitle");
+        private static IntPtr MPNowPlayingInfoPropertyPlaybackRate = GetMediaPlayerSymbol("MPNowPlayingInfoPropertyPlaybackRate");
+        private static IntPtr MPMediaItemPropertyPlaybackDuration = GetMediaPlayerSymbol("MPMediaItemPropertyPlaybackDuration");
 
         public void Update(TrackModel? track, bool isPlaying)
         {
+            _currentlyPlaying = isPlaying;
             try
             {
                 IntPtr infoCenterClass = objc_getClass("MPNowPlayingInfoCenter");
@@ -193,34 +282,61 @@ public class MediaKeysService : IDisposable
                 IntPtr defaultCenter = objc_msgSend(infoCenterClass, sel_registerName("defaultCenter"));
                 if (defaultCenter == IntPtr.Zero) return;
 
-                // 1 = Playing, 2 = Paused, 0 = Stopped
-                nuint playbackState = (nuint)(track != null ? (isPlaying ? 1 : 2) : 0);
-                objc_msgSend_nuint(defaultCenter, sel_registerName("setPlaybackState:"), playbackState);
-
                 if (track != null)
                 {
                     IntPtr dict = objc_msgSend(objc_msgSend(dictClass, sel_registerName("alloc")), sel_registerName("init"));
-                    
-                    IntPtr titleKey = CFStringCreateWithCString(IntPtr.Zero, "title", 0x08000100);
-                    IntPtr titleVal = CFStringCreateWithCString(IntPtr.Zero, track.DisplayTitle, 0x08000100);
-                    objc_msgSend_dict(dict, sel_registerName("setObject:forKey:"), titleVal, titleKey);
-                    CFRelease(titleKey); CFRelease(titleVal);
 
-                    if (!string.IsNullOrEmpty(track.Artist))
+                    if (MPMediaItemPropertyTitle != IntPtr.Zero)
                     {
-                        IntPtr artistKey = CFStringCreateWithCString(IntPtr.Zero, "artist", 0x08000100);
-                        IntPtr artistVal = CFStringCreateWithCString(IntPtr.Zero, track.Artist, 0x08000100);
-                        objc_msgSend_dict(dict, sel_registerName("setObject:forKey:"), artistVal, artistKey);
-                        CFRelease(artistKey); CFRelease(artistVal);
+                        IntPtr titleVal = CFStringCreateWithCString(IntPtr.Zero, track.DisplayTitle ?? "Unknown", 0x08000100);
+                        IntPtr keyPtr = Marshal.ReadIntPtr(MPMediaItemPropertyTitle);
+                        objc_msgSend_dict(dict, sel_registerName("setObject:forKey:"), titleVal, keyPtr);
+                        CFRelease(titleVal);
                     }
 
-                    objc_msgSend_set(defaultCenter, sel_registerName("setNowPlayingInfo:"), dict);
+                    if (!string.IsNullOrEmpty(track.Artist) && MPMediaItemPropertyArtist != IntPtr.Zero)
+                    {
+                        IntPtr artistVal = CFStringCreateWithCString(IntPtr.Zero, track.Artist, 0x08000100);
+                        IntPtr keyPtr = Marshal.ReadIntPtr(MPMediaItemPropertyArtist);
+                        objc_msgSend_dict(dict, sel_registerName("setObject:forKey:"), artistVal, keyPtr);
+                        CFRelease(artistVal);
+                    }
+
+                    if (!string.IsNullOrEmpty(track.Album) && MPMediaItemPropertyAlbumTitle != IntPtr.Zero)
+                    {
+                        IntPtr albumVal = CFStringCreateWithCString(IntPtr.Zero, track.Album, 0x08000100);
+                        IntPtr keyPtr = Marshal.ReadIntPtr(MPMediaItemPropertyAlbumTitle);
+                        objc_msgSend_dict(dict, sel_registerName("setObject:forKey:"), albumVal, keyPtr);
+                        CFRelease(albumVal);
+                    }
+
+                    if (MPNowPlayingInfoPropertyPlaybackRate != IntPtr.Zero)
+                    {
+                        IntPtr nsNumberClass = objc_getClass("NSNumber");
+                        IntPtr rateNumber = objc_msgSend_double(nsNumberClass, sel_registerName("numberWithDouble:"), isPlaying ? 1.0 : 0.0);
+                        IntPtr keyPtr = Marshal.ReadIntPtr(MPNowPlayingInfoPropertyPlaybackRate);
+                        objc_msgSend_dict(dict, sel_registerName("setObject:forKey:"), rateNumber, keyPtr);
+                    }
+
+                    if (MPMediaItemPropertyPlaybackDuration != IntPtr.Zero && track.Duration.TotalSeconds > 0)
+                    {
+                        IntPtr nsNumberClass = objc_getClass("NSNumber");
+                        IntPtr durationNumber = objc_msgSend_double(nsNumberClass, sel_registerName("numberWithDouble:"), track.Duration.TotalSeconds);
+                        IntPtr keyPtr = Marshal.ReadIntPtr(MPMediaItemPropertyPlaybackDuration);
+                        objc_msgSend_dict(dict, sel_registerName("setObject:forKey:"), durationNumber, keyPtr);
+                    }
+
+                    objc_msgSend_IntPtr(defaultCenter, sel_registerName("setNowPlayingInfo:"), dict);
                     objc_msgSend(dict, sel_registerName("release"));
                 }
                 else
                 {
-                    objc_msgSend_set(defaultCenter, sel_registerName("setNowPlayingInfo:"), IntPtr.Zero);
+                    objc_msgSend_IntPtr(defaultCenter, sel_registerName("setNowPlayingInfo:"), IntPtr.Zero);
                 }
+
+                // Apple recommends setting playbackState AFTER setting the NowPlayingInfo dictionary
+                nint playbackState = track != null ? (isPlaying ? 1 : 2) : 0;
+                objc_msgSend_NSInteger(defaultCenter, sel_registerName("setPlaybackState:"), playbackState);
             }
             catch (Exception ex)
             {
