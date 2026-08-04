@@ -356,15 +356,13 @@ public class MediaKeysService : IDisposable
     [DBusInterface("org.mpris.MediaPlayer2")]
     public interface IMediaPlayer2 : IDBusObject
     {
-        Task QuitAsync();
         Task RaiseAsync();
-        Task<bool> GetCanQuitAsync();
-        Task<bool> GetCanRaiseAsync();
-        Task<bool> GetHasTrackListAsync();
-        Task<string> GetIdentityAsync();
-        Task<string[]> GetSupportedUriSchemesAsync();
-        Task<string[]> GetSupportedMimeTypesAsync();
-        Task<string> GetDesktopEntryAsync();
+        Task QuitAsync();
+
+        Task<object> GetAsync(string prop);
+        Task<IDictionary<string, object>> GetAllAsync();
+        Task SetAsync(string prop, object val);
+        Task<IDisposable> WatchPropertiesAsync(Action<PropertyChanges> handler);
     }
 
     [DBusInterface("org.mpris.MediaPlayer2.Player")]
@@ -379,21 +377,11 @@ public class MediaKeysService : IDisposable
         Task SeekAsync(long offset);
         Task SetPositionAsync(ObjectPath trackId, long position);
         Task OpenUriAsync(string uri);
-        Task<string> GetPlaybackStatusAsync();
-        Task<string> GetLoopStatusAsync();
-        Task<double> GetRateAsync();
-        Task<bool> GetShuffleAsync();
-        Task<IDictionary<string, object>> GetMetadataAsync();
-        Task<double> GetVolumeAsync();
-        Task<long> GetPositionAsync();
-        Task<double> GetMinimumRateAsync();
-        Task<double> GetMaximumRateAsync();
-        Task<bool> GetCanGoNextAsync();
-        Task<bool> GetCanGoPreviousAsync();
-        Task<bool> GetCanPlayAsync();
-        Task<bool> GetCanPauseAsync();
-        Task<bool> GetCanSeekAsync();
-        Task<bool> GetCanControlAsync();
+
+        Task<object> GetAsync(string prop);
+        Task<IDictionary<string, object>> GetAllAsync();
+        Task SetAsync(string prop, object val);
+        Task<IDisposable> WatchPropertiesAsync(Action<PropertyChanges> handler);
     }
 
     private sealed class LinuxMpris : IMediaPlayer2, IMediaPlayer2Player
@@ -403,6 +391,9 @@ public class MediaKeysService : IDisposable
         private IConnection? _connection;
         private TrackModel? _currentTrack;
         private bool _isPlaying;
+
+        public event Action<PropertyChanges>? OnPlayerPropertiesChanged;
+        public event Action<PropertyChanges>? OnRootPropertiesChanged;
 
         public LinuxMpris(MediaKeysService parent)
         {
@@ -414,12 +405,20 @@ public class MediaKeysService : IDisposable
         {
             try
             {
-                _connection = Connection.Session;
+                _connection = new Connection(Address.Session);
                 await _connection.ConnectAsync();
                 await _connection.RegisterObjectAsync(this);
-                // Flatpak restricts DBus name ownership.
-                // Usando el app-id para cumplir con las reglas de Flatpak.
-                await _connection.RegisterServiceAsync("org.mpris.MediaPlayer2.io.github.RichyKunBv.Ultraudio");
+
+                // Register standard MPRIS name first (for playerctl, desktop environments, media key daemons)
+                await _connection.RegisterServiceAsync("org.mpris.MediaPlayer2.Ultraudio");
+
+                // Also register Flatpak-compliant app-id name
+                try
+                {
+                    await _connection.RegisterServiceAsync("org.mpris.MediaPlayer2.io.github.RichyKunBv.Ultraudio");
+                }
+                catch { /* Ignore secondary registration failure if not in Flatpak */ }
+
                 Log.Info("MediaKeys", "MPRIS2 service registered.");
             }
             catch (Exception ex)
@@ -432,37 +431,37 @@ public class MediaKeysService : IDisposable
         {
             _currentTrack = track;
             _isPlaying = isPlaying;
+
+            try
+            {
+                var changedProps = new[]
+                {
+                    new KeyValuePair<string, object>("PlaybackStatus", GetPlaybackStatus()),
+                    new KeyValuePair<string, object>("Metadata", GetMetadata()),
+                    new KeyValuePair<string, object>("CanGoNext", true),
+                    new KeyValuePair<string, object>("CanGoPrevious", true),
+                    new KeyValuePair<string, object>("CanPlay", true),
+                    new KeyValuePair<string, object>("CanPause", true),
+                    new KeyValuePair<string, object>("CanControl", true)
+                };
+
+                OnPlayerPropertiesChanged?.Invoke(new PropertyChanges(changedProps));
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("MediaKeys", $"Error emitting MPRIS PropertiesChanged: {ex.Message}");
+            }
         }
 
-        public void Dispose() { }
+        public void Dispose()
+        {
+            try { _connection?.Dispose(); }
+            catch { /* ignore */ }
+        }
 
-        // IMediaPlayer2
-        public Task QuitAsync() => Task.CompletedTask;
-        public Task RaiseAsync() => Task.CompletedTask;
-        public Task<bool> GetCanQuitAsync() => Task.FromResult(false);
-        public Task<bool> GetCanRaiseAsync() => Task.FromResult(false);
-        public Task<bool> GetHasTrackListAsync() => Task.FromResult(false);
-        public Task<string> GetIdentityAsync() => Task.FromResult("Ultraudio");
-        public Task<string> GetDesktopEntryAsync() => Task.FromResult("Ultraudio");
-        public Task<string[]> GetSupportedUriSchemesAsync() => Task.FromResult(Array.Empty<string>());
-        public Task<string[]> GetSupportedMimeTypesAsync() => Task.FromResult(Array.Empty<string>());
+        private string GetPlaybackStatus() => _currentTrack != null ? (_isPlaying ? "Playing" : "Paused") : "Stopped";
 
-        // IMediaPlayer2Player
-        public Task NextAsync() { _parent.OnNext?.Invoke(); return Task.CompletedTask; }
-        public Task PreviousAsync() { _parent.OnPrev?.Invoke(); return Task.CompletedTask; }
-        public Task PauseAsync() { _parent.OnPause?.Invoke(); return Task.CompletedTask; }
-        public Task PlayPauseAsync() { _parent.OnPlay?.Invoke(); return Task.CompletedTask; }
-        public Task StopAsync() { _parent.OnStop?.Invoke(); return Task.CompletedTask; }
-        public Task PlayAsync() { _parent.OnPlay?.Invoke(); return Task.CompletedTask; }
-        public Task SeekAsync(long offset) => Task.CompletedTask;
-        public Task SetPositionAsync(ObjectPath trackId, long position) => Task.CompletedTask;
-        public Task OpenUriAsync(string uri) => Task.CompletedTask;
-        public Task<string> GetPlaybackStatusAsync() => Task.FromResult(_currentTrack != null ? (_isPlaying ? "Playing" : "Paused") : "Stopped");
-        public Task<string> GetLoopStatusAsync() => Task.FromResult("None");
-        public Task<double> GetRateAsync() => Task.FromResult(1.0);
-        public Task<bool> GetShuffleAsync() => Task.FromResult(false);
-        
-        public Task<IDictionary<string, object>> GetMetadataAsync()
+        private IDictionary<string, object> GetMetadata()
         {
             var dict = new Dictionary<string, object>();
             if (_currentTrack != null)
@@ -471,20 +470,97 @@ public class MediaKeysService : IDisposable
                 dict["xesam:title"] = _currentTrack.DisplayTitle;
                 if (!string.IsNullOrEmpty(_currentTrack.Artist)) dict["xesam:artist"] = new[] { _currentTrack.Artist };
                 if (!string.IsNullOrEmpty(_currentTrack.Album)) dict["xesam:album"] = _currentTrack.Album;
+                if (_currentTrack.Duration.TotalSeconds > 0)
+                {
+                    dict["mpris:length"] = (long)(_currentTrack.Duration.TotalMilliseconds * 1000); // Microseconds
+                }
+                if (!string.IsNullOrEmpty(_currentTrack.FilePath))
+                {
+                    dict["xesam:url"] = _currentTrack.FilePath.StartsWith("/") ? $"file://{_currentTrack.FilePath}" : _currentTrack.FilePath;
+                }
             }
-            return Task.FromResult<IDictionary<string, object>>(dict);
+            else
+            {
+                dict["mpris:trackid"] = new ObjectPath("/org/mpris/MediaPlayer2/TrackList/NoTrack");
+            }
+            return dict;
         }
 
-        public Task<double> GetVolumeAsync() => Task.FromResult(1.0);
-        public Task<long> GetPositionAsync() => Task.FromResult(0L);
-        public Task<double> GetMinimumRateAsync() => Task.FromResult(1.0);
-        public Task<double> GetMaximumRateAsync() => Task.FromResult(1.0);
-        public Task<bool> GetCanGoNextAsync() => Task.FromResult(true);
-        public Task<bool> GetCanGoPreviousAsync() => Task.FromResult(true);
-        public Task<bool> GetCanPlayAsync() => Task.FromResult(true);
-        public Task<bool> GetCanPauseAsync() => Task.FromResult(true);
-        public Task<bool> GetCanSeekAsync() => Task.FromResult(false);
-        public Task<bool> GetCanControlAsync() => Task.FromResult(true);
+        private IDictionary<string, object> GetAllPlayerProperties()
+        {
+            return new Dictionary<string, object>
+            {
+                { "PlaybackStatus", GetPlaybackStatus() },
+                { "LoopStatus", "None" },
+                { "Rate", 1.0 },
+                { "Shuffle", false },
+                { "Metadata", GetMetadata() },
+                { "Volume", 1.0 },
+                { "Position", 0L },
+                { "MinimumRate", 1.0 },
+                { "MaximumRate", 1.0 },
+                { "CanGoNext", true },
+                { "CanGoPrevious", true },
+                { "CanPlay", true },
+                { "CanPause", true },
+                { "CanSeek", false },
+                { "CanControl", true }
+            };
+        }
+
+        private IDictionary<string, object> GetAllRootProperties()
+        {
+            return new Dictionary<string, object>
+            {
+                { "CanQuit", false },
+                { "CanRaise", false },
+                { "CanSetFullscreen", false },
+                { "HasTrackList", false },
+                { "Identity", "Ultraudio" },
+                { "DesktopEntry", "io.github.RichyKunBv.Ultraudio" },
+                { "SupportedUriSchemes", new[] { "file" } },
+                { "SupportedMimeTypes", new[] { "audio/flac", "audio/wav", "audio/mpeg", "audio/ogg", "audio/aac", "audio/mp4" } }
+            };
+        }
+
+        // IMediaPlayer2
+        Task IMediaPlayer2.QuitAsync() => Task.CompletedTask;
+        Task IMediaPlayer2.RaiseAsync() => Task.CompletedTask;
+        Task<object> IMediaPlayer2.GetAsync(string prop)
+        {
+            var all = GetAllRootProperties();
+            return Task.FromResult(all.TryGetValue(prop, out var val) ? val : null!);
+        }
+        Task<IDictionary<string, object>> IMediaPlayer2.GetAllAsync() => Task.FromResult(GetAllRootProperties());
+        Task IMediaPlayer2.SetAsync(string prop, object val) => Task.CompletedTask;
+        Task<IDisposable> IMediaPlayer2.WatchPropertiesAsync(Action<PropertyChanges> handler)
+            => SignalWatcher.AddAsync(this, nameof(OnRootPropertiesChanged), handler);
+
+        // IMediaPlayer2Player
+        Task IMediaPlayer2Player.NextAsync() { _parent.OnNext?.Invoke(); return Task.CompletedTask; }
+        Task IMediaPlayer2Player.PreviousAsync() { _parent.OnPrev?.Invoke(); return Task.CompletedTask; }
+        Task IMediaPlayer2Player.PauseAsync() { _parent.OnPause?.Invoke(); return Task.CompletedTask; }
+        Task IMediaPlayer2Player.PlayPauseAsync()
+        {
+            if (_isPlaying) _parent.OnPause?.Invoke();
+            else _parent.OnPlay?.Invoke();
+            return Task.CompletedTask;
+        }
+        Task IMediaPlayer2Player.StopAsync() { _parent.OnStop?.Invoke(); return Task.CompletedTask; }
+        Task IMediaPlayer2Player.PlayAsync() { _parent.OnPlay?.Invoke(); return Task.CompletedTask; }
+        Task IMediaPlayer2Player.SeekAsync(long offset) => Task.CompletedTask;
+        Task IMediaPlayer2Player.SetPositionAsync(ObjectPath trackId, long position) => Task.CompletedTask;
+        Task IMediaPlayer2Player.OpenUriAsync(string uri) => Task.CompletedTask;
+
+        Task<object> IMediaPlayer2Player.GetAsync(string prop)
+        {
+            var all = GetAllPlayerProperties();
+            return Task.FromResult(all.TryGetValue(prop, out var val) ? val : null!);
+        }
+        Task<IDictionary<string, object>> IMediaPlayer2Player.GetAllAsync() => Task.FromResult(GetAllPlayerProperties());
+        Task IMediaPlayer2Player.SetAsync(string prop, object val) => Task.CompletedTask;
+        Task<IDisposable> IMediaPlayer2Player.WatchPropertiesAsync(Action<PropertyChanges> handler)
+            => SignalWatcher.AddAsync(this, nameof(OnPlayerPropertiesChanged), handler);
     }
 #endif
 
