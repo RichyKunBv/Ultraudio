@@ -1,6 +1,6 @@
 # Ultraudio 🎵
 
-[![Versión](https://img.shields.io/badge/Versión-v0.9.10-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Versión](https://img.shields.io/badge/Versión-v0.9.11-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Pre-Release](https://img.shields.io/badge/Estado-pre--release-red.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Licencia](https://img.shields.io/badge/Licencia-Apache-orange.svg)](https://github.com/RichyKunBv/Ultraudio/blob/main/LICENSE)
 [![Licencia](https://img.shields.io/badge/Licencia-BASS%20No%20Commercial-orange.svg)](https://www.un4seen.com/bass.html#license)
@@ -76,8 +76,11 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 ### Notificación de Actualizaciones
 <img src="res/docs/actualizaciones.png" width="762" alt="Aviso de Actualización"/>
 
-### Integración con macOS (Barra de Menú)
+### Integración con macOS (Barra de Menú y Teclas Multimedia)
 <img src="res/docs/barra de menu macos.png" width="762" alt="Barra de Menú en macOS"/>
+
+> [!IMPORTANT]
+> **Teclas Multimedia en macOS:** Para que las teclas de control multimedia (Play/Pausa, Siguiente, Anterior) funcionen correctamente y no abran la aplicación "Música" por defecto, Ultraudio utiliza un *Event Tap* nativo de CoreGraphics. Es **obligatorio** conceder permisos a la aplicación en **Ajustes del Sistema > Privacidad y seguridad > Accesibilidad**. Una vez otorgado el permiso, reinicia Ultraudio.
 
 ## 🛠️ Tecnologías y Dependencias
 
