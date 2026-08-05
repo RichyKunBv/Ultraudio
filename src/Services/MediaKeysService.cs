@@ -106,7 +106,6 @@ public class MediaKeysService : IDisposable
         [DllImport("/usr/lib/libobjc.dylib", EntryPoint = "sel_registerName")]
         private static extern IntPtr sel_registerName(string name);
 
-
         [DllImport("/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation")]
         private static extern IntPtr CFStringCreateWithCString(IntPtr alloc, string str, int encoding);
 
@@ -227,12 +226,15 @@ public class MediaKeysService : IDisposable
                                     case 18: // NX_KEYTYPE_PREVIOUS
                                         Avalonia.Threading.Dispatcher.UIThread.Post(() => _parent.OnPrev?.Invoke());
                                         return IntPtr.Zero;
+                                    case 19: // NX_KEYTYPE_STOP (Agregado para captura explícita)
+                                        Avalonia.Threading.Dispatcher.UIThread.Post(() => _parent.OnStop?.Invoke());
+                                        return IntPtr.Zero;
                                 }
                             }
                             else
                             {
-                                // Si es un evento de KeyUp para las mismas teclas, también lo consumimos para que no llegue a macOS
-                                if (keyCode == 16 || keyCode == 17 || keyCode == 18)
+                                // Si es un evento de KeyUp para las mismas teclas, también lo consumimos
+                                if (keyCode >= 16 && keyCode <= 19)
                                     return IntPtr.Zero;
                             }
                         }
@@ -466,8 +468,13 @@ public class MediaKeysService : IDisposable
             var dict = new Dictionary<string, object>();
             if (_currentTrack != null)
             {
-                dict["mpris:trackid"] = new ObjectPath($"/org/mpris/MediaPlayer2/TrackList/{Guid.NewGuid():N}");
-                dict["xesam:title"] = _currentTrack.DisplayTitle;
+                // SE CORRIGE: Usar Hash/ID estable en lugar de Guid.NewGuid() para no romper daemons de teclas
+                string trackHash = string.IsNullOrEmpty(_currentTrack.FilePath) 
+                    ? _currentTrack.GetHashCode().ToString("X") 
+                    : Math.Abs(_currentTrack.FilePath.GetHashCode()).ToString();
+
+                dict["mpris:trackid"] = new ObjectPath($"/org/mpris/MediaPlayer2/TrackList/{trackHash}");
+                dict["xesam:title"] = _currentTrack.DisplayTitle ?? "Unknown";
                 if (!string.IsNullOrEmpty(_currentTrack.Artist)) dict["xesam:artist"] = new[] { _currentTrack.Artist };
                 if (!string.IsNullOrEmpty(_currentTrack.Album)) dict["xesam:album"] = _currentTrack.Album;
                 if (_currentTrack.Duration.TotalSeconds > 0)
@@ -536,18 +543,41 @@ public class MediaKeysService : IDisposable
         Task<IDisposable> IMediaPlayer2.WatchPropertiesAsync(Action<PropertyChanges> handler)
             => SignalWatcher.AddAsync(this, nameof(OnRootPropertiesChanged), handler);
 
-        // IMediaPlayer2Player
-        Task IMediaPlayer2Player.NextAsync() { _parent.OnNext?.Invoke(); return Task.CompletedTask; }
-        Task IMediaPlayer2Player.PreviousAsync() { _parent.OnPrev?.Invoke(); return Task.CompletedTask; }
-        Task IMediaPlayer2Player.PauseAsync() { _parent.OnPause?.Invoke(); return Task.CompletedTask; }
+        // IMediaPlayer2Player (Despacho explícito a UI Thread)
+        Task IMediaPlayer2Player.NextAsync() 
+        { 
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => _parent.OnNext?.Invoke()); 
+            return Task.CompletedTask; 
+        }
+        Task IMediaPlayer2Player.PreviousAsync() 
+        { 
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => _parent.OnPrev?.Invoke()); 
+            return Task.CompletedTask; 
+        }
+        Task IMediaPlayer2Player.PauseAsync() 
+        { 
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => _parent.OnPause?.Invoke()); 
+            return Task.CompletedTask; 
+        }
         Task IMediaPlayer2Player.PlayPauseAsync()
         {
-            if (_isPlaying) _parent.OnPause?.Invoke();
-            else _parent.OnPlay?.Invoke();
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                if (_isPlaying) _parent.OnPause?.Invoke();
+                else _parent.OnPlay?.Invoke();
+            });
             return Task.CompletedTask;
         }
-        Task IMediaPlayer2Player.StopAsync() { _parent.OnStop?.Invoke(); return Task.CompletedTask; }
-        Task IMediaPlayer2Player.PlayAsync() { _parent.OnPlay?.Invoke(); return Task.CompletedTask; }
+        Task IMediaPlayer2Player.StopAsync() 
+        { 
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => _parent.OnStop?.Invoke()); 
+            return Task.CompletedTask; 
+        }
+        Task IMediaPlayer2Player.PlayAsync() 
+        { 
+            Avalonia.Threading.Dispatcher.UIThread.Post(() => _parent.OnPlay?.Invoke()); 
+            return Task.CompletedTask; 
+        }
         Task IMediaPlayer2Player.SeekAsync(long offset) => Task.CompletedTask;
         Task IMediaPlayer2Player.SetPositionAsync(ObjectPath trackId, long position) => Task.CompletedTask;
         Task IMediaPlayer2Player.OpenUriAsync(string uri) => Task.CompletedTask;
@@ -592,6 +622,7 @@ public class MediaKeysService : IDisposable
                 _smtc.IsPauseEnabled = true;
                 _smtc.IsNextEnabled = true;
                 _smtc.IsPreviousEnabled = true;
+                _smtc.IsStopEnabled = true; // SE HABILITA explícitamente el botón Stop
                 _smtc.ButtonPressed += Smtc_ButtonPressed;
                 
                 Log.Info("MediaKeys", "Windows SMTC initialized.");
@@ -604,13 +635,17 @@ public class MediaKeysService : IDisposable
 
         private void Smtc_ButtonPressed(SystemMediaTransportControls sender, SystemMediaTransportControlsButtonPressedEventArgs args)
         {
-            switch (args.Button)
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
-                case SystemMediaTransportControlsButton.Play: _parent.OnPlay?.Invoke(); break;
-                case SystemMediaTransportControlsButton.Pause: _parent.OnPause?.Invoke(); break;
-                case SystemMediaTransportControlsButton.Next: _parent.OnNext?.Invoke(); break;
-                case SystemMediaTransportControlsButton.Previous: _parent.OnPrev?.Invoke(); break;
-            }
+                switch (args.Button)
+                {
+                    case SystemMediaTransportControlsButton.Play: _parent.OnPlay?.Invoke(); break;
+                    case SystemMediaTransportControlsButton.Pause: _parent.OnPause?.Invoke(); break;
+                    case SystemMediaTransportControlsButton.Next: _parent.OnNext?.Invoke(); break;
+                    case SystemMediaTransportControlsButton.Previous: _parent.OnPrev?.Invoke(); break;
+                    case SystemMediaTransportControlsButton.Stop: _parent.OnStop?.Invoke(); break; // Captura de Stop
+                }
+            });
         }
 
         public void Update(TrackModel? track, bool isPlaying)
@@ -621,8 +656,8 @@ public class MediaKeysService : IDisposable
                 {
                     var updater = _smtc.DisplayUpdater;
                     updater.Type = MediaPlaybackType.Music;
-                    updater.MusicProperties.Title = track.DisplayTitle;
-                    updater.MusicProperties.Artist = track.Artist;
+                    updater.MusicProperties.Title = track.DisplayTitle ?? "Unknown";
+                    updater.MusicProperties.Artist = track.Artist ?? "";
                     updater.Update();
                     _smtc.PlaybackStatus = isPlaying ? MediaPlaybackStatus.Playing : MediaPlaybackStatus.Paused;
                 }
