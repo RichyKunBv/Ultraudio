@@ -220,21 +220,22 @@ public class MediaKeysService : IDisposable
                                             else _parent.OnPlay?.Invoke();
                                         });
                                         return IntPtr.Zero; // Consume el evento
-                                    case 17: // NX_KEYTYPE_NEXT
+
+                                    case 17: // NX_KEYTYPE_FAST
+                                    case 19: // NX_KEYTYPE_NEXT (F9 / Siguiente)
                                         Avalonia.Threading.Dispatcher.UIThread.Post(() => _parent.OnNext?.Invoke());
                                         return IntPtr.Zero;
-                                    case 18: // NX_KEYTYPE_PREVIOUS
+
+                                    case 18: // NX_KEYTYPE_REWIND
+                                    case 20: // NX_KEYTYPE_PREVIOUS (F7 / Anterior)
                                         Avalonia.Threading.Dispatcher.UIThread.Post(() => _parent.OnPrev?.Invoke());
-                                        return IntPtr.Zero;
-                                    case 19: // NX_KEYTYPE_STOP (Agregado para captura explícita)
-                                        Avalonia.Threading.Dispatcher.UIThread.Post(() => _parent.OnStop?.Invoke());
                                         return IntPtr.Zero;
                                 }
                             }
                             else
                             {
-                                // Si es un evento de KeyUp para las mismas teclas, también lo consumimos
-                                if (keyCode >= 16 && keyCode <= 19)
+                                // Consumir también el KeyUp para evitar que macOS propague el evento a Apple Music
+                                if (keyCode >= 16 && keyCode <= 20)
                                     return IntPtr.Zero;
                             }
                         }
@@ -243,7 +244,7 @@ public class MediaKeysService : IDisposable
                 catch { /* Ignorar errores de P/Invoke en el tap */ }
             }
             
-            return @event; // Dejar pasar otros eventos
+            return @event; // Dejar pasar otros eventos del sistema
         }
 
         [DllImport("/usr/lib/libSystem.dylib")]
