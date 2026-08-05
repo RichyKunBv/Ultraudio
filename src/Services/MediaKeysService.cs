@@ -597,25 +597,68 @@ public class MediaKeysService : IDisposable
 
 #if WINDOWS
     // ═════════════════════════════════════════════════════════════════════════
-    // Windows SMTC implementation
+    // Windows implementation (SMTC + Win32 Low-Level Keyboard Hook)
     // ═════════════════════════════════════════════════════════════════════════
     private sealed class WindowsSmtc
     {
         private readonly MediaKeysService _parent;
         private MediaPlayer? _player;
         private SystemMediaTransportControls? _smtc;
+        private bool _currentlyPlaying;
+
+        // Win32 Hooks Constants & Structs
+        private const int WH_KEYBOARD_LL = 13;
+        private const int WM_KEYDOWN = 0x0100;
+        private const int WM_SYSKEYDOWN = 0x0104;
+
+        private const int VK_MEDIA_NEXT_TRACK = 0xB0;
+        private const int VK_MEDIA_PREV_TRACK = 0xB1;
+        private const int VK_MEDIA_STOP = 0xB2;
+        private const int VK_MEDIA_PLAY_PAUSE = 0xB3;
+
+        private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct KBDLLHOOKSTRUCT
+        {
+            public uint vkCode;
+            public uint scanCode;
+            public uint flags;
+            public uint time;
+            public IntPtr dwExtraInfo;
+        }
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern IntPtr SetWindowsHookEx(int idHook, LowLevelKeyboardProc lpfn, IntPtr hMod, uint dwThreadId);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool UnhookWindowsHookEx(IntPtr hhk);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern IntPtr GetModuleHandle(string lpModuleName);
+
+        // Se guarda referencia al delegado como campo de clase para evitar que el GC lo recolecte
+        private readonly LowLevelKeyboardProc _proc;
+        private IntPtr _hookId = IntPtr.Zero;
 
         public WindowsSmtc(MediaKeysService parent)
         {
             _parent = parent;
-            TryInit();
+            _proc = HookCallback;
+
+            TryInitSmtc();
+            TryRegisterKeyboardHook();
         }
 
-        private void TryInit()
+        private void TryInitSmtc()
         {
             try
             {
-                // Instantiate a WinRT MediaPlayer just to acquire its SMTC globally
+                // Un MediaPlayer de WinRT nos permite controlar la barra de reproducción de Windows 10/11
                 _player = new MediaPlayer();
                 _player.CommandManager.IsEnabled = true;
                 _smtc = _player.SystemMediaTransportControls;
@@ -623,10 +666,10 @@ public class MediaKeysService : IDisposable
                 _smtc.IsPauseEnabled = true;
                 _smtc.IsNextEnabled = true;
                 _smtc.IsPreviousEnabled = true;
-                _smtc.IsStopEnabled = true; // SE HABILITA explícitamente el botón Stop
+                _smtc.IsStopEnabled = true;
                 _smtc.ButtonPressed += Smtc_ButtonPressed;
-                
-                Log.Info("MediaKeys", "Windows SMTC initialized.");
+
+                Log.Info("MediaKeys", "Windows SMTC inicializado.");
             }
             catch (Exception ex)
             {
@@ -634,8 +677,71 @@ public class MediaKeysService : IDisposable
             }
         }
 
+        private void TryRegisterKeyboardHook()
+        {
+            try
+            {
+                using var curProcess = System.Diagnostics.Process.GetCurrentProcess();
+                using var curModule = curProcess.MainModule;
+                
+                IntPtr moduleHandle = curModule?.ModuleName != null 
+                    ? GetModuleHandle(curModule.ModuleName) 
+                    : IntPtr.Zero;
+
+                _hookId = SetWindowsHookEx(WH_KEYBOARD_LL, _proc, moduleHandle, 0);
+
+                if (_hookId == IntPtr.Zero)
+                {
+                    Log.Warn("MediaKeys", "SetWindowsHookEx devolvió IntPtr.Zero. No se pudo registrar el Hook global.");
+                }
+                else
+                {
+                    Log.Info("MediaKeys", "Win32 Low-Level Keyboard Hook registrado correctamente.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warn("MediaKeys", $"Error registrando Keyboard Hook en Windows: {ex.Message}");
+            }
+        }
+
+        private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+        {
+            if (nCode >= 0 && (wParam == (IntPtr)WM_KEYDOWN || wParam == (IntPtr)WM_SYSKEYDOWN))
+            {
+                var kbStruct = Marshal.PtrToStructure<KBDLLHOOKSTRUCT>(lParam);
+                int vkCode = (int)kbStruct.vkCode;
+
+                switch (vkCode)
+                {
+                    case VK_MEDIA_PLAY_PAUSE:
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                        {
+                            if (_currentlyPlaying) _parent.OnPause?.Invoke();
+                            else _parent.OnPlay?.Invoke();
+                        });
+                        return (IntPtr)1; // Consume el evento (evita que abran otras apps)
+
+                    case VK_MEDIA_NEXT_TRACK:
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() => _parent.OnNext?.Invoke());
+                        return (IntPtr)1;
+
+                    case VK_MEDIA_PREV_TRACK:
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() => _parent.OnPrev?.Invoke());
+                        return (IntPtr)1;
+
+                    case VK_MEDIA_STOP:
+                        Avalonia.Threading.Dispatcher.UIThread.Post(() => _parent.OnStop?.Invoke());
+                        return (IntPtr)1;
+                }
+            }
+
+            return CallNextHookEx(_hookId, nCode, wParam, lParam);
+        }
+
         private void Smtc_ButtonPressed(SystemMediaTransportControls sender, SystemMediaTransportControlsButtonPressedEventArgs args)
         {
+            // Atiende clics directos sobre el flyout / widget táctil de Windows en pantalla
             Avalonia.Threading.Dispatcher.UIThread.Post(() =>
             {
                 switch (args.Button)
@@ -644,13 +750,15 @@ public class MediaKeysService : IDisposable
                     case SystemMediaTransportControlsButton.Pause: _parent.OnPause?.Invoke(); break;
                     case SystemMediaTransportControlsButton.Next: _parent.OnNext?.Invoke(); break;
                     case SystemMediaTransportControlsButton.Previous: _parent.OnPrev?.Invoke(); break;
-                    case SystemMediaTransportControlsButton.Stop: _parent.OnStop?.Invoke(); break; // Captura de Stop
+                    case SystemMediaTransportControlsButton.Stop: _parent.OnStop?.Invoke(); break;
                 }
             });
         }
 
         public void Update(TrackModel? track, bool isPlaying)
         {
+            _currentlyPlaying = isPlaying;
+
             if (_smtc != null)
             {
                 if (track != null)
@@ -671,6 +779,12 @@ public class MediaKeysService : IDisposable
 
         public void Dispose()
         {
+            if (_hookId != IntPtr.Zero)
+            {
+                UnhookWindowsHookEx(_hookId);
+                _hookId = IntPtr.Zero;
+            }
+
             if (_smtc != null)
             {
                 _smtc.ButtonPressed -= Smtc_ButtonPressed;
