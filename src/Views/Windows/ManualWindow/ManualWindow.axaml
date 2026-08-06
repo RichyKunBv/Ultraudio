@@ -57,24 +57,30 @@
                 <TextBlock Classes="bullet" Text="• Reproducción sin pausas (Gapless): Pre-carga la siguiente canción un par de segundos antes de que termine la actual, logrando una transición perfecta sin milisegundos de silencio (ideal para conciertos en vivo o álbumes continuos)."/>
 
                 <TextBlock Text="3. Atajos de Teclado" Classes="h2"/>
-                <TextBlock Classes="p" Text="Ultraudio puede controlarse ágilmente con el teclado de tu ordenador o con las teclas multimedia:"/>
+                <TextBlock Classes="p" Text="Ultraudio puede controlarse ágilmente con el teclado de tu ordenador (en macOS la tecla Ctrl equivale a Command ⌘):"/>
                 <TextBlock Classes="bullet" Text="• Espacio: Reproducir / Pausar"/>
                 <TextBlock Classes="bullet" Text="• ← / →: Atrasar / Adelantar 5 segundos"/>
                 <TextBlock Classes="bullet" Text="• Ctrl + ← / →: Pista Anterior / Siguiente"/>
                 <TextBlock Classes="bullet" Text="• Ctrl + ↑ / ↓: Subir / Bajar volumen un 10%"/>
-                <TextBlock Classes="bullet" Text="• Ctrl + M: Silenciar (Mute)"/>
+                <TextBlock Classes="bullet" Text="• Ctrl + M: Silenciar / Restaurar sonido (Mute)"/>
                 <TextBlock Classes="bullet" Text="• Ctrl + S: Alternar modo Aleatorio"/>
                 <TextBlock Classes="bullet" Text="• Ctrl + R: Cambiar modo Repetir"/>
-                <TextBlock Classes="bullet" Text="• Ctrl + B: Marcar/Desmarcar pista como Favorita"/>
-                <TextBlock Classes="bullet" Text="• Ctrl + F: Enfocar la barra de búsqueda"/>
+                <TextBlock Classes="bullet" Text="• Ctrl + B: Marcar / Desmarcar pista como Favorita"/>
+                <TextBlock Classes="bullet" Text="• Ctrl + F: Activar la barra de búsqueda en la lista de reproducción"/>
 
-                <TextBlock Text="4. API Remota (HTTP)" Classes="h2"/>
+                <TextBlock Text="4. Teclas Multimedia Nativas y Sistema" Classes="h2"/>
+                <TextBlock Classes="p" Text="Ultraudio incluye soporte nativo para las teclas multimedia de tu teclado físico (Play/Pausa, Siguiente, Anterior):"/>
+                <TextBlock Classes="bullet" Text="• macOS: Utiliza un Event Tap nativo de CoreGraphics. Para su correcto funcionamiento sin que se abra Apple Music por defecto, es obligatorio conceder permisos en Ajustes del Sistema > Privacidad y seguridad > Accesibilidad a Ultraudio."/>
+                <TextBlock Classes="bullet" Text="• Windows: Integración nativa con System Media Transport Controls (SMTC) y ganchos de teclado globales de bajo nivel (Low-Level Keyboard Hook)."/>
+                <TextBlock Classes="bullet" Text="• Linux: Soporte completo con la interfaz MPRIS2 sobre D-Bus, compatible de forma nativa con playerctl y los atajos multimedia de GNOME, KDE, XFCE y otros entornos."/>
+
+                <TextBlock Text="5. API Remota (HTTP)" Classes="h2"/>
                 <TextBlock Classes="p" Text="Ultraudio incluye un servidor web integrado que te permite controlar el reproductor desde el navegador de otro dispositivo (como tu teléfono móvil o tablet) siempre que estés en la misma red local."/>
                 <TextBlock Classes="bullet" Text="• Para usarlo, actívalo en Configuración -> Habilitar HTTP API."/>
                 <TextBlock Classes="bullet" Text="• Accede a la URL indicada (por ejemplo, http://[Tu-IP-Local]:[Puerto]/status) para ver los metadatos de la pista actual o interactuar con los controles de reproducción mediante comandos de API."/>
 
-                <TextBlock Text="5. Visualizador y Metadatos" Classes="h2"/>
-                <TextBlock Classes="p" Text="El reproductor analiza en tiempo real el audio con una transformada rápida de Fourier (FFT) para dibujar el visualizador de espectro sin consumir demasiados recursos (aunque se puede desactivar en ajustes)."/>
+                <TextBlock Text="6. Visualizador y Metadatos" Classes="h2"/>
+                <TextBlock Classes="p" Text="El reproductor analiza en tiempo real el audio con una transformada rápida de Fourier (FFT) para dibujar el visualizador de espectro sin consumir demasiados recursos (se puede desactivar en ajustes si lo deseas)."/>
                 <TextBlock Classes="p" Text="Si tus pistas tienen información técnica destacable, el reproductor mostrará un identificador (Tech Badge), como por ejemplo 'FLAC 24/192' para denotar audio Hi-Res. Si el archivo cuenta con etiquetas ReplayGain, se mostrará el valor RG detectado en pantalla."/>
             </StackPanel>
         </ScrollViewer>

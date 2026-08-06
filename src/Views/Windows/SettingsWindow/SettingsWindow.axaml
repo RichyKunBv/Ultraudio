@@ -213,7 +213,7 @@
                 <Border Classes="section">
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="Manuel" Classes="label"/>
+                            <TextBlock Text="Manual" Classes="label"/>
                             <TextBlock Text="Manual de Usuario" Classes="value" Margin="0,2,0,0"/>
                         </StackPanel>
                         <Button Grid.Column="1" Name="BtnOpenManualWindow" Content="Manual" Background="#2A2A2A" Foreground="#CCCCCC" Padding="12,6" VerticalAlignment="Center" Click="BtnOpenManualWindow_Click"/>

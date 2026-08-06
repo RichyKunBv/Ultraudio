@@ -1,7 +1,7 @@
 # Ultraudio 🎵
 
-[![Versión](https://img.shields.io/badge/Versión-v0.9.14-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
-[![Pre-Release](https://img.shields.io/badge/Estado-pre--release-red.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Versión](https://img.shields.io/badge/Versión-v1.0.0-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Release](https://img.shields.io/badge/Estado-release-green.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Licencia](https://img.shields.io/badge/Licencia-Apache-orange.svg)](https://github.com/RichyKunBv/Ultraudio/blob/main/LICENSE)
 [![Licencia](https://img.shields.io/badge/Licencia-BASS%20No%20Commercial-orange.svg)](https://www.un4seen.com/bass.html#license)
 [![Lenguaje](https://img.shields.io/badge/Lenguaje-C%23.NET-lightgrey.svg)](https://dotnet.microsoft.com/es-es/download/dotnet/10.0)
@@ -29,17 +29,16 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 
 - **Bit-Perfect Audio**: Reproducción exacta, entregando la señal a tu DAC con la mayor fidelidad posible.
 - **Soporte Amplio de Formatos**: Compatible con formatos Lossless y Hi-Res como FLAC, WAV, AIFF, y DSD (DSF/DFF).
+- **Teclas Multimedia Nativas**: Soporte completo para teclas físicas de reproducción (Play/Pausa, Siguiente, Anterior) en **macOS** (EventTap nativo), **Windows** (SMTC / Keyboard Hook) y **Linux** (MPRIS2 D-Bus / `playerctl`).
 - **Reproducción de CD**: Soporte nativo para lectura y reproducción de audio desde discos compactos en Windows y Linux. *(En macOS, el CD se debe abrir desde la aplicación como una carpeta; las pistas se reproducirán en formato AIFF, o sea, el formato sin compresión de Apple).*
 - **Reproducción en RAM**: Capacidad para cargar las pistas de audio directamente en la memoria RAM para eliminar latencias de lectura del disco (activable en la configuración).
 - **Gapless Playback & CUE**: Reproducción continua sin pausas entre pistas y soporte completo de hojas CUE para álbumes.
-- **Visualizador de Espectro**: Análisis de frecuencias de audio (FFT) en tiempo real integrado en la interfaz.
-- **Gestión Avanzada de Librería**: Escaneo veloz con lectura de metadatos (incluyendo ReplayGain), extracción automática de portadas (Cover Art), registro de historial y búsqueda filtrada.
-- **Gestión de Listas de Reproducción**: Guarda tus listas en formato `.m3u8`, limpia la cola de reproducción y reordena las pistas a tu gusto.
-- **Favoritos**: Posibilidad de marcar tus pistas preferidas para un acceso rápido.
-- **Ventana de Configuración Avanzada**: Selector de DAC (dispositivo de salida) dedicado, persistencia de preferencias y configuración del puerto de API HTTP.
-- **Manual Integrado**: Documentación completa de uso y funciones accesible directamente desde los ajustes.
-- **Verificación de Actualizaciones**: Notificación de nuevas versiones disponibles.
-- **Multiplataforma**: Construido sobre Avalonia UI y .NET 10, para Windows, macOS y Linux.
+- **Visualizador de Espectro & Tech Badges**: Análisis de frecuencias de audio (FFT) en tiempo real e insignias técnicas (ej. FLAC 24/192, ReplayGain).
+- **Gestión Avanzada de Librería**: Escaneo veloz con lectura de metadatos, extracción automática de portadas (Cover Art), registro de historial y búsqueda filtrada (Ctrl+F / Cmd+F).
+- **Gestión de Listas de Reproducción & Favoritos**: Guarda tus listas en formato `.m3u8`, marca pistas favoritas (Ctrl+B) y reordena la cola a tu gusto.
+- **API Remota (HTTP)**: Servidor web integrado con puerto configurable para control remoto desde otros dispositivos en la red local.
+- **Ventanas y Documentación Integrada**: Manual de Usuario completo, Historial de Versiones, Notificador de Actualizaciones y Ventana Acerca de.
+- **Multiplataforma**: Construido sobre Avalonia UI y .NET 10, optimizado para Windows, macOS y Linux.
 
 ## 📸 Interfaz y Uso
 
@@ -47,11 +46,11 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 - **Espacio**: Reproducir / Pausar
 - **← / →**: Atrasar / Adelantar 5 segundos
 - **Ctrl + ← / →**: Pista Anterior / Siguiente
-- **Ctrl + ↑ / ↓**: Subir / Bajar volumen
-- **Ctrl + M**: Silenciar (Mute)
-- **Ctrl + S / R / B**: Aleatorio / Repetir / Favorito
-- **Ctrl + F**: Buscar en la lista
-- **Ctrl** es **Command** para macOS.
+- **Ctrl + ↑ / ↓**: Subir / Bajar volumen (10%)
+- **Ctrl + M**: Silenciar / Restaurar sonido (Mute)
+- **Ctrl + S / R / B**: Alternar Aleatorio / Repetir / Favorito
+- **Ctrl + F**: Buscar en la lista de reproducción
+- **Nota:** En **macOS** la tecla **Ctrl** equivale a **Command (⌘)**.
 
 ### Interfaz Principal
 <img src="res/docs/ultraudio sin pista.png" width="762" alt="Ultraudio sin pista"/>
@@ -66,12 +65,20 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 <br/>
 <img src="res/docs/ultraudio con carpeta.png" width="762" alt="Ultraudio con carpeta"/>
 
-### Ventana de Configuración (Preferencias y Selección de DAC)
-<img src="res/docs/config 1.png" width="762" alt="Configuración General"/>
+### Ventana de Configuración (Preferencias y DAC)
+<img src="res/docs/config 1.png" width="762" alt="Configuración General y Salida Audio"/>
 <br/>
-<img src="res/docs/config 2.png" width="762" alt="Configuración de Audio y DAC"/>
+<img src="res/docs/config 2.png" width="762" alt="Configuración de Reproducción y Audio CD"/>
 <br/>
-<img src="res/docs/config 3.png" width="762" alt="Configuración de Interfaz"/>
+<img src="res/docs/config 3.png" width="762" alt="Configuración de Control Remoto y Atajos"/>
+<br/>
+<img src="res/docs/config 4.png" width="762" alt="Sección de Actualizaciones, Manual, Historial y Acerca de"/>
+
+### Manual de Usuario Integrado
+<img src="res/docs/Manual.png" width="762" alt="Manual de Usuario"/>
+
+### Historial de Versiones
+<img src="res/docs/historial.png" width="762" alt="Historial de Versiones"/>
 
 ### Notificación de Actualizaciones
 <img src="res/docs/actualizaciones.png" width="762" alt="Aviso de Actualización"/>
@@ -82,18 +89,21 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 > [!IMPORTANT]
 > **Teclas Multimedia en macOS:** Para que las teclas de control multimedia (Play/Pausa, Siguiente, Anterior) funcionen correctamente y no abran la aplicación "Música" por defecto, Ultraudio utiliza un *Event Tap* nativo de CoreGraphics. Es **obligatorio** conceder permisos a la aplicación en **Ajustes del Sistema > Privacidad y seguridad > Accesibilidad**. Una vez otorgado el permiso, reinicia Ultraudio.
 
+> [!NOTE]
+> **Teclas Multimedia en Linux:** Ultraudio implementa la especificación **MPRIS2** sobre D-Bus, permitiendo control nativo desde la barra del sistema, atajos del entorno gráfico (GNOME, KDE, XFCE) y la herramienta `playerctl`.
+
 ## 🛠️ Tecnologías y Dependencias
 
 El proyecto está desarrollado en **C# (.NET 10)** y se apoya en las siguientes bibliotecas y tecnologías:
 
 - [Avalonia UI](https://avaloniaui.net/): Framework de interfaz de usuario para aplicaciones de escritorio multiplataforma.
-- [BASS Audio Library](http://www.un4seen.com/): Motor de audio para reproducción. Se usan los wrappers `ManagedBass` y `ManagedBass.Flac`.
-- [TagLib#](https://github.com/mono/taglib-sharp): Herramienta para extraer metadata
-- [Internet](https://github.com/RichyKunBv/Ultraudio/releases/latest): Herramienta para actualizar la aplicacion
+- [BASS Audio Library](http://www.un4seen.com/): Motor de audio para reproducción. Se usan los wrappers `ManagedBass`, `ManagedBass.Flac`, `ManagedBass.Dsd` y `ManagedBass.Cd`.
+- [TagLib#](https://github.com/mono/taglib-sharp): Herramienta para extraer metadatos de archivos de audio.
+- [Tmds.DBus](https://github.com/tmds/Tmds.DBus): Integración D-Bus / MPRIS2 para Linux.
 
 ## ⬇️ Descargas / Instalación
 
-Puedes descargar los binarios precompilados listos para usar desde la sección de arriba o desde     **[Releases](https://github.com/RichyKunBv/Ultraudio/releases/latest)**.
+Puedes descargar los binarios precompilados listos para usar desde la sección de arriba o desde **[Releases](https://github.com/RichyKunBv/Ultraudio/releases/latest)**.
 
 Están disponibles para todos los sistemas operativos principales (**Windows, macOS y Linux**) en las arquitecturas más utilizadas:
 - **x64** (Procesadores Intel y AMD)
@@ -155,6 +165,7 @@ Este proyecto está bajo la licencia Apache 2.0, a excepción de las
 bibliotecas de audio BASS (ubicadas en `/lib`), las cuales son propiedad 
 de Un4seen Developments y se incluyen únicamente para uso no comercial.
 Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con fines comerciales es absolutamente responsable de adquirir la licencia comercial correspondiente de BASS Audio Library o remover sus dependencias del código.
+
 <img src="res/docs/acerca de.png" width="762" alt="Acerca De"/>
 
 ---
@@ -183,7 +194,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :--- | :--- | :--- | :--- | :--- | :--- |
-| ✅ | Windows 11 Pro | 25h2 | 4 núcleos | 4 GB | PRE v1.0.0 | Virtualizado en VMware Fusion, sin instalar nada de .NET |
+| ✅ | Windows 11 Pro | 25h2 | 4 núcleos | 4 GB | v1.0.0 | Virtualizado en VMware Fusion, sin instalar nada de .NET |
 
 </details>
 
@@ -194,7 +205,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ✅ | Windows 11 Home | 25h2 | i7-1255U | 16 GB | v0.9.10 |  |
+| ✅ | Windows 11 Home | 25h2 | i7-1255U | 16 GB | v1.0.0 |  |
 | ✅ | Windows 10 Pro | 22h2 | i5-4200M | 16 GB | v0.3.1 | soporte extendido y sin dotnet |
 
 </details>
@@ -210,8 +221,8 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ✅ | macOS 27 Golden Gate | 27 | M1 | 8 GB | PRE v1.0.0 | Beta de macOS con dotnet 10 instalado |
-| ✅ | macOS Tahoe | 26.5.1 | A18 Pro | 8 GB | PRE v1.0.0 | dotnet 10 instalado |
+| ✅ | macOS 27 Golden Gate | 27 | M1 | 8 GB | v1.0.0 | Beta de macOS con dotnet 10 instalado |
+| ✅ | macOS Tahoe | 26.5.1 | A18 Pro | 8 GB | v1.0.0 | dotnet 10 instalado |
 
 </details>
 
@@ -222,7 +233,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ✅ | macOS Sequoia | 15.7.7 | i5 (2 Puertos Thunderbolt) | 8 GB | PRE v1.0.0 | dotnet no instalado |
+| ✅ | macOS Sequoia | 15.7.7 | i5 (2 Puertos Thunderbolt) | 8 GB | v1.0.0 | dotnet no instalado |
 
 </details>
 
@@ -237,7 +248,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ✅ | Fedora | 44 | 4 núcleos | 4 GB | PRE v1.0.0 | Virtualizado en VMware Fusion |
+| ✅ | Fedora | 44 | 4 núcleos | 4 GB | v1.0.0 | Virtualizado en VMware Fusion |
 
 </details>
 
@@ -248,10 +259,10 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ✅ | Fedora | 44 | i7-1255U | 16 GB | v0.9.8 |  |
+| ✅ | Fedora | 44 | i7-1255U | 16 GB | v1.0.0 |  |
 | ✅ | Arch | | i5-5250U | 4 GB | v0.9.9 |  |
 | ✅ | Debian | 13 | Celeron N3350 | 4 GB | v0.9.10 |  |
-| ✅ | Fedora | 44 | i5 M520 | 8 GB | PRE v1.0.0 | Clonado y compilado, prueba del lector de CD (si funciona) |
+| ✅ | Fedora | 44 | i5 M520 | 8 GB | v1.0.0 | Clonado y compilado, prueba del lector de CD (si funciona) |
 
 </details>
 
@@ -310,5 +321,7 @@ Está en los planes implementar una gestión de biblioteca más inteligente y au
 ---
 
 Se hizo lo que se pudo mi gente, pero Flathub no me aceptó por un poco de uso de IA asi que adios a Flathub
+
+Las capturas de pantalla fueron tomadas en macOS pero la estetica de la aplicacion es casi igual en los otros sistemas operativos al igual que la funcionalidad (bueno o eso intento xd).
 
 </details>
