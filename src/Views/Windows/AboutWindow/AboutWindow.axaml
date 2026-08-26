@@ -24,6 +24,10 @@
                 gratuita y para uso no comercial.
             </TextBlock>
         </ScrollViewer>
+
+        <StackPanel Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,15">
+            <TextBlock Text="codename: Yuripe" FontSize="12" Foreground="#888888" HorizontalAlignment="Center"/>
+        </StackPanel>
         
         <Button Grid.Row="2" Name="BtnCerrar" Content="Cerrar" HorizontalAlignment="Center" Margin="0,15,0,0" Width="100" HorizontalContentAlignment="Center" Background="#333333" Foreground="White" Click="BtnCerrar_Click"/>
     </Grid>

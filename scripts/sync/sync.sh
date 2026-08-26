@@ -47,8 +47,9 @@ fi
 
 descargar() {
     echo "Obteniendo últimos cambios del repositorio..."
+    local branch=$(git rev-parse --abbrev-ref HEAD)
 
-    if git pull origin main --rebase; then
+    if git pull origin "$branch" --rebase; then
         echo "Actualización exitosa."
     else
         echo "Error al obtener los cambios. Revisa tu conexión o posibles conflictos."
@@ -71,9 +72,10 @@ publicar() {
 
     git commit -m "$mensaje"
 
-    git pull origin main --rebase
+    local branch=$(git rev-parse --abbrev-ref HEAD)
+    git pull origin "$branch" --rebase
 
-    if git push origin main; then
+    if git push origin "$branch"; then
         echo "Publicación exitosa."
     else
         echo "Error al publicar. Revisa el mensaje de error y vuelve a intentarlo."
@@ -115,6 +117,31 @@ clonar() {
     echo -e "\nClonando el repositorio en $repos_base..."
     cd "$repos_base" || return
     git clone "$repo_url" "$nombre"
+    cd "$ubicacion" || return
+}
+
+cambiar_rama() {
+    if [ ! -d "$ubicacion/.git" ]; then
+        echo "El repositorio no ha sido clonado todavía."
+        return
+    fi
+    
+    cd "$ubicacion" || return
+
+    echo -e "\nRamas disponibles:"
+    git --no-pager branch -a || true
+    echo ""
+    read -p "   >> Introduce el nombre de la rama: " nueva_rama
+    
+    if [ -n "$nueva_rama" ]; then
+        if git checkout "$nueva_rama"; then
+            echo "Rama cambiada a $nueva_rama exitosamente."
+        else
+            echo "Error al cambiar de rama. Verifica el nombre."
+        fi
+    else
+        echo "Operación cancelada."
+    fi
 }
 
 press_any_key() {
@@ -124,8 +151,16 @@ press_any_key() {
 
 show_menu() {
     clear
+    local current_branch="Ninguna"
+    if [ -d "$ubicacion/.git" ]; then
+        cd "$ubicacion" || return
+        current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "Desconocida")
+    fi
+    
+    echo -e "=== Repo: $nombre | Rama: $current_branch ==="
     echo -e "   1) Actualizar local (Pull)"
     echo -e "   2) Actualizar el repo (Push)"
+    echo -e "   3) Cambiar rama"
     echo -e "   0) Configurar"
     echo -e "   9) Clonar"
     echo -e "   X) Salir"
@@ -135,6 +170,7 @@ show_menu() {
     case "$choice" in
         1) descargar; press_any_key ;;
         2) publicar; press_any_key ;;
+        3) cambiar_rama; press_any_key ;;
         0) configurar; press_any_key ;;
         9) clonar; press_any_key ;;
         X|x) echo "Saliendo... ¡Hasta pronto!"; exit 0 ;;
