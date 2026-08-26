@@ -159,9 +159,10 @@ solucionar_errores() {
     clear
     echo "=== Mini Solucionador de Errores Git ==="
     echo "Selecciona el problema que quieres resolver:"
-    echo "  1) Estoy atascado actualizando (Cancelar Rebase/Merge)"
+    echo "  1) Estoy atascado actualizando (Cancelar Rebase/Merge y volver atrás)"
     echo "  2) Quiero deshacer todos mis cambios locales y limpiar"
-    echo "  3) Mis archivos bloquean una actualización (Guardar y Abortar como hace rato)"
+    echo "  3) Mis archivos bloquean una actualización (Guardar cambios y Abortar)"
+    echo "  4) Ya resolví los conflictos de código a mano (Continuar actualización)"
     echo "  X) Volver al menú principal"
     read -p "   >> Introduce tu elección: " err_choice
     echo ""
@@ -187,6 +188,13 @@ solucionar_errores() {
             git stash
             git rebase --abort 2>/dev/null || true
             echo "Archivos guardados en el 'stash' y rebase cancelado."
+            ;;
+        4)
+            echo "Marcando archivos como resueltos y continuando..."
+            git add .
+            GIT_EDITOR=true git rebase --continue 2>/dev/null || echo "No había rebase pendiente."
+            GIT_EDITOR=true git merge --continue 2>/dev/null || true
+            echo "¡Listo! Proceso continuado."
             ;;
         X|x) return ;;
         *) echo "Opción inválida." ;;
