@@ -68,20 +68,20 @@ descargar() {
 
 publicar() {
     check_branch || return
-    if [ -z "$(git status --porcelain)" ]; then
-        echo "No hay cambios para publicar. Ya está actualizado."
-        return
+    
+    if [ -n "$(git status --porcelain)" ]; then
+        git add .
+        read -p "   >> Introduce el mensaje del commit: " mensaje
+
+        if [ -z "$mensaje" ]; then
+            echo "El mensaje no puede estar vacío. Cancelando publicación..."
+            return
+        fi
+
+        git commit -m "$mensaje"
+    else
+        echo "El código ya está empaquetado (commit). Intentando subir a la nube..."
     fi
-
-    git add .
-    read -p "   >> Introduce el mensaje del commit: " mensaje
-
-    if [ -z "$mensaje" ]; then
-        echo "El mensaje no puede estar vacío. Cancelando publicación..."
-        return
-    fi
-
-    git commit -m "$mensaje"
 
     local branch=$(git rev-parse --abbrev-ref HEAD)
     git pull origin "$branch" --rebase
@@ -153,6 +153,44 @@ cambiar_rama() {
     else
         echo "Operación cancelada."
     fi
+}
+
+solucionar_errores() {
+    clear
+    echo "=== Mini Solucionador de Errores Git ==="
+    echo "Selecciona el problema que quieres resolver:"
+    echo "  1) Estoy atascado actualizando (Cancelar Rebase/Merge)"
+    echo "  2) Quiero deshacer todos mis cambios locales y limpiar"
+    echo "  3) Mis archivos bloquean una actualización (Guardar y Abortar como hace rato)"
+    echo "  X) Volver al menú principal"
+    read -p "   >> Introduce tu elección: " err_choice
+    echo ""
+
+    case "$err_choice" in
+        1)
+            git rebase --abort 2>/dev/null || echo "No había rebase en progreso."
+            git merge --abort 2>/dev/null || echo "No había merge en progreso."
+            echo "Hecho."
+            ;;
+        2)
+            read -p "¿Estás seguro? Perderás TODO el trabajo no guardado. (s/n): " confirm
+            if [[ "$confirm" == "s" || "$confirm" == "S" ]]; then
+                git reset --hard HEAD
+                git clean -fd
+                echo "Cambios descartados y repositorio limpio."
+            else
+                echo "Operación cancelada."
+            fi
+            ;;
+        3)
+            git add .
+            git stash
+            git rebase --abort 2>/dev/null || true
+            echo "Archivos guardados en el 'stash' y rebase cancelado."
+            ;;
+        X|x) return ;;
+        *) echo "Opción inválida." ;;
+    esac
 }
 
 press_any_key() {
