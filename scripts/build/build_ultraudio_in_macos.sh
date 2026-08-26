@@ -286,7 +286,7 @@ show_menu() {
     echo -e "   9) Compilar y empaquetar para TODOS"
     echo -e "--------------------------------------------------"
     echo -e "   X) Salir"
-    read -p "   >> Introduce tu elección: " choice
+    read -e -p "   >> Introduce tu elección: " choice
     echo ""
 
     case "$choice" in

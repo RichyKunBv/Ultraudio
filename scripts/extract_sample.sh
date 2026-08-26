@@ -39,7 +39,7 @@ is_allowed_audio() {
 }
 
 
-read -r -p "Arrastra un archivo de audio (${ALLOWED_EXT[*]}) y presiona Enter: " INPUT
+read -e -r -p "Arrastra un archivo de audio (${ALLOWED_EXT[*]}) y presiona Enter: " INPUT
 INPUT=$(clean_path "${INPUT}")
 
 [ -z "$INPUT" ] && error "No se proporcionó ninguna ruta."
@@ -51,10 +51,10 @@ if ! is_allowed_audio "$INPUT"; then
 fi
 
 
-read -r -p "Inicio (HH:MM:SS) [${DEFAULT_START}]: " START_IN
+read -e -r -p "Inicio (HH:MM:SS) [${DEFAULT_START}]: " START_IN
 START="${START_IN:-$DEFAULT_START}"
 
-read -r -p "Duración (HH:MM:SS) [${DEFAULT_DURATION}]: " DURATION_IN
+read -e -r -p "Duración (HH:MM:SS) [${DEFAULT_DURATION}]: " DURATION_IN
 DURATION="${DURATION_IN:-$DEFAULT_DURATION}"
 
 

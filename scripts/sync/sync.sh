@@ -71,7 +71,7 @@ publicar() {
     
     if [ -n "$(git status --porcelain)" ]; then
         git add .
-        read -p "   >> Introduce el mensaje del commit: " mensaje
+        read -e -p "   >> Introduce el mensaje del commit: " mensaje
 
         if [ -z "$mensaje" ]; then
             echo "El mensaje no puede estar vacío. Cancelando publicación..."
@@ -142,7 +142,7 @@ cambiar_rama() {
     echo -e "\nRamas disponibles:"
     git --no-pager branch -a || true
     echo ""
-    read -p "   >> Introduce el nombre de la rama: " nueva_rama
+    read -e -p "   >> Introduce el nombre de la rama: " nueva_rama
     
     if [ -n "$nueva_rama" ]; then
         if git checkout "$nueva_rama"; then
@@ -164,7 +164,7 @@ solucionar_errores() {
     echo "  3) Mis archivos bloquean una actualización (Guardar cambios y Abortar)"
     echo "  4) Ya resolví los conflictos de código a mano (Continuar actualización)"
     echo "  X) Volver al menú principal"
-    read -p "   >> Introduce tu elección: " err_choice
+    read -e -p "   >> Introduce tu elección: " err_choice
     echo ""
 
     case "$err_choice" in
@@ -174,7 +174,7 @@ solucionar_errores() {
             echo "Hecho."
             ;;
         2)
-            read -p "¿Estás seguro? Perderás TODO el trabajo no guardado. (s/n): " confirm
+            read -e -p "¿Estás seguro? Perderás TODO el trabajo no guardado. (s/n): " confirm
             if [[ "$confirm" == "s" || "$confirm" == "S" ]]; then
                 git reset --hard HEAD
                 git clean -fd
@@ -222,7 +222,7 @@ show_menu() {
     echo -e "   0) Configurar"
     echo -e "   9) Clonar"
     echo -e "   X) Salir"
-    read -p "   >> Introduce tu elección: " choice
+    read -e -p "   >> Introduce tu elección: " choice
     echo ""
 
     case "$choice" in
