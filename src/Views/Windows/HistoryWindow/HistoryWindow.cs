@@ -15,7 +15,7 @@ public partial class HistoryWindow : Window
         var versions = new List<string>
         {
             "V1.0.0 - Lanzamiento oficial v1.0.0 (Release). Integración nativa de teclas multimedia en macOS, Windows y Linux (MPRIS2/playerctl). Nuevas ventanas de Manual de Usuario e Historial de Versiones. Reproducción en RAM, Gapless, CUE sheets, Audio CD, API HTTP remota y visualizador FFT.",
-            "V0.9.0 - Pulido masivo",
+            "V0.9.0 - Pulido masivo: refactorización del código, optimización de rendimiento, robustez antitontos, y estandarización del proyecto.",
             "V0.8.0 - Soporte para M3U8.",
             "V0.7.0 - La aplicación detecta si existe una actualización disponible para descargarla automáticamente.",
             "V0.6.0 - Solución de errores de la interfaz y se agregó soporte de CDs.",
