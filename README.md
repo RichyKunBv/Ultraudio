@@ -1,12 +1,17 @@
 # Ultraudio 🎵
 
 [![Versión](https://img.shields.io/badge/Versión-v1.0.1-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
-[![Release](https://img.shields.io/badge/Estado-Stable-green.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Status](https://img.shields.io/badge/Estado-Stable-green.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Licencia](https://img.shields.io/badge/Licencia-Apache-orange.svg)](https://github.com/RichyKunBv/Ultraudio/blob/main/LICENSE)
 [![Licencia](https://img.shields.io/badge/Licencia-BASS%20No%20Commercial-orange.svg)](https://www.un4seen.com/bass.html#license)
 [![Lenguaje](https://img.shields.io/badge/Lenguaje-C%23.NET-lightgrey.svg)](https://dotnet.microsoft.com/es-es/download/dotnet/10.0)
 [![GUI](https://img.shields.io/badge/GUI-Avalonia%20UI-purple.svg)](https://avaloniaui.net)
 
+---
+![Versión](https://img.shields.io/badge/Versión%20Beta-v1.1.0-red.svg)
+![Status](https://img.shields.io/badge/Estado-Unstable-red.svg)
+![Instalación](https://img.shields.io/badge/Instalación-Clonar%20y%20compilar-black.svg)
+---
 
 Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicamente para formatos sin pérdida (lossless). Desarrollado con el objetivo de ofrecer la máxima calidad de sonido directamente a tu DAC (Digital-to-Analog Converter), evitando alteraciones en la señal de audio original.
 
@@ -23,7 +28,7 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 
 [![Descargar desde Microsoft Store](https://img.shields.io/badge/Descargar-desde%20Microsoft%20Store-%23E6E6E6)](https://apps.microsoft.com/detail/9n3vrgcrfq2k)
 
-[![Descargar desde Itch](https://img.shields.io/badge/Descargar-desde%20Itich-%23fa5c5c)](https://ricoc.itch.io/ultraudio)
+[![Descargar desde Itch](https://img.shields.io/badge/Descargar-desde%20Itch-%23fa5c5c)](https://ricoc.itch.io/ultraudio)
 
 ## ✨ Características Principales
 

@@ -10,21 +10,37 @@ namespace Ultraudio.Views.Windows;
 public partial class SettingsWindow : Window
 {
     private readonly AppSettings _settings;
-    private readonly System.Collections.Generic.List<DeviceModel> _devices;
+    private System.Collections.Generic.List<DeviceModel> _devices;
+    private readonly System.Func<string, System.Collections.Generic.List<DeviceModel>> _getDevicesFunc;
+    private readonly string[] _audioModes = new[] { "Shared", "WasapiExclusive", "Asio", "AlsaDirect", "HogMode" };
 
     public bool Saved { get; private set; } = false;
 
     // Required by XAML runtime loader (AVLN3001). Not used directly.
-    public SettingsWindow() : this(new AppSettings(), new System.Collections.Generic.List<DeviceModel>()) { }
+    public SettingsWindow() : this(new AppSettings(), _ => new System.Collections.Generic.List<DeviceModel>()) { }
 
     public SettingsWindow(
         AppSettings settings,
-        System.Collections.Generic.List<DeviceModel> devices)
+        System.Func<string, System.Collections.Generic.List<DeviceModel>> getDevicesFunc)
     {
         InitializeComponent();
         _settings = settings;
-        _devices = devices;
+        _getDevicesFunc = getDevicesFunc;
+        _devices = _getDevicesFunc(_settings.AudioOutputMode);
+        
         PopulateForm();
+        ComboAudioMode.SelectionChanged += ComboAudioMode_SelectionChanged;
+    }
+
+    private void ComboAudioMode_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (ComboAudioMode.SelectedIndex >= 0 && ComboAudioMode.SelectedIndex < _audioModes.Length)
+        {
+            string newMode = _audioModes[ComboAudioMode.SelectedIndex];
+            _devices = _getDevicesFunc(newMode);
+            ComboDevices.ItemsSource = _devices;
+            ComboDevices.SelectedItem = _devices.FirstOrDefault(d => d.IsDefault) ?? _devices.FirstOrDefault();
+        }
     }
 
     private void PopulateForm()
@@ -37,8 +53,12 @@ public partial class SettingsWindow : Window
         if (selected != null)
             ComboDevices.SelectedItem = selected;
 
+        // Modes
+        ComboAudioMode.ItemsSource = new[] { "Compartido (Shared)", "WASAPI Exclusivo", "ASIO", "ALSA Direct", "Hog Mode (Mac)" };
+        int modeIndex = System.Array.IndexOf(_audioModes, _settings.AudioOutputMode);
+        ComboAudioMode.SelectedIndex = modeIndex >= 0 ? modeIndex : 0;
+
         // Toggles
-        ToggleExclusive.IsChecked = _settings.ExclusiveMode;
         ToggleRamMode.IsChecked   = _settings.RamMode;
         ToggleGapless.IsChecked   = _settings.GaplessEnabled;
         ToggleSpectrum.IsChecked  = _settings.SpectrumEnabled;
@@ -75,7 +95,11 @@ public partial class SettingsWindow : Window
             _settings.LastDeviceName  = dev.Name;
         }
 
-        _settings.ExclusiveMode  = ToggleExclusive.IsChecked ?? false;
+        if (ComboAudioMode.SelectedIndex >= 0 && ComboAudioMode.SelectedIndex < _audioModes.Length)
+            _settings.AudioOutputMode = _audioModes[ComboAudioMode.SelectedIndex];
+        else
+            _settings.AudioOutputMode = "Shared";
+
         _settings.RamMode        = ToggleRamMode.IsChecked   ?? false;
         _settings.GaplessEnabled = ToggleGapless.IsChecked   ?? true;
         _settings.SpectrumEnabled = ToggleSpectrum.IsChecked ?? true;

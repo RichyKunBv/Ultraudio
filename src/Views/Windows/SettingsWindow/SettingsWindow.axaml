@@ -65,10 +65,10 @@
 
                         <Grid ColumnDefinitions="*,Auto">
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="Modo exclusivo" Classes="label"/>
-                                <TextBlock Text="WASAPI (Win) / Hog Mode (Mac) — evita el mixer del sistema" Classes="value" Margin="0,2,0,0"/>
+                                <TextBlock Text="Modo de salida (Bit-Perfect)" Classes="label"/>
+                                <TextBlock Text="Elige la API exclusiva para saltar el mixer del sistema" Classes="value" Margin="0,2,0,0"/>
                             </StackPanel>
-                            <ToggleSwitch Grid.Column="1" Name="ToggleExclusive" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="1" Name="ComboAudioMode" Width="180" VerticalAlignment="Center"/>
                         </Grid>
 
                         <Separator Background="#2A2A2A" Height="1"/>

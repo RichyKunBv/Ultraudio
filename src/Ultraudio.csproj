@@ -11,7 +11,7 @@
     <Company>EsMeSolutions</Company>
     <Authors>RichyKunBv</Authors>
     <Description>Reproductor Hi-Fi Bit-Perfect para formatos sin pérdida.</Description>
-    <Version>1.0.1</Version>
+    <Version>1.1.0</Version>
 
     <!-- Forzar que AssemblyInformationalVersion use solo la versión que defines arriba -->
     <AssemblyInformationalVersion>$(Version)</AssemblyInformationalVersion>
@@ -42,6 +42,7 @@
     <PackageReference Include="ManagedBass.Cd" Version="4.0.2" />
     <PackageReference Include="ManagedBass.Flac" Version="4.0.2" />
     <PackageReference Include="ManagedBass.Wasapi" Version="4.0.2" />
+    <PackageReference Include="ManagedBass.Asio" Version="4.0.2" />
     <PackageReference Include="TagLibSharp" Version="2.3.0" />
     <!-- Tmds.DBus for Linux MPRIS2 D-Bus integration -->
     <PackageReference Include="Tmds.DBus" Version="0.94.2" />

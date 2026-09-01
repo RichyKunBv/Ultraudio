@@ -5,6 +5,8 @@ using System.Runtime.InteropServices;
 using ManagedBass;
 using ManagedBass.Flac;
 using ManagedBass.Cd;
+using ManagedBass.Wasapi;
+using ManagedBass.Asio;
 using Ultraudio.Core;
 
 namespace Ultraudio;
@@ -55,6 +57,9 @@ public class AudioEngine
     private bool _deviceInitialized = false;
     private int _deviceSampleRate = UltraudioConstants.DefaultSampleRate;
     private int _currentDevice = -1;
+    private string _currentOutputMode = "Shared";
+    private WasapiProcedure? _wasapiProc;
+    private AsioProcedure? _asioProc;
 
     // ── Volume / Mute ────────────────────────────────────────────────────
     private double _volumeBeforeMute = 1.0;
@@ -142,15 +147,41 @@ public class AudioEngine
     /// <summary>
     /// Enumerates all enabled audio output devices (excluding "No Sound").
     /// </summary>
-    public List<DeviceModel> GetDevices()
+        public List<DeviceModel> GetDevices(string mode = "Shared")
     {
         var list = new List<DeviceModel>();
-        int deviceCount = Bass.DeviceCount;
-        for (int i = 1; i < deviceCount; i++)
+        try
         {
-            var info = Bass.GetDeviceInfo(i);
-            if (info.IsEnabled)
-                list.Add(new DeviceModel { Index = i, Name = info.Name, IsDefault = info.IsDefault });
+            if (mode == "WasapiExclusive" && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                for (int i = 0; i < BassWasapi.DeviceCount; i++)
+                {
+                    var info = BassWasapi.GetDeviceInfo(i);
+                    if (info.IsEnabled && !info.IsLoopback && !info.IsInput)
+                        list.Add(new DeviceModel { Index = i, Name = info.Name, IsDefault = info.IsDefault });
+                }
+            }
+            else if (mode == "Asio" && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                for (int i = 0; i < BassAsio.DeviceCount; i++)
+                {
+                    var info = BassAsio.GetDeviceInfo(i);
+                    list.Add(new DeviceModel { Index = i, Name = info.Name, IsDefault = false });
+                }
+            }
+            else
+            {
+                for (int i = 1; i < Bass.DeviceCount; i++)
+                {
+                    var info = Bass.GetDeviceInfo(i);
+                    if (info.IsEnabled)
+                        list.Add(new DeviceModel { Index = i, Name = info.Name, IsDefault = info.IsDefault });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Log.Error("BASS", $"Error enumerating devices for {mode}", ex);
         }
         return list;
     }
@@ -160,28 +191,53 @@ public class AudioEngine
     /// Re-initialization happens automatically when the file's native sample rate
     /// differs from the current device sample rate (bit-perfect playback).
     /// </summary>
-    public bool InitializeDevice(int deviceIndex = -1, int sampleRate = 44100)
+        public bool InitializeDevice(int deviceIndex = -1, int sampleRate = 44100, string outputMode = "Shared")
     {
         try
         {
-            if (_deviceInitialized && (_deviceSampleRate != sampleRate || _currentDevice != deviceIndex))
+            if (_deviceInitialized && (_deviceSampleRate != sampleRate || _currentDevice != deviceIndex || _currentOutputMode != outputMode))
             {
-                Bass.Free();
+                FreeCurrentOutput();
                 _deviceInitialized = false;
             }
 
             if (!_deviceInitialized)
             {
-                bool init = Bass.Init(deviceIndex, sampleRate, DeviceInitFlags.Latency);
-                if (!init && Bass.LastError == Errors.Already)
-                    init = true;
+                bool init = false;
+                _currentOutputMode = outputMode;
+                _currentDevice = deviceIndex;
+
+                if (outputMode == "WasapiExclusive" && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    Bass.Init(0, sampleRate, DeviceInitFlags.Default); // NoSound for decode
+                    _wasapiProc = new WasapiProcedure(WasapiCallback);
+                    init = BassWasapi.Init(deviceIndex, sampleRate, 0, WasapiInitFlags.Exclusive | WasapiInitFlags.Buffer, 0.1f, 0.05f, _wasapiProc, IntPtr.Zero);
+                    if (!init) // Fallback to default rate
+                        init = BassWasapi.Init(deviceIndex, UltraudioConstants.DefaultSampleRate, 0, WasapiInitFlags.Exclusive | WasapiInitFlags.Buffer, 0.1f, 0.05f, _wasapiProc, IntPtr.Zero);
+                }
+                else if (outputMode == "Asio" && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    Bass.Init(0, sampleRate, DeviceInitFlags.Default);
+                    _asioProc = new AsioProcedure(AsioCallback);
+                    init = BassAsio.Init(deviceIndex, AsioInitFlags.Thread);
+                    if (init)
+                    {
+                        BassAsio.ChannelEnable(false, 0, _asioProc, IntPtr.Zero);
+                        BassAsio.ChannelEnable(false, 1, _asioProc, IntPtr.Zero); // Stereo
+                        if (!BassAsio.ChannelSetRate(false, 0, sampleRate))
+                            BassAsio.ChannelSetRate(false, 0, UltraudioConstants.DefaultSampleRate);
+                    }
+                }
+                else
+                {
+                    // For macOS Hog Mode, a P/Invoke would go here to set kAudioDevicePropertyHogMode.
+                    // For Linux ALSA Direct, BASS already prefers hw:X,Y when selected.
+                    init = Bass.Init(deviceIndex, sampleRate, DeviceInitFlags.Latency);
+                    if (!init && Bass.LastError == Errors.Already) init = true;
+                }
 
                 _deviceInitialized = init;
-                if (init)
-                {
-                    _deviceSampleRate = sampleRate;
-                    _currentDevice = deviceIndex;
-                }
+                if (init) _deviceSampleRate = sampleRate;
                 return init;
             }
             return true;
@@ -193,20 +249,54 @@ public class AudioEngine
         }
     }
 
+    private void FreeCurrentOutput()
+    {
+        if (_currentOutputMode == "WasapiExclusive") BassWasapi.Free();
+        else if (_currentOutputMode == "Asio") BassAsio.Free();
+        Bass.Free();
+    }
+
+    private int WasapiCallback(IntPtr buffer, int length, IntPtr user)
+    {
+        if (_stream == 0) return 0;
+        int read = Bass.ChannelGetData(_stream, buffer, length);
+        if (read < 0) read = 0;
+        return read;
+    }
+
+    private int AsioCallback(bool input, int channel, IntPtr buffer, int length, IntPtr user)
+    {
+        if (_stream == 0) return 0;
+        int read = Bass.ChannelGetData(_stream, buffer, length);
+        if (read < 0) read = 0;
+        return read;
+    }
+
     /// <summary>
     /// Switches the audio output to a different device without stopping playback.
     /// </summary>
-    public void ChangeDevice(int deviceIndex)
+        public void ChangeDevice(int deviceIndex, string outputMode)
     {
-        if (deviceIndex == _currentDevice) return;
+        if (deviceIndex == _currentDevice && outputMode == _currentOutputMode) return;
 
-        bool wasPlaying = _stream != 0 && Bass.ChannelIsActive(_stream) == PlaybackState.Playing;
-        InitializeDevice(deviceIndex, _deviceSampleRate);
+        bool wasPlaying = _stream != 0 && IsPlaying;
+        
+        if (wasPlaying) Stop();
+        InitializeDevice(deviceIndex, _deviceSampleRate, outputMode);
 
         if (_stream != 0)
         {
-            Bass.ChannelSetDevice(_stream, deviceIndex);
-            if (wasPlaying) Bass.ChannelPlay(_stream);
+            if (_currentOutputMode == "Shared" || _currentOutputMode == "AlsaDirect" || _currentOutputMode == "HogMode")
+                Bass.ChannelSetDevice(_stream, deviceIndex);
+                
+            if (wasPlaying) 
+            {
+                if (_currentOutputMode == "WasapiExclusive") BassWasapi.Start();
+                else if (_currentOutputMode == "Asio") BassAsio.Start(0);
+                else         if (_currentOutputMode == "WasapiExclusive") BassWasapi.Start();
+        else if (_currentOutputMode == "Asio") BassAsio.Start(0);
+        else Bass.ChannelPlay(_stream);
+            }
         }
     }
 
@@ -265,8 +355,8 @@ public class AudioEngine
         // ── Reinit device at file's native sample rate ────────────────────
         if (!_deviceInitialized || _deviceSampleRate != fileRate)
         {
-            if (!InitializeDevice(_currentDevice, fileRate))
-                InitializeDevice(_currentDevice, UltraudioConstants.DefaultSampleRate);
+            if (!InitializeDevice(_currentDevice, fileRate, _currentOutputMode))
+                InitializeDevice(_currentDevice, UltraudioConstants.DefaultSampleRate, _currentOutputMode);
         }
 
         // ── Use preloaded stream or create new one ────────────────────────
@@ -285,22 +375,22 @@ public class AudioEngine
             byte[] fileBytes = File.ReadAllBytes(filePath);
             _memoryHandle = GCHandle.Alloc(fileBytes, GCHandleType.Pinned);
             _stream = isFlac
-                ? BassFlac.CreateStream(_memoryHandle.AddrOfPinnedObject(), 0, fileBytes.Length, BassFlags.Default)
-                : Bass.CreateStream(_memoryHandle.AddrOfPinnedObject(), 0, fileBytes.Length, BassFlags.Default);
+                ? BassFlac.CreateStream(_memoryHandle.AddrOfPinnedObject(), 0, fileBytes.Length, (_currentOutputMode == "WasapiExclusive" || _currentOutputMode == "Asio" ? BassFlags.Decode : BassFlags.Default))
+                : Bass.CreateStream(_memoryHandle.AddrOfPinnedObject(), 0, fileBytes.Length, (_currentOutputMode == "WasapiExclusive" || _currentOutputMode == "Asio" ? BassFlags.Decode : BassFlags.Default));
         }
         else if (isCd)
         {
             var parts = filePath.Replace(UltraudioConstants.CdProtocolPrefix, "").Split('/');
             if (parts.Length == 2 && int.TryParse(parts[0], out int drive) && int.TryParse(parts[1], out int track))
             {
-                _stream = BassCd.CreateStream(drive, track, BassFlags.Default);
+                _stream = BassCd.CreateStream(drive, track, (_currentOutputMode == "WasapiExclusive" || _currentOutputMode == "Asio" ? BassFlags.Decode : BassFlags.Default));
             }
         }
         else
         {
             _stream = isFlac
-                ? BassFlac.CreateStream(filePath, 0, 0, BassFlags.Default)
-                : Bass.CreateStream(filePath, 0, 0, BassFlags.Default);
+                ? BassFlac.CreateStream(filePath, 0, 0, (_currentOutputMode == "WasapiExclusive" || _currentOutputMode == "Asio" ? BassFlags.Decode : BassFlags.Default))
+                : Bass.CreateStream(filePath, 0, 0, (_currentOutputMode == "WasapiExclusive" || _currentOutputMode == "Asio" ? BassFlags.Decode : BassFlags.Default));
         }
 
         if (_stream == 0)
@@ -338,7 +428,9 @@ public class AudioEngine
         double vol = _isMuted ? 0 : _volumeBeforeMute;
         Bass.ChannelSetAttribute(_stream, ChannelAttribute.Volume, (float)vol);
 
-        Bass.ChannelPlay(_stream);
+                if (_currentOutputMode == "WasapiExclusive") BassWasapi.Start();
+        else if (_currentOutputMode == "Asio") BassAsio.Start(0);
+        else Bass.ChannelPlay(_stream);
     }
 
     // ─── Gapless preload ─────────────────────────────────────────────────
@@ -362,22 +454,22 @@ public class AudioEngine
                 byte[] bytes = File.ReadAllBytes(filePath);
                 _nextMemoryHandle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
                 _nextStream = isFlac
-                    ? BassFlac.CreateStream(_nextMemoryHandle.AddrOfPinnedObject(), 0, bytes.Length, BassFlags.Default)
-                    : Bass.CreateStream(_nextMemoryHandle.AddrOfPinnedObject(), 0, bytes.Length, BassFlags.Default);
+                    ? BassFlac.CreateStream(_nextMemoryHandle.AddrOfPinnedObject(), 0, bytes.Length, (_currentOutputMode == "WasapiExclusive" || _currentOutputMode == "Asio" ? BassFlags.Decode : BassFlags.Default))
+                    : Bass.CreateStream(_nextMemoryHandle.AddrOfPinnedObject(), 0, bytes.Length, (_currentOutputMode == "WasapiExclusive" || _currentOutputMode == "Asio" ? BassFlags.Decode : BassFlags.Default));
             }
             else if (isCd)
             {
                 var parts = filePath.Replace(UltraudioConstants.CdProtocolPrefix, "").Split('/');
                 if (parts.Length == 2 && int.TryParse(parts[0], out int drive) && int.TryParse(parts[1], out int track))
                 {
-                    _nextStream = BassCd.CreateStream(drive, track, BassFlags.Default);
+                    _nextStream = BassCd.CreateStream(drive, track, (_currentOutputMode == "WasapiExclusive" || _currentOutputMode == "Asio" ? BassFlags.Decode : BassFlags.Default));
                 }
             }
             else
             {
                 _nextStream = isFlac
-                    ? BassFlac.CreateStream(filePath, 0, 0, BassFlags.Default)
-                    : Bass.CreateStream(filePath, 0, 0, BassFlags.Default);
+                    ? BassFlac.CreateStream(filePath, 0, 0, (_currentOutputMode == "WasapiExclusive" || _currentOutputMode == "Asio" ? BassFlags.Decode : BassFlags.Default))
+                    : Bass.CreateStream(filePath, 0, 0, (_currentOutputMode == "WasapiExclusive" || _currentOutputMode == "Asio" ? BassFlags.Decode : BassFlags.Default));
             }
 
             Log.Debug("Gapless", $"Pre-loaded stream {_nextStream} for: {Path.GetFileName(filePath)}");
@@ -396,9 +488,14 @@ public class AudioEngine
     // ─── Transport controls ──────────────────────────────────────────────
 
     /// <summary>Stops playback of the current stream.</summary>
-    public void Stop()
+        public void Stop()
     {
-        if (_stream != 0) Bass.ChannelStop(_stream);
+        if (_stream != 0)
+        {
+            if (_currentOutputMode == "WasapiExclusive") BassWasapi.Stop(true);
+            else if (_currentOutputMode == "Asio") BassAsio.Stop();
+            else Bass.ChannelStop(_stream);
+        }
     }
 
     /// <summary>Toggles between play and pause states.</summary>
@@ -406,16 +503,32 @@ public class AudioEngine
     {
         if (_stream != 0)
         {
-            if (Bass.ChannelIsActive(_stream) == PlaybackState.Playing)
-                Bass.ChannelPause(_stream);
+            if (IsPlaying)
+            {
+                if (_currentOutputMode == "WasapiExclusive") BassWasapi.Stop(true);
+                else if (_currentOutputMode == "Asio") BassAsio.ChannelPause(false, 0);
+                else Bass.ChannelPause(_stream);
+            }
             else
-                Bass.ChannelPlay(_stream);
+            {
+                if (_currentOutputMode == "WasapiExclusive") BassWasapi.Start();
+                else if (_currentOutputMode == "Asio") BassAsio.Start(0);
+                else Bass.ChannelPlay(_stream);
+            }
         }
     }
 
     /// <summary>Whether audio is currently playing.</summary>
-    public bool IsPlaying =>
-        _stream != 0 && Bass.ChannelIsActive(_stream) == PlaybackState.Playing;
+    public bool IsPlaying
+    {
+        get
+        {
+            if (_stream == 0) return false;
+            if (_currentOutputMode == "WasapiExclusive") return BassWasapi.IsStarted;
+            if (_currentOutputMode == "Asio") return BassAsio.IsStarted;
+            return Bass.ChannelIsActive(_stream) == PlaybackState.Playing;
+        }
+    }
 
     // ─── Volume / Mute ───────────────────────────────────────────────────
 
@@ -571,11 +684,11 @@ public class AudioEngine
     }
 
     /// <summary>Releases all resources: streams, preloaded streams, and BASS itself.</summary>
-    public void Release()
+        public void Release()
     {
         ReleaseStream();
         FreeNextStream();
-        Bass.Free();
+        FreeCurrentOutput();
         _deviceInitialized = false;
     }
 
@@ -588,7 +701,7 @@ public class AudioEngine
     [Obsolete("Use InitializeDevice() instead")]
     public bool InicializarDispositivo(int deviceIndex = -1, int sampleRate = 44100) => InitializeDevice(deviceIndex, sampleRate);
     [Obsolete("Use ChangeDevice() instead")]
-    public void CambiarDispositivo(int deviceIndex) => ChangeDevice(deviceIndex);
+    public void CambiarDispositivo(int deviceIndex) => ChangeDevice(deviceIndex, "Shared");
     [Obsolete("Use Play() instead")]
     public void Reproducir(string filePath, bool memoryPlayback = false, double cueStart = 0, double cueEnd = -1, int preloadedStream = 0)
         => Play(filePath, memoryPlayback, cueStart, cueEnd, preloadedStream);

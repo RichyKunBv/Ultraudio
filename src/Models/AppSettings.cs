@@ -13,7 +13,7 @@ public class AppSettings
     public string LastDeviceName { get; set; } = string.Empty;
     public double Volume { get; set; } = 1.0;
     public bool IsMuted { get; set; } = false;
-    public bool ExclusiveMode { get; set; } = false;
+    public string AudioOutputMode { get; set; } = "Shared"; // "Shared" | "WasapiExclusive" | "Asio" | "AlsaDirect" | "HogMode"
     public bool RamMode { get; set; } = false;
 
     // ── Playback ────────────────────────────────────────────────────────────

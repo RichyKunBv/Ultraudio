@@ -73,7 +73,8 @@ public partial class MainWindow : Window
         _audio = new AudioEngine();
         _audio.InitializeDevice(
             _prefs.Settings.LastDeviceIndex,
-            UltraudioConstants.DefaultSampleRate);
+            UltraudioConstants.DefaultSampleRate,
+            _prefs.Settings.AudioOutputMode);
         _audio.TrackEnded          += Audio_TrackEnded;
         _audio.GaplessPreloadReady += Audio_GaplessPreloadReady;
 
@@ -835,13 +836,12 @@ public partial class MainWindow : Window
 
     private async void BtnSettings_Click(object? sender, RoutedEventArgs e)
     {
-        var devices = _audio.GetDevices();
-        var win = new SettingsWindow(_prefs.Settings, devices);
+        var win = new SettingsWindow(_prefs.Settings, mode => _audio.GetDevices(mode));
         await win.ShowDialog(this);
 
         if (win.Saved)
         {
-            _audio.ChangeDevice(_prefs.Settings.LastDeviceIndex);
+            _audio.ChangeDevice(_prefs.Settings.LastDeviceIndex, _prefs.Settings.AudioOutputMode);
 
             if (_prefs.Settings.HttpApiEnabled && !_httpRemote.IsRunning)
                 _httpRemote.Start(_prefs.Settings.HttpApiPort);
