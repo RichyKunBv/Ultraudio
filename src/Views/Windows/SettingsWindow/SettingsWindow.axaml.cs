@@ -12,7 +12,7 @@ public partial class SettingsWindow : Window
     private readonly AppSettings _settings;
     private System.Collections.Generic.List<DeviceModel> _devices;
     private readonly System.Func<string, System.Collections.Generic.List<DeviceModel>> _getDevicesFunc;
-    private readonly string[] _audioModes = new[] { "Shared", "WasapiExclusive", "Asio", "AlsaDirect", "HogMode" };
+    private readonly (string Id, string DisplayName)[] _availableAudioModes;
 
     public bool Saved { get; private set; } = false;
 
@@ -26,17 +26,53 @@ public partial class SettingsWindow : Window
         InitializeComponent();
         _settings = settings;
         _getDevicesFunc = getDevicesFunc;
+
+        _availableAudioModes = GetPlatformAudioModes();
+
+        // Ensure current mode is valid on this platform
+        if (!_availableAudioModes.Any(m => m.Id == _settings.AudioOutputMode))
+        {
+            _settings.AudioOutputMode = "Shared";
+        }
+
         _devices = _getDevicesFunc(_settings.AudioOutputMode);
         
         PopulateForm();
         ComboAudioMode.SelectionChanged += ComboAudioMode_SelectionChanged;
     }
 
+    private static (string Id, string DisplayName)[] GetPlatformAudioModes()
+    {
+        var list = new System.Collections.Generic.List<(string Id, string DisplayName)>
+        {
+            ("Shared", "Compartido (Shared)")
+        };
+
+        if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+        {
+            list.Add(("WasapiExclusive", "WASAPI Exclusivo"));
+            if (System.Runtime.InteropServices.RuntimeInformation.OSArchitecture == System.Runtime.InteropServices.Architecture.X64)
+            {
+                list.Add(("Asio", "ASIO (Baja Latencia)"));
+            }
+        }
+        else if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX))
+        {
+            list.Add(("HogMode", "Hog Mode (Mac Exclusivo)"));
+        }
+        else if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Linux))
+        {
+            list.Add(("AlsaDirect", "ALSA Direct (hw:X,Y)"));
+        }
+
+        return list.ToArray();
+    }
+
     private void ComboAudioMode_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (ComboAudioMode.SelectedIndex >= 0 && ComboAudioMode.SelectedIndex < _audioModes.Length)
+        if (ComboAudioMode.SelectedIndex >= 0 && ComboAudioMode.SelectedIndex < _availableAudioModes.Length)
         {
-            string newMode = _audioModes[ComboAudioMode.SelectedIndex];
+            string newMode = _availableAudioModes[ComboAudioMode.SelectedIndex].Id;
             _devices = _getDevicesFunc(newMode);
             ComboDevices.ItemsSource = _devices;
             ComboDevices.SelectedItem = _devices.FirstOrDefault(d => d.IsDefault) ?? _devices.FirstOrDefault();
@@ -54,8 +90,8 @@ public partial class SettingsWindow : Window
             ComboDevices.SelectedItem = selected;
 
         // Modes
-        ComboAudioMode.ItemsSource = new[] { "Compartido (Shared)", "WASAPI Exclusivo", "ASIO", "ALSA Direct", "Hog Mode (Mac)" };
-        int modeIndex = System.Array.IndexOf(_audioModes, _settings.AudioOutputMode);
+        ComboAudioMode.ItemsSource = _availableAudioModes.Select(m => m.DisplayName).ToArray();
+        int modeIndex = System.Array.FindIndex(_availableAudioModes, m => m.Id == _settings.AudioOutputMode);
         ComboAudioMode.SelectedIndex = modeIndex >= 0 ? modeIndex : 0;
 
         // Toggles
@@ -95,8 +131,8 @@ public partial class SettingsWindow : Window
             _settings.LastDeviceName  = dev.Name;
         }
 
-        if (ComboAudioMode.SelectedIndex >= 0 && ComboAudioMode.SelectedIndex < _audioModes.Length)
-            _settings.AudioOutputMode = _audioModes[ComboAudioMode.SelectedIndex];
+        if (ComboAudioMode.SelectedIndex >= 0 && ComboAudioMode.SelectedIndex < _availableAudioModes.Length)
+            _settings.AudioOutputMode = _availableAudioModes[ComboAudioMode.SelectedIndex].Id;
         else
             _settings.AudioOutputMode = "Shared";
 

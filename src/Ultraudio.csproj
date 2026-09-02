@@ -88,55 +88,29 @@
 
 
   <ItemGroup Condition="'$(TargetOS)' == 'OSX'">
-    <None Include="..\lib\macOS\libbass.dylib">
-      <Link>libbass.dylib</Link>
+    <None Include="..\lib\macOS\*.dylib">
+      <Link>%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\lib\macOS\libbassflac.dylib">
-      <Link>libbassflac.dylib</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\lib\macOS\libbassdsd.dylib">
-      <Link>libbassdsd.dylib</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </None>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetOS)' == 'Windows'">
-    <None Include="..\lib\Windows\$(WindowsArch)\bass.dll">
-      <Link>bass.dll</Link>
+    <None Include="..\lib\Windows\$(WindowsArch)\*.dll">
+      <Link>%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\lib\Windows\$(WindowsArch)\bassflac.dll">
-      <Link>bassflac.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\lib\Windows\$(WindowsArch)\bassdsd.dll">
-      <Link>bassdsd.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\lib\Windows\$(WindowsArch)\basscd.dll" Condition="'$(WindowsArch)' == 'x64'">
-      <Link>basscd.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </None>
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetOS)' == 'Linux'">
-    <None Include="..\lib\Linux\$(TargetArch)\libbass.so">
-      <Link>libbass.so</Link>
+    <None Include="..\lib\Linux\$(TargetArch)\*.so">
+      <Link>%(FileName)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\lib\Linux\$(TargetArch)\libbassflac.so">
-      <Link>libbassflac.so</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\lib\Linux\$(TargetArch)\libbassdsd.so">
-      <Link>libbassdsd.so</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="..\lib\Linux\$(TargetArch)\libbasscd.so" Condition="'$(TargetArch)' == 'x86_64'">
-      <Link>libbasscd.so</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
     </None>
   </ItemGroup>
 </Project>

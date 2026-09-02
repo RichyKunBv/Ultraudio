@@ -14,6 +14,7 @@ public partial class HistoryWindow : Window
         // Lista de versiones (más reciente primero)
         var versions = new List<string>
         {
+            "V1.1.0 - Selector de modo de salida Bit-Perfect (WASAPI Exclusivo, ASIO en Windows x64, Hog Mode en macOS, ALSA Direct en Linux). Aislamiento y protección nativa por plataforma. Correcciones de Gapless y conmutación de dispositivos en caliente.",
             "V1.0.0 - Lanzamiento oficial v1.0.0 (Release). Integración nativa de teclas multimedia en macOS, Windows y Linux (MPRIS2/playerctl). Nuevas ventanas de Manual de Usuario e Historial de Versiones. Reproducción en RAM, Gapless, CUE sheets, Audio CD, API HTTP remota y visualizador FFT.",
             "V0.9.0 - Pulido masivo: refactorización del código, optimización de rendimiento, robustez antitontos, y estandarización del proyecto.",
             "V0.8.0 - Soporte para M3U8.",
