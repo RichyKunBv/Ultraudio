@@ -32,18 +32,20 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 
 ## ✨ Características Principales
 
-- **Bit-Perfect Audio**: Reproducción exacta, entregando la señal a tu DAC con la mayor fidelidad posible.
-- **Soporte Amplio de Formatos**: Compatible con formatos Lossless y Hi-Res como FLAC, WAV, AIFF, y DSD (DSF/DFF).
+- **Bit-Perfect Audio & Modos Exclusivos**: Salida directa de audio a tu DAC. A partir de v1.1.0 puedes elegir el modo de salida según tu sistema: **WASAPI Exclusivo** y **ASIO** (Windows), **Hog Mode** (macOS) o **ALSA Direct** (Linux), omitiendo el mezclador del SO para eliminar cualquier remuestreo artificial.
+- **Soporte Oficial de BASSASIO**: Integración de drivers ASIO en Windows x64 para reproducción profesional y audiófila a bajísima latencia.
+- **Soporte Amplio de Formatos**: Compatible con formatos Lossless y Hi-Res como FLAC, WAV, AIFF, APE, TTA, WavPack (WV) y DSD (DSF/DFF).
 - **Teclas Multimedia Nativas**: Soporte completo para teclas físicas de reproducción (Play/Pausa, Siguiente, Anterior) en **macOS** (EventTap nativo), **Windows** (SMTC / Keyboard Hook) y **Linux** (MPRIS2 D-Bus / `playerctl`).
 - **Reproducción de CD**: Soporte nativo para lectura y reproducción de audio desde discos compactos en Windows y Linux. *(En macOS, el CD se debe abrir desde la aplicación como una carpeta; las pistas se reproducirán en formato AIFF, o sea, el formato sin compresión de Apple).*
 - **Reproducción en RAM**: Capacidad para cargar las pistas de audio directamente en la memoria RAM para eliminar latencias de lectura del disco (activable en la configuración).
-- **Gapless Playback & CUE**: Reproducción continua sin pausas entre pistas y soporte completo de hojas CUE para álbumes.
+- **Gapless Playback Perfeccionado & CUE**: Reproducción continua y fluida sin pausas entre pistas (incluso con cambios dinámicos en la frecuencia de muestreo del DAC) y soporte completo de hojas CUE para álbumes.
+- **Cambio de Dispositivo en Caliente**: Conmuta tu DAC o salida de audio en tiempo real desde la configuración sin perder el estado ni la posición de la canción.
 - **Visualizador de Espectro & Tech Badges**: Análisis de frecuencias de audio (FFT) en tiempo real e insignias técnicas (ej. FLAC 24/192, ReplayGain).
 - **Gestión Avanzada de Librería**: Escaneo veloz con lectura de metadatos, extracción automática de portadas (Cover Art), registro de historial y búsqueda filtrada (Ctrl+F / Cmd+F).
 - **Gestión de Listas de Reproducción & Favoritos**: Guarda tus listas en formato `.m3u8`, marca pistas favoritas (Ctrl+B) y reordena la cola a tu gusto.
 - **API Remota (HTTP)**: Servidor web integrado con puerto configurable para control remoto desde otros dispositivos en la red local.
 - **Ventanas y Documentación Integrada**: Manual de Usuario completo, Historial de Versiones, Notificador de Actualizaciones y Ventana Acerca de.
-- **Multiplataforma**: Construido sobre Avalonia UI y .NET 10, optimizado para Windows, macOS y Linux.
+- **Multiplataforma Robusta**: Construido sobre Avalonia UI y .NET 10, con aislamiento inteligente por plataforma que solo expone y utiliza las librerías nativas compatibles con tu arquitectura.
 
 ## 📸 Interfaz y Uso
 
@@ -102,7 +104,7 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 El proyecto está desarrollado en **C# (.NET 10)** y se apoya en las siguientes bibliotecas y tecnologías:
 
 - [Avalonia UI](https://avaloniaui.net/): Framework de interfaz de usuario para aplicaciones de escritorio multiplataforma.
-- [BASS Audio Library](http://www.un4seen.com/): Motor de audio para reproducción. Se usan los wrappers `ManagedBass`, `ManagedBass.Flac`, `ManagedBass.Dsd` y `ManagedBass.Cd`.
+- [BASS Audio Library](http://www.un4seen.com/): Motor de audio de alta fidelidad. Se usan los wrappers `ManagedBass`, `ManagedBass.Flac`, `ManagedBass.Dsd`, `ManagedBass.Cd`, `ManagedBass.Wasapi` y `ManagedBass.Asio`.
 - [TagLib#](https://github.com/mono/taglib-sharp): Herramienta para extraer metadatos de archivos de audio.
 - [Tmds.DBus](https://github.com/tmds/Tmds.DBus): Integración D-Bus / MPRIS2 para Linux.
 
@@ -312,12 +314,6 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 <details>
 <summary>NOTAS GENERALES</summary>
-
-**Sobre la reproducción "Bit-Perfect" y el mezclador del Sistema Operativo**
-
-Actualmente, Ultraudio utiliza la salida estándar de la librería de audio (WASAPI en Modo Compartido para Windows), la cual adapta automáticamente la frecuencia de muestreo del dispositivo a la del archivo original para ofrecer una excelente calidad. Sin embargo, en la versión actual la señal aún pasa por el mezclador del sistema operativo (OS mixer). 
-
-Sabemos que en el mundo audiófilo es fundamental contar con rutas de audio de hardware puras. Por lo tanto, el soporte explícito para **WASAPI Exclusive** y **ASIO** (en Windows), así como **ALSA Direct** (en Linux) y **Hog Mode** (en macOS), está estimado para llegar en la **versión 1.1.0**. Esto permitirá saltarse por completo el mezclador del sistema y lograr un verdadero modo Bit-Perfect exclusivo.
 
 **Biblioteca Inteligente (Por definir)**
 

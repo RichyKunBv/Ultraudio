@@ -152,11 +152,11 @@ function actualizar_windows {
     Write-Host "Copiando ejecutables..."
 
     # ARM64
-    Copy-Item -Recurse -Force "$PROJECT_DIR\src\bin\Release\net10.0\win-arm64\publish\*" $WIN_ARM_DIR
+    Copy-Item -Recurse -Force "$PROJECT_DIR\src\bin\Release\net10.0*\win-arm64\publish\*" $WIN_ARM_DIR
     Remove-Item -Force "$WIN_ARM_DIR\*.pdb" -ErrorAction SilentlyContinue
 
     # x64
-    Copy-Item -Recurse -Force "$PROJECT_DIR\src\bin\Release\net10.0\win-x64\publish\*" $WIN_X64_DIR
+    Copy-Item -Recurse -Force "$PROJECT_DIR\src\bin\Release\net10.0*\win-x64\publish\*" $WIN_X64_DIR
     Remove-Item -Force "$WIN_X64_DIR\*.pdb" -ErrorAction SilentlyContinue
 
     Write-Host "=== ¡Listo! Ultraudio v$VERSION empaquetado para Windows (x64/ARM64) ==="
