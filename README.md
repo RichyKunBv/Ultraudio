@@ -226,7 +226,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ✅ | macOS 27 Golden Gate | 27 | M1 | 8 GB | v1.0.0 | Beta de macOS con dotnet 10 instalado |
+| ✅ | macOS 27 Golden Gate | 27 | M1 | 8 GB | v1.1.0 | Beta de macOS con dotnet 10 instalado |
 | ✅ | macOS Tahoe | 26.5.1 | A18 Pro | 8 GB | v1.0.0 | dotnet 10 instalado |
 
 </details>
