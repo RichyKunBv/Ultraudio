@@ -15,4 +15,10 @@ public partial class AboutWindow : Window
     {
         Close();
     }
+
+    private async void BtnLogs_Click(object? sender, RoutedEventArgs e)
+    {
+        var logsWin = new LogsWindow();
+        await logsWin.ShowDialog(this);
+    }
 }

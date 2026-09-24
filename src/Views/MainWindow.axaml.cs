@@ -12,6 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using ManagedBass.Cd;
 using Ultraudio.Core;
 using Ultraudio.Models;
@@ -39,6 +40,7 @@ public partial class MainWindow : Window
     private readonly MediaKeysService   _mediaKeys;
     private readonly HttpRemoteService  _httpRemote;
     private readonly PlayHistory        _history;
+    private readonly LibraryService     _libraryService;
 
     // ── Managers ──────────────────────────────────────────────────────────
     private readonly PlaylistManager _playlist;
@@ -68,6 +70,11 @@ public partial class MainWindow : Window
         // ── Managers ──────────────────────────────────────────────────────
         _playlist = new PlaylistManager(_prefs);
         _session  = new SessionManager(_prefs);
+        _libraryService = new LibraryService(_prefs);
+        if (_prefs.Settings.LibraryFolders.Count > 0)
+        {
+            _ = Task.Run(() => _libraryService.ScanLibraryAsync());
+        }
 
         // ── Audio — exclusive DAC access ──────────────────────────────────
         _audio = new AudioEngine();
@@ -1070,6 +1077,25 @@ public partial class MainWindow : Window
         await w.ShowDialog(this);
     }
 
+    private async void Biblioteca_Click(object? sender, EventArgs e) => await OpenLibraryWindowAsync();
+
+    private async void BtnBiblioteca_Click(object? sender, RoutedEventArgs e) => await OpenLibraryWindowAsync();
+
+    private async Task OpenLibraryWindowAsync()
+    {
+        var win = new LibraryWindow(_libraryService, (tracks, append) =>
+        {
+            LoadAndPlay(tracks, append);
+        });
+        await win.ShowDialog(this);
+    }
+
+    private async void Logs_Click(object? sender, EventArgs e)
+    {
+        var win = new LogsWindow();
+        await win.ShowDialog(this);
+    }
+
     private void Salir_Click(object? sender, EventArgs e) => Close();
 
     // ─── Window close ─────────────────────────────────────────────────────
@@ -1094,6 +1120,7 @@ public partial class MainWindow : Window
         _timer.Stop();
         _cdTimer?.Stop();
         SpectrumViz.Stop();
+        _libraryService.Dispose();
         _httpRemote.Dispose();
         _mediaKeys.Dispose();
         _coverArt.ClearCache();

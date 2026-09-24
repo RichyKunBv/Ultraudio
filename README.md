@@ -1,6 +1,6 @@
 # Ultraudio 🎵
 
-[![Versión](https://img.shields.io/badge/Versión-v1.1.0-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Versión](https://img.shields.io/badge/Versión-v1.2.0-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Status](https://img.shields.io/badge/Estado-Stable-green.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Licencia](https://img.shields.io/badge/Licencia-Apache-orange.svg)](https://github.com/RichyKunBv/Ultraudio/blob/main/LICENSE)
 [![Licencia](https://img.shields.io/badge/Licencia-BASS%20No%20Commercial-orange.svg)](https://www.un4seen.com/bass.html#license)
@@ -8,7 +8,7 @@
 [![GUI](https://img.shields.io/badge/GUI-Avalonia%20UI-purple.svg)](https://avaloniaui.net)
 
 ---
-![Versión](https://img.shields.io/badge/Versión%20Beta-v1.1.0-red.svg)
+![Versión](https://img.shields.io/badge/Versión%20Beta-v1.2.0-red.svg)
 ![Status](https://img.shields.io/badge/Estado-Unstable-red.svg)
 ![Instalación](https://img.shields.io/badge/Instalación-Clonar%20y%20compilar-black.svg)
 ---
@@ -41,10 +41,11 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 - **Gapless Playback Perfeccionado & CUE**: Reproducción continua y fluida sin pausas entre pistas (incluso con cambios dinámicos en la frecuencia de muestreo del DAC) y soporte completo de hojas CUE para álbumes.
 - **Cambio de Dispositivo en Caliente**: Conmuta tu DAC o salida de audio en tiempo real desde la configuración sin perder el estado ni la posición de la canción.
 - **Visualizador de Espectro & Tech Badges**: Análisis de frecuencias de audio (FFT) en tiempo real e insignias técnicas (ej. FLAC 24/192, ReplayGain).
-- **Gestión Avanzada de Librería**: Escaneo veloz con lectura de metadatos, extracción automática de portadas (Cover Art), registro de historial y búsqueda filtrada (Ctrl+F / Cmd+F).
-- **Gestión de Listas de Reproducción & Favoritos**: Guarda tus listas en formato `.m3u8`, marca pistas favoritas (Ctrl+B) y reordena la cola a tu gusto.
+- **Biblioteca Automática (SQLite)**: Base de datos local ultrarrápida y ligera impulsada por SQLite (`Microsoft.Data.Sqlite`). Monitoreo continuo de carpetas con indexación diferencial inteligente para arranque instantáneo y sincronización automática en segundo plano.
+- **Sistema de Diagnóstico y Reporte de Errores**: Registro de logs persistente en disco con rotación automática, visor en tiempo real y herramientas directas para reportar problemas en GitHub Issues o por correo electrónico.
+- **Gestión Avanzada de Listas & Favoritos**: Guarda tus listas en formato `.m3u8`, marca pistas favoritas (Ctrl+B), búsqueda filtrada instantánea y reordena la cola a tu gusto.
 - **API Remota (HTTP)**: Servidor web integrado con puerto configurable para control remoto desde otros dispositivos en la red local.
-- **Ventanas y Documentación Integrada**: Manual de Usuario completo, Historial de Versiones, Notificador de Actualizaciones y Ventana Acerca de.
+- **Ventanas y Documentación Integrada**: Manual de Usuario completo, Historial de Versiones, Notificador de Actualizaciones, Biblioteca y Visor de Registros.
 - **Multiplataforma Robusta**: Construido sobre Avalonia UI y .NET 10, con aislamiento inteligente por plataforma que solo expone y utiliza las librerías nativas compatibles con tu arquitectura.
 
 ## 📸 Interfaz y Uso

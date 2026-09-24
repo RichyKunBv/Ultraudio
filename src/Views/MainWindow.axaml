@@ -20,6 +20,9 @@
                     <NativeMenuItem Header="Comprobar actualizaciones" Click="UpdateCheck_Click"/>
                     <NativeMenuItem Header="Historial de actualizaciones" Click="UpdateHistory_Click"/>
                     <NativeMenuItemSeparator/>
+                    <NativeMenuItem Header="Biblioteca de música" Gesture="Meta+L" Click="Biblioteca_Click"/>
+                    <NativeMenuItem Header="Registro y reporte de errores" Click="Logs_Click"/>
+                    <NativeMenuItemSeparator/>
                     <NativeMenuItem Header="Salir" Gesture="Meta+Q" Click="Salir_Click"/>
                 </NativeMenu>
             </NativeMenuItem>
@@ -358,6 +361,9 @@
             <Border Grid.Row="3" Padding="10,8" Background="#0A0A0A">
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
                     <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Name="BtnBiblioteca" Classes="load-btn"
+                                Content="📚 Biblioteca" Click="BtnBiblioteca_Click" ToolTip.Tip="Biblioteca de música automática (SQLite)"/>
+                        <Border Width="1" Height="20" Background="#2A2A2A" Margin="2,0"/>
                         <Button Name="BtnCargarArchivo" Classes="load-btn"
                                 Content="📄 Añadir Archivos" Click="BtnCargarArchivo_Click"/>
                         <Button Name="BtnCargarCarpeta" Classes="load-btn"

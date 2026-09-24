@@ -1,0 +1,156 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:Ultraudio.Models"
+        x:Class="Ultraudio.Views.Windows.LibraryWindow"
+        Title="Biblioteca de Música – Ultraudio"
+        Width="880" Height="620"
+        MinWidth="700" MinHeight="450"
+        Background="#0C0C0C"
+        WindowStartupLocation="CenterOwner"
+        Icon="avares://Ultraudio/Assets/icon.ico">
+
+    <Window.Styles>
+        <Style Selector="TextBlock.header">
+            <Setter Property="Foreground" Value="#AAAAAA"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="LetterSpacing" Value="1.5"/>
+        </Style>
+        <Style Selector="Button.btn-primary">
+            <Setter Property="Background" Value="#1B6B3A"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="14,6"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.btn-primary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#22883F"/>
+        </Style>
+        <Style Selector="Button.btn-secondary">
+            <Setter Property="Background" Value="#1C1C1C"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#2E2E2E"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="12,6"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.btn-secondary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2A2A2A"/>
+        </Style>
+        <Style Selector="ListBoxItem">
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Background" Value="Transparent"/>
+        </Style>
+        <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#161616"/>
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+            <Setter Property="Background" Value="#0D2E18"/>
+        </Style>
+    </Window.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" Margin="18">
+
+        <!-- Top Header & Actions -->
+        <Grid Grid.Row="0" Margin="0,0,0,12" ColumnDefinitions="*,Auto">
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Biblioteca Automática" FontSize="20" FontWeight="Bold" Foreground="White"/>
+                <TextBlock Name="TxtSubheader" Text="Base de datos SQLite local • Indexación y vigilancia automática" FontSize="11" Foreground="#666666"/>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                <Button Name="BtnPlayAll" Classes="btn-primary" Content="▶ Reproducir Todo" Click="BtnPlayAll_Click"/>
+                <Button Name="BtnQueueAll" Classes="btn-secondary" Content="➕ Añadir a Lista" Click="BtnQueueAll_Click"/>
+                <Button Name="BtnSync" Classes="btn-secondary" Content="🔄 Sincronizar" Click="BtnSync_Click"/>
+                <Button Name="BtnToggleFolders" Classes="btn-secondary" Content="📁 Carpetas" Click="BtnToggleFolders_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- Watched Folders Management Panel (Collapsible) -->
+        <Border Grid.Row="1" Name="PanelFolders" Background="#141414" BorderBrush="#242424" BorderThickness="1"
+                CornerRadius="8" Padding="14,10" Margin="0,0,0,12" IsVisible="False">
+            <Grid RowDefinitions="Auto,Auto,Auto">
+                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,6">
+                    <TextBlock Text="CARPETAS MONITOREADAS AUTOMÁTICAMENTE" Classes="header"/>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+                        <Button Name="BtnAddFolder" Classes="btn-secondary" Content="➕ Añadir Carpeta" Click="BtnAddFolder_Click"/>
+                        <Button Name="BtnRemoveFolder" Classes="btn-secondary" Content="✕ Quitar Selección" Click="BtnRemoveFolder_Click"/>
+                    </StackPanel>
+                </Grid>
+                <ListBox Grid.Row="1" Name="ListFolders" MaxHeight="100" Background="#0C0C0C" BorderBrush="#222222"
+                         BorderThickness="1" CornerRadius="4" Margin="0,4"/>
+                <TextBlock Grid.Row="2" Text="Los archivos que agregues o borres de estas carpetas se actualizarán automáticamente en la base de datos."
+                           Foreground="#777777" FontSize="11" Margin="0,4,0,0"/>
+            </Grid>
+        </Border>
+
+        <!-- Search Bar & Column Headers -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,0,0,8" Name="GridSearchBar">
+            <TextBox Grid.Column="0" Name="TxtSearch" Background="#141414" Foreground="#CCCCCC"
+                     BorderBrush="#252525" CornerRadius="6" Padding="10,6" FontSize="12"
+                     PlaceholderText="🔍  Buscar por título, artista, álbum, formato en la base de datos SQLite..."
+                     TextChanged="TxtSearch_TextChanged"/>
+            <TextBlock Grid.Column="1" Name="TxtTrackCount" Text="0 canciones"
+                       Foreground="#666666" FontSize="11" VerticalAlignment="Center" Margin="12,0,0,0"/>
+        </Grid>
+
+        <!-- Tracks List -->
+        <Border Grid.Row="2" Background="#0D0D0D" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="8" ClipToBounds="True">
+            <Grid RowDefinitions="Auto,*">
+                <!-- Header columns -->
+                <Border Grid.Row="0" Background="#111111" BorderBrush="#1A1A1A" BorderThickness="0,0,0,1" Padding="12,7">
+                    <Grid ColumnDefinitions="40,*,*,*,70,60">
+                        <TextBlock Grid.Column="0" Text="#" Foreground="#555555" FontSize="10" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Column="1" Text="TÍTULO" Foreground="#555555" FontSize="10" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Column="2" Text="ARTISTA" Foreground="#555555" FontSize="10" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Column="3" Text="ÁLBUM" Foreground="#555555" FontSize="10" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Column="4" Text="FORMATO" Foreground="#555555" FontSize="10" FontWeight="SemiBold"/>
+                        <TextBlock Grid.Column="5" Text="DURACIÓN" Foreground="#555555" FontSize="10" FontWeight="SemiBold" TextAlignment="Right"/>
+                    </Grid>
+                </Border>
+
+                <!-- Track items -->
+                <ListBox Grid.Row="1" Name="ListTracks" Background="Transparent"
+                         DoubleTapped="ListTracks_DoubleTapped">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models:TrackModel}">
+                            <Grid ColumnDefinitions="40,*,*,*,70,60">
+                                <TextBlock Grid.Column="0" Text="{Binding TrackNumber}" Foreground="#444444" FontSize="11" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="1" Text="{Binding DisplayTitle}" Foreground="White" FontSize="12"
+                                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Column="2" Text="{Binding Artist}" Foreground="#888888" FontSize="11"
+                                           VerticalAlignment="Center" Margin="6,0" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Column="3" Text="{Binding Album}" Foreground="#666666" FontSize="11"
+                                           VerticalAlignment="Center" Margin="6,0" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Grid.Column="4" Text="{Binding Format}" Foreground="#00E576" FontSize="10"
+                                           FontFamily="Cascadia Code,Consolas,Monospace" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Column="5" Text="{Binding DurationDisplay}" Foreground="#555555" FontSize="11"
+                                           VerticalAlignment="Center" TextAlignment="Right"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
+
+        <!-- Scanning progress bar (visible during scan) -->
+        <Border Grid.Row="3" Name="PanelScanning" Margin="0,8,0,0" IsVisible="False">
+            <Grid ColumnDefinitions="*,Auto">
+                <ProgressBar Grid.Column="0" Name="ProgressScan" Minimum="0" Maximum="100" Height="4"
+                             Foreground="#1B6B3A" Background="#1A1A1A"/>
+                <TextBlock Grid.Column="1" Name="TxtScanStatus" Text="Sincronizando..."
+                           Foreground="#888888" FontSize="11" Margin="10,0,0,0"/>
+            </Grid>
+        </Border>
+
+        <!-- Footer -->
+        <Grid Grid.Row="4" Margin="0,12,0,0" ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Name="TxtDbInfo" Text="SQLite DB: lista" Foreground="#444444" FontSize="11" VerticalAlignment="Center"/>
+            <Button Grid.Column="1" Name="BtnCerrar" Classes="btn-secondary" Content="Cerrar" Click="BtnCerrar_Click"/>
+        </Grid>
+    </Grid>
+</Window>

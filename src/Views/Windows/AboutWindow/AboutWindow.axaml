@@ -29,6 +29,9 @@
             <TextBlock Text="codename: Yuripe" FontSize="12" Foreground="#888888" HorizontalAlignment="Center"/>
         </StackPanel>
         
-        <Button Grid.Row="2" Name="BtnCerrar" Content="Cerrar" HorizontalAlignment="Center" Margin="0,15,0,0" Width="100" HorizontalContentAlignment="Center" Background="#333333" Foreground="White" Click="BtnCerrar_Click"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10" Margin="0,15,0,0">
+            <Button Name="BtnLogs" Content="Registro / Reportar Error" Padding="12,6" Background="#222222" Foreground="#CCCCCC" Click="BtnLogs_Click"/>
+            <Button Name="BtnCerrar" Content="Cerrar" Width="90" HorizontalContentAlignment="Center" Background="#333333" Foreground="White" Click="BtnCerrar_Click"/>
+        </StackPanel>
     </Grid>
 </Window>

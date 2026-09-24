@@ -176,4 +176,17 @@ public partial class SettingsWindow : Window
         var w = new ManualWindow();
         await w.ShowDialog(this);
     }
+
+    private async void BtnOpenLibraryWindow_Click(object? sender, RoutedEventArgs e)
+    {
+        using var libraryService = new Ultraudio.Services.LibraryService(new PreferencesManager());
+        var w = new LibraryWindow(libraryService, null);
+        await w.ShowDialog(this);
+    }
+
+    private async void BtnOpenLogsWindow_Click(object? sender, RoutedEventArgs e)
+    {
+        var w = new LogsWindow();
+        await w.ShowDialog(this);
+    }
 }

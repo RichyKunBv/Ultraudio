@@ -208,7 +208,31 @@
                     </Grid>
                 </Border>
 
-                                <!-- Manual -->
+                <!-- Library -->
+                <TextBlock Text="BIBLIOTECA AUTOMÁTICA" Classes="header" Margin="2,0,0,8"/>
+                <Border Classes="section">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Base de datos SQLite" Classes="label"/>
+                            <TextBlock Text="Gestión de carpetas locales e indexación automática" Classes="value" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Name="BtnOpenLibraryWindow" Content="Abrir Biblioteca" Background="#2A2A2A" Foreground="#CCCCCC" Padding="12,6" VerticalAlignment="Center" Click="BtnOpenLibraryWindow_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- Diagnostics & Support -->
+                <TextBlock Text="DIAGNÓSTICO Y SOPORTE" Classes="header" Margin="2,0,0,8"/>
+                <Border Classes="section">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Registro y reporte de errores" Classes="label"/>
+                            <TextBlock Text="Inspecciona logs de actividad y reporta bugs por GitHub o correo" Classes="value" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <Button Grid.Column="1" Name="BtnOpenLogsWindow" Content="Ver Logs / Reportar" Background="#2A2A2A" Foreground="#CCCCCC" Padding="12,6" VerticalAlignment="Center" Click="BtnOpenLogsWindow_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- Manual -->
                 <TextBlock Text="MANUAL" Classes="header" Margin="2,0,0,8"/>
                 <Border Classes="section">
                     <Grid ColumnDefinitions="*,Auto">
