@@ -12,20 +12,23 @@ public partial class SettingsWindow : Window
     private readonly AppSettings _settings;
     private System.Collections.Generic.List<DeviceModel> _devices;
     private readonly System.Func<string, System.Collections.Generic.List<DeviceModel>> _getDevicesFunc;
+    private readonly System.Action<System.Collections.Generic.List<TrackModel>, bool>? _loadTracksAction;
     private readonly (string Id, string DisplayName)[] _availableAudioModes;
 
     public bool Saved { get; private set; } = false;
 
     // Required by XAML runtime loader (AVLN3001). Not used directly.
-    public SettingsWindow() : this(new AppSettings(), _ => new System.Collections.Generic.List<DeviceModel>()) { }
+    public SettingsWindow() : this(new AppSettings(), _ => new System.Collections.Generic.List<DeviceModel>(), null) { }
 
     public SettingsWindow(
         AppSettings settings,
-        System.Func<string, System.Collections.Generic.List<DeviceModel>> getDevicesFunc)
+        System.Func<string, System.Collections.Generic.List<DeviceModel>> getDevicesFunc,
+        System.Action<System.Collections.Generic.List<TrackModel>, bool>? loadTracksAction = null)
     {
         InitializeComponent();
         _settings = settings;
         _getDevicesFunc = getDevicesFunc;
+        _loadTracksAction = loadTracksAction;
 
         _availableAudioModes = GetPlatformAudioModes();
 
@@ -180,7 +183,7 @@ public partial class SettingsWindow : Window
     private async void BtnOpenLibraryWindow_Click(object? sender, RoutedEventArgs e)
     {
         using var libraryService = new Ultraudio.Services.LibraryService(new PreferencesManager());
-        var w = new LibraryWindow(libraryService, null);
+        var w = new LibraryWindow(libraryService, _loadTracksAction);
         await w.ShowDialog(this);
     }
 

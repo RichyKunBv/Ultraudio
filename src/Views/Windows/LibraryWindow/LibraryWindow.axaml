@@ -54,7 +54,7 @@
         </Style>
     </Window.Styles>
 
-    <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" Margin="18">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto" Margin="18">
 
         <!-- Top Header & Actions -->
         <Grid Grid.Row="0" Margin="0,0,0,12" ColumnDefinitions="*,Auto">
@@ -89,7 +89,7 @@
         </Border>
 
         <!-- Search Bar & Column Headers -->
-        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,0,0,8" Name="GridSearchBar">
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0,0,0,8" Name="GridSearchBar">
             <TextBox Grid.Column="0" Name="TxtSearch" Background="#141414" Foreground="#CCCCCC"
                      BorderBrush="#252525" CornerRadius="6" Padding="10,6" FontSize="12"
                      PlaceholderText="🔍  Buscar por título, artista, álbum, formato en la base de datos SQLite..."
@@ -99,7 +99,7 @@
         </Grid>
 
         <!-- Tracks List -->
-        <Border Grid.Row="2" Background="#0D0D0D" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="8" ClipToBounds="True">
+        <Border Grid.Row="3" Background="#0D0D0D" BorderBrush="#1C1C1C" BorderThickness="1" CornerRadius="8" ClipToBounds="True">
             <Grid RowDefinitions="Auto,*">
                 <!-- Header columns -->
                 <Border Grid.Row="0" Background="#111111" BorderBrush="#1A1A1A" BorderThickness="0,0,0,1" Padding="12,7">
@@ -138,7 +138,7 @@
         </Border>
 
         <!-- Scanning progress bar (visible during scan) -->
-        <Border Grid.Row="3" Name="PanelScanning" Margin="0,8,0,0" IsVisible="False">
+        <Border Grid.Row="4" Name="PanelScanning" Margin="0,8,0,0" IsVisible="False">
             <Grid ColumnDefinitions="*,Auto">
                 <ProgressBar Grid.Column="0" Name="ProgressScan" Minimum="0" Maximum="100" Height="4"
                              Foreground="#1B6B3A" Background="#1A1A1A"/>
@@ -148,7 +148,7 @@
         </Border>
 
         <!-- Footer -->
-        <Grid Grid.Row="4" Margin="0,12,0,0" ColumnDefinitions="*,Auto">
+        <Grid Grid.Row="5" Margin="0,12,0,0" ColumnDefinitions="*,Auto">
             <TextBlock Grid.Column="0" Name="TxtDbInfo" Text="SQLite DB: lista" Foreground="#444444" FontSize="11" VerticalAlignment="Center"/>
             <Button Grid.Column="1" Name="BtnCerrar" Classes="btn-secondary" Content="Cerrar" Click="BtnCerrar_Click"/>
         </Grid>

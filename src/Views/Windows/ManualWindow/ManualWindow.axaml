@@ -42,7 +42,17 @@
                 <TextBlock Text="Manual de Usuario de Ultraudio" Classes="h1"/>
                 <TextBlock Classes="p" Text="Bienvenido a Ultraudio, el reproductor de audio diseñado para audiófilos que buscan la más alta fidelidad sin compromisos. Este manual detalla todas las características y modos de funcionamiento para que obtengas la mejor experiencia sonora."/>
 
-                <TextBlock Text="1. Gestión de la Biblioteca y Listas" Classes="h2"/>
+                <TextBlock Text="1. Biblioteca automática y listas" Classes="h2"/>
+                <TextBlock Classes="p" Text="La Biblioteca automática guarda un índice local en SQLite y no mueve ni copia tus archivos. Puedes seleccionar cualquier carpeta del equipo o de un disco conectado desde Biblioteca → Carpetas → Añadir Carpeta."/>
+                <TextBlock Classes="bullet" Text="• Indexación: Espera a que termine el escaneo para que aparezca el número de canciones indexadas."/>
+                <TextBlock Classes="bullet" Text="• Búsqueda: Filtra la biblioteca por título, artista, álbum, género o ruta usando el cuadro de búsqueda."/>
+                <TextBlock Classes="bullet" Text="• Reproducir Todo: Reemplaza la cola actual y comienza la reproducción desde la primera pista."/>
+                <TextBlock Classes="bullet" Text="• Añadir a Lista: Agrega las pistas indexadas a la cola actual y vuelve a la ventana principal."/>
+                <TextBlock Classes="bullet" Text="• Sincronizar: Actualiza manualmente la biblioteca. Las carpetas monitorizadas también se sincronizan automáticamente cuando cambian."/>
+                <TextBlock Classes="bullet" Text="• Formatos indexados: FLAC, WAV, AIFF, AIF, DSF y DFF."/>
+                <TextBlock Classes="p" Text="La biblioteca no requiere una carpeta especial. Solo tienes que seleccionar dónde guardas tu música. Los archivos MP3, M4A y OGG todavía no forman parte del índice automático."/>
+
+                <TextBlock Text="2. Gestión de archivos, CUE y listas" Classes="h2"/>
                 <TextBlock Classes="bullet" Text="• Añadir Archivos: Carga archivos de audio individuales sin pérdida (FLAC, WAV, etc.)."/>
                 <TextBlock Classes="bullet" Text="• Añadir Carpeta: Importa todos los archivos compatibles de un directorio de forma recursiva."/>
                 <TextBlock Classes="bullet" Text="• Hoja CUE: Carga un archivo .cue para dividir automáticamente una pista grande (ej. un álbum completo en un solo archivo FLAC) en canciones individuales. El reproductor respetará los límites de tiempo exactos de cada pista virtual."/>
@@ -50,13 +60,13 @@
                 <TextBlock Classes="bullet" Text="• Guardar Lista (M3U8): Puedes exportar tu cola de reproducción actual para uso futuro."/>
                 <TextBlock Classes="bullet" Text="• Búsqueda (Ctrl+F): Filtra rápidamente la lista de reproducción por título, artista o álbum."/>
 
-                <TextBlock Text="2. Modos de Reproducción Avanzados" Classes="h2"/>
+                <TextBlock Text="3. Modos de Reproducción Avanzados" Classes="h2"/>
                 <TextBlock Classes="p" Text="Desde la ventana de Configuración (engranaje), puedes activar tecnologías diseñadas para puristas del audio:"/>
                 <TextBlock Classes="bullet" Text="• Modo Exclusivo (WASAPI en Windows / Hog Mode en macOS): Toma control directo y exclusivo de tu DAC o tarjeta de sonido, evitando el mezclador del sistema operativo. Esto garantiza que el audio sea completamente &quot;Bit-Perfect&quot;, es decir, sin ninguna alteración de volumen ni remuestreo por parte del sistema."/>
                 <TextBlock Classes="bullet" Text="• Modo RAM: Carga el archivo completo a la memoria RAM antes de comenzar a reproducirlo. Esto evita lecturas del disco duro durante la reproducción, reduciendo la latencia y posibles ruidos eléctricos en equipos de alta fidelidad muy sensibles. (Si es un CD, se reproducirá directamente desde el disco sin cargarse a RAM para mantener la estabilidad)."/>
                 <TextBlock Classes="bullet" Text="• Reproducción sin pausas (Gapless): Pre-carga la siguiente canción un par de segundos antes de que termine la actual, logrando una transición perfecta sin milisegundos de silencio (ideal para conciertos en vivo o álbumes continuos)."/>
 
-                <TextBlock Text="3. Atajos de Teclado" Classes="h2"/>
+                <TextBlock Text="4. Atajos de Teclado" Classes="h2"/>
                 <TextBlock Classes="p" Text="Ultraudio puede controlarse ágilmente con el teclado de tu ordenador (en macOS la tecla Ctrl equivale a Command ⌘):"/>
                 <TextBlock Classes="bullet" Text="• Espacio: Reproducir / Pausar"/>
                 <TextBlock Classes="bullet" Text="• ← / →: Atrasar / Adelantar 5 segundos"/>
@@ -68,20 +78,23 @@
                 <TextBlock Classes="bullet" Text="• Ctrl + B: Marcar / Desmarcar pista como Favorita"/>
                 <TextBlock Classes="bullet" Text="• Ctrl + F: Activar la barra de búsqueda en la lista de reproducción"/>
 
-                <TextBlock Text="4. Teclas Multimedia Nativas y Sistema" Classes="h2"/>
+                <TextBlock Text="5. Teclas Multimedia Nativas y Sistema" Classes="h2"/>
                 <TextBlock Classes="p" Text="Ultraudio incluye soporte nativo para las teclas multimedia de tu teclado físico (Play/Pausa, Siguiente, Anterior):"/>
                 <TextBlock Classes="bullet" Text="• macOS: Utiliza un Event Tap nativo de CoreGraphics. Para su correcto funcionamiento sin que se abra Apple Music por defecto, es obligatorio conceder permisos en Ajustes del Sistema > Privacidad y seguridad > Accesibilidad a Ultraudio."/>
                 <TextBlock Classes="bullet" Text="• Windows: Integración nativa con System Media Transport Controls (SMTC) y ganchos de teclado globales de bajo nivel (Low-Level Keyboard Hook)."/>
                 <TextBlock Classes="bullet" Text="• Linux: Soporte completo con la interfaz MPRIS2 sobre D-Bus, compatible de forma nativa con playerctl y los atajos multimedia de GNOME, KDE, XFCE y otros entornos."/>
 
-                <TextBlock Text="5. API Remota (HTTP)" Classes="h2"/>
+                <TextBlock Text="6. API Remota (HTTP)" Classes="h2"/>
                 <TextBlock Classes="p" Text="Ultraudio incluye un servidor web integrado que te permite controlar el reproductor desde el navegador de otro dispositivo (como tu teléfono móvil o tablet) siempre que estés en la misma red local."/>
                 <TextBlock Classes="bullet" Text="• Para usarlo, actívalo en Configuración -> Habilitar HTTP API."/>
                 <TextBlock Classes="bullet" Text="• Accede a la URL indicada (por ejemplo, http://[Tu-IP-Local]:[Puerto]/status) para ver los metadatos de la pista actual o interactuar con los controles de reproducción mediante comandos de API."/>
 
-                <TextBlock Text="6. Visualizador y Metadatos" Classes="h2"/>
+                <TextBlock Text="7. Visualizador y Metadatos" Classes="h2"/>
                 <TextBlock Classes="p" Text="El reproductor analiza en tiempo real el audio con una transformada rápida de Fourier (FFT) para dibujar el visualizador de espectro sin consumir demasiados recursos (se puede desactivar en ajustes si lo deseas)."/>
                 <TextBlock Classes="p" Text="Si tus pistas tienen información técnica destacable, el reproductor mostrará un identificador (Tech Badge), como por ejemplo 'FLAC 24/192' para denotar audio Hi-Res. Si el archivo cuenta con etiquetas ReplayGain, se mostrará el valor RG detectado en pantalla."/>
+
+                <TextBlock Text="8. Diagnóstico y reporte de errores" Classes="h2"/>
+                <TextBlock Classes="p" Text="Abre Registro y reporte de errores desde el menú, Acerca de o Configuración. Puedes filtrar los mensajes, copiar el contenido, abrir la carpeta de logs y preparar un reporte para GitHub Issues o correo electrónico. Los logs se conservan entre sesiones y se rotan automáticamente al superar 5 MB."/>
             </StackPanel>
         </ScrollViewer>
 

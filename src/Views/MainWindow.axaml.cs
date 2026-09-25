@@ -843,7 +843,10 @@ public partial class MainWindow : Window
 
     private async void BtnSettings_Click(object? sender, RoutedEventArgs e)
     {
-        var win = new SettingsWindow(_prefs.Settings, mode => _audio.GetDevices(mode));
+        var win = new SettingsWindow(
+            _prefs.Settings,
+            mode => _audio.GetDevices(mode),
+            (tracks, append) => LoadAndPlay(tracks, append));
         await win.ShowDialog(this);
 
         if (win.Saved)

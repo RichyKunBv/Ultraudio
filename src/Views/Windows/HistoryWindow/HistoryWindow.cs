@@ -14,7 +14,7 @@ public partial class HistoryWindow : Window
         // Lista de versiones (más reciente primero)
         var versions = new List<string>
         {
-            "V1.2.0 - Biblioteca de música automática con almacenamiento local en base de datos SQLite (Microsoft.Data.Sqlite) e indexación por monitoreo continuo en carpetas seleccionadas. Sistema de diagnóstico y logs persistentes con rotación automática y reporte de errores integrado para GitHub Issues y correo electrónico.",
+            "V1.2.0 - Release: Biblioteca automática con índice SQLite, búsqueda por metadatos, sincronización incremental y monitoreo de carpetas. Añadidos visor de logs persistentes con rotación automática y reporte de errores para GitHub Issues o correo electrónico. Correcciones de integración de la cola y del layout de la ventana de Biblioteca.",
             "V1.1.0 - Selector de modo de salida Bit-Perfect (WASAPI Exclusivo, ASIO en Windows x64, Hog Mode en macOS, ALSA Direct en Linux). Aislamiento y protección nativa por plataforma. Correcciones de Gapless y conmutación de dispositivos en caliente.",
             "V1.0.0 - Lanzamiento oficial v1.0.0 (Release). Integración nativa de teclas multimedia en macOS, Windows y Linux (MPRIS2/playerctl). Nuevas ventanas de Manual de Usuario e Historial de Versiones. Reproducción en RAM, Gapless, CUE sheets, Audio CD, API HTTP remota y visualizador FFT.",
             "V0.9.0 - Pulido masivo: refactorización del código, optimización de rendimiento, robustez antitontos, y estandarización del proyecto.",

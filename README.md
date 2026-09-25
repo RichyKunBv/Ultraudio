@@ -32,7 +32,7 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 
 ## ✨ Características Principales
 
-- **Bit-Perfect Audio & Modos Exclusivos**: Salida directa de audio a tu DAC. A partir de v1.1.0 puedes elegir el modo de salida según tu sistema: **WASAPI Exclusivo** y **ASIO** (Windows), **Hog Mode** (macOS) o **ALSA Direct** (Linux), omitiendo el mezclador del SO para eliminar cualquier remuestreo artificial.
+- **Bit-Perfect Audio & Modos Exclusivos**: Salida directa de audio a tu DAC. Desde v1.1.0 puedes elegir el modo de salida según tu sistema: **WASAPI Exclusivo** y **ASIO** (Windows), **Hog Mode** (macOS) o **ALSA Direct** (Linux), omitiendo el mezclador del SO para eliminar cualquier remuestreo artificial.
 - **Soporte Oficial de BASSASIO**: Integración de drivers ASIO en Windows x64 para reproducción profesional y audiófila a bajísima latencia.
 - **Soporte Amplio de Formatos**: Compatible con formatos Lossless y Hi-Res como FLAC, WAV, AIFF, APE, TTA, WavPack (WV) y DSD (DSF/DFF).
 - **Teclas Multimedia Nativas**: Soporte completo para teclas físicas de reproducción (Play/Pausa, Siguiente, Anterior) en **macOS** (EventTap nativo), **Windows** (SMTC / Keyboard Hook) y **Linux** (MPRIS2 D-Bus / `playerctl`).
@@ -47,6 +47,22 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 - **API Remota (HTTP)**: Servidor web integrado con puerto configurable para control remoto desde otros dispositivos en la red local.
 - **Ventanas y Documentación Integrada**: Manual de Usuario completo, Historial de Versiones, Notificador de Actualizaciones, Biblioteca y Visor de Registros.
 - **Multiplataforma Robusta**: Construido sobre Avalonia UI y .NET 10, con aislamiento inteligente por plataforma que solo expone y utiliza las librerías nativas compatibles con tu arquitectura.
+
+## Biblioteca automática
+
+La Biblioteca mantiene un índice local de tus canciones usando SQLite. No necesitas mover tus archivos: puedes seleccionar cualquier carpeta del equipo o de un disco conectado.
+
+1. Abre **Biblioteca** desde el botón principal o desde **Configuración → Biblioteca**.
+2. Pulsa **Carpetas → Añadir Carpeta** y selecciona la carpeta que contiene tu música.
+3. Espera a que termine la indexación. La biblioteca lee los metadatos y guarda la información en una base de datos local.
+4. Usa el buscador para filtrar por título, artista, álbum, género o ruta.
+5. Pulsa **Reproducir Todo** o **Añadir a Lista**. Al añadir a la lista, la ventana se cierra y la cola principal muestra las pistas cargadas.
+
+La biblioteca automática indexa actualmente `.flac`, `.wav`, `.aiff`, `.aif`, `.dsf` y `.dff`. Los archivos modificados, añadidos o eliminados se sincronizan automáticamente mientras sus carpetas estén configuradas como monitorizadas. También puedes pulsar **Sincronizar** manualmente.
+
+## Diagnóstico y reporte de errores
+
+Desde **Registro y reporte de errores** puedes consultar los logs de la sesión, buscar texto, copiarlos al portapapeles o abrir la carpeta donde se guardan. El registro se conserva entre sesiones y rota automáticamente al superar 5 MB. Los botones de reporte preparan un issue de GitHub o un correo con la información del sistema y los últimos errores.
 
 ## 📸 Interfaz y Uso
 
@@ -229,7 +245,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ✅ | macOS 27 Golden Gate | 27 | M1 | 8 GB | v1.1.0 | Beta de macOS con dotnet 10 instalado |
+| ✅ | macOS 27 Golden Gate | 27 | M1 | 8 GB | v1.2.0 | Verificado con dotnet 10 instalado |
 | ✅ | macOS Tahoe | 26.5.1 | A18 Pro | 8 GB | v1.0.0 | dotnet 10 instalado |
 
 </details>

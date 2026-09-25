@@ -179,7 +179,7 @@ public partial class LibraryWindow : Window
         if (_currentTracks.Count > 0)
         {
             _loadTracksAction.Invoke(_currentTracks.ToList(), true);
-            TxtTrackCount.Text = $"¡{_currentTracks.Count} añadidas a la cola!";
+            Close();
         }
     }
 
