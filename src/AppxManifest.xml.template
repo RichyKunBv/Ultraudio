@@ -16,7 +16,7 @@
   </Properties>
 
   <Resources>
-    <Resource Language="en-us" />
+    <Resource Language="es-mx" />
   </Resources>
 
   <Dependencies>
