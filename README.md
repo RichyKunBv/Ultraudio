@@ -1,6 +1,6 @@
 # Ultraudio 🎵
 
-[![Versión](https://img.shields.io/badge/Versión-v1.2.0-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Versión](https://img.shields.io/badge/Versión-v1.3.0-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Status](https://img.shields.io/badge/Estado-Stable-green.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Licencia](https://img.shields.io/badge/Licencia-Apache-orange.svg)](https://github.com/RichyKunBv/Ultraudio/blob/main/LICENSE)
 [![Licencia](https://img.shields.io/badge/Licencia-BASS%20No%20Commercial-orange.svg)](https://www.un4seen.com/bass.html#license)
@@ -8,7 +8,7 @@
 [![GUI](https://img.shields.io/badge/GUI-Avalonia%20UI-purple.svg)](https://avaloniaui.net)
 
 ---
-![Versión](https://img.shields.io/badge/Versión%20Beta-v1.2.0-red.svg)
+![Versión](https://img.shields.io/badge/Versión%20Beta-v1.3.0-red.svg)
 ![Status](https://img.shields.io/badge/Estado-Unstable-red.svg)
 ![Instalación](https://img.shields.io/badge/Instalación-Clonar%20y%20compilar-black.svg)
 ---
@@ -41,7 +41,7 @@ Ultraudio es un reproductor de audio Hi-Fi "Bit-Perfect" diseñado específicame
 - **Gapless Playback Perfeccionado & CUE**: Reproducción continua y fluida sin pausas entre pistas (incluso con cambios dinámicos en la frecuencia de muestreo del DAC) y soporte completo de hojas CUE para álbumes.
 - **Cambio de Dispositivo en Caliente**: Conmuta tu DAC o salida de audio en tiempo real desde la configuración sin perder el estado ni la posición de la canción.
 - **Visualizador de Espectro & Tech Badges**: Análisis de frecuencias de audio (FFT) en tiempo real e insignias técnicas (ej. FLAC 24/192, ReplayGain).
-- **Biblioteca Automática (SQLite)**: Base de datos local ultrarrápida y ligera impulsada por SQLite (`Microsoft.Data.Sqlite`). Monitoreo continuo de carpetas con indexación diferencial inteligente para arranque instantáneo y sincronización automática en segundo plano.
+- **Biblioteca Automática (SQLite)**: Base de datos local ultrarrápida y ligera impulsada por SQLite (`Microsoft.Data.Sqlite`). Monitoreo continuo de carpetas con indexación diferencial inteligente para arranque instantáneo, sincronización automática en segundo plano y filtros combinables por artista, álbum y género.
 - **Sistema de Diagnóstico y Reporte de Errores**: Registro de logs persistente en disco con rotación automática, visor en tiempo real y herramientas directas para reportar problemas en GitHub Issues o por correo electrónico.
 - **Gestión Avanzada de Listas & Favoritos**: Guarda tus listas en formato `.m3u8`, marca pistas favoritas (Ctrl+B), búsqueda filtrada instantánea y reordena la cola a tu gusto.
 - **API Remota (HTTP)**: Servidor web integrado con puerto configurable para control remoto desde otros dispositivos en la red local.
@@ -55,8 +55,9 @@ La Biblioteca mantiene un índice local de tus canciones usando SQLite. No neces
 1. Abre **Biblioteca** desde el botón principal o desde **Configuración → Biblioteca**.
 2. Pulsa **Carpetas → Añadir Carpeta** y selecciona la carpeta que contiene tu música.
 3. Espera a que termine la indexación. La biblioteca lee los metadatos y guarda la información en una base de datos local.
-4. Usa el buscador para filtrar por título, artista, álbum, género o ruta.
-5. Pulsa **Reproducir Todo** o **Añadir a Lista**. Al añadir a la lista, la ventana se cierra y la cola principal muestra las pistas cargadas.
+4. Usa el buscador para filtrar por título, artista, álbum, género o ruta. También puedes combinarlo con los selectores de artista, álbum y género.
+5. Pulsa **Limpiar filtros** para restablecer todos los criterios de búsqueda.
+6. Pulsa **Reproducir Todo** o **Añadir a Lista**. Al añadir a la lista, la ventana se cierra y la cola principal muestra las pistas cargadas.
 
 La biblioteca automática indexa actualmente `.flac`, `.wav`, `.aiff`, `.aif`, `.dsf` y `.dff`. Los archivos modificados, añadidos o eliminados se sincronizan automáticamente mientras sus carpetas estén configuradas como monitorizadas. También puedes pulsar **Sincronizar** manualmente.
 
@@ -245,7 +246,7 @@ Cualquier persona que decida hacer un fork de este proyecto o distribuirlo con f
 
 | ✅ | Sistema Operativo | Version SO | CPU | RAM | Version de app | Notas |
 | :---: | :---: | :--- | :--- | :--- | :--- | :--- |
-| ✅ | macOS 27 Golden Gate | 27 | M1 | 8 GB | v1.2.0 | Verificado con dotnet 10 instalado |
+| ✅ | macOS 27 Golden Gate | 27 | M1 | 8 GB | v1.3.0 | Verificado con dotnet 10 instalado |
 | ✅ | macOS Tahoe | 26.5.1 | A18 Pro | 8 GB | v1.0.0 | dotnet 10 instalado |
 
 </details>

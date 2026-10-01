@@ -46,6 +46,7 @@
                 <TextBlock Classes="p" Text="La Biblioteca automática guarda un índice local en SQLite y no mueve ni copia tus archivos. Puedes seleccionar cualquier carpeta del equipo o de un disco conectado desde Biblioteca → Carpetas → Añadir Carpeta."/>
                 <TextBlock Classes="bullet" Text="• Indexación: Espera a que termine el escaneo para que aparezca el número de canciones indexadas."/>
                 <TextBlock Classes="bullet" Text="• Búsqueda: Filtra la biblioteca por título, artista, álbum, género o ruta usando el cuadro de búsqueda."/>
+                <TextBlock Classes="bullet" Text="• Filtros: Combina la búsqueda con los selectores de artista, álbum y género para reducir rápidamente los resultados. Usa Limpiar filtros para volver a ver toda la biblioteca."/>
                 <TextBlock Classes="bullet" Text="• Reproducir Todo: Reemplaza la cola actual y comienza la reproducción desde la primera pista."/>
                 <TextBlock Classes="bullet" Text="• Añadir a Lista: Agrega las pistas indexadas a la cola actual y vuelve a la ventana principal."/>
                 <TextBlock Classes="bullet" Text="• Sincronizar: Actualiza manualmente la biblioteca. Las carpetas monitorizadas también se sincronizan automáticamente cuando cambian."/>

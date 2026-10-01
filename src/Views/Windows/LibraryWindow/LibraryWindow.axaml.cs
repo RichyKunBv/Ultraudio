@@ -17,6 +17,7 @@ public partial class LibraryWindow : Window
 {
     private readonly LibraryService _libraryService;
     private readonly Action<List<TrackModel>, bool>? _loadTracksAction;
+    private List<TrackModel> _allLibraryTracks = new();
     private List<TrackModel> _currentTracks = new();
 
     // Required by Avalonia XAML loader
@@ -52,24 +53,63 @@ public partial class LibraryWindow : Window
         ListFolders.ItemsSource = _libraryService.GetLibraryFolders().ToList();
     }
 
-    private async Task LoadTracksAsync(string? query = null)
+    private async Task LoadTracksAsync()
     {
         try
         {
-            var tracks = await _libraryService.Database.GetAllTracksAsync(query);
-            _currentTracks = tracks;
-
-            Dispatcher.UIThread.Post(() =>
-            {
-                ListTracks.ItemsSource = tracks;
-                TxtTrackCount.Text = $"{tracks.Count} canción{(tracks.Count == 1 ? "" : "es")}";
-                TxtDbInfo.Text = $"SQLite DB: {System.IO.Path.GetFileName(_libraryService.Database.DatabasePath)} ({tracks.Count} indexadas)";
-            });
+            _allLibraryTracks = await _libraryService.Database.GetAllTracksAsync();
+            PopulateFilters();
+            ApplyFilters();
         }
         catch (Exception ex)
         {
             Log.Error("LibraryWindow", "Error loading library tracks", ex);
         }
+    }
+
+    private void ApplyFilters()
+    {
+        string query = TxtSearch.Text?.Trim() ?? string.Empty;
+        string? artist = CmbArtist.SelectedItem as string;
+        string? album = CmbAlbum.SelectedItem as string;
+        string? genre = CmbGenre.SelectedItem as string;
+
+        var tracks = _allLibraryTracks.Where(track =>
+            (string.IsNullOrWhiteSpace(query) ||
+                track.DisplayTitle.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                track.Artist.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                track.Album.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                track.Genre.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                track.FilePath.Contains(query, StringComparison.OrdinalIgnoreCase)) &&
+            (string.IsNullOrEmpty(artist) || track.Artist == artist) &&
+            (string.IsNullOrEmpty(album) || track.Album == album) &&
+            (string.IsNullOrEmpty(genre) || track.Genre == genre))
+            .ToList();
+
+        _currentTracks = tracks;
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            ListTracks.ItemsSource = tracks;
+            TxtTrackCount.Text = $"{tracks.Count} canción{(tracks.Count == 1 ? "" : "es")}";
+            TxtDbInfo.Text = $"SQLite DB: {System.IO.Path.GetFileName(_libraryService.Database.DatabasePath)} ({_allLibraryTracks.Count} indexadas)";
+        });
+    }
+
+    private void PopulateFilters()
+    {
+        SetFilterItems(CmbArtist, _allLibraryTracks.Select(track => track.Artist));
+        SetFilterItems(CmbAlbum, _allLibraryTracks.Select(track => track.Album));
+        SetFilterItems(CmbGenre, _allLibraryTracks.Select(track => track.Genre));
+    }
+
+    private static void SetFilterItems(ComboBox comboBox, IEnumerable<string> values)
+    {
+        comboBox.ItemsSource = values
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(value => value, StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 
     private void OnScanStarted()
@@ -100,14 +140,28 @@ public partial class LibraryWindow : Window
         {
             PanelScanning.IsVisible = false;
             TxtScanStatus.Text = "Completado";
-            _ = LoadTracksAsync(TxtSearch.Text);
+            _ = LoadTracksAsync();
         });
     }
 
     private async void TxtSearch_TextChanged(object? sender, TextChangedEventArgs e)
     {
-        string query = TxtSearch.Text?.Trim() ?? string.Empty;
-        await LoadTracksAsync(query);
+        ApplyFilters();
+        await Task.CompletedTask;
+    }
+
+    private void Filter_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        ApplyFilters();
+    }
+
+    private void BtnClearFilters_Click(object? sender, RoutedEventArgs e)
+    {
+        TxtSearch.Clear();
+        CmbArtist.SelectedItem = null;
+        CmbAlbum.SelectedItem = null;
+        CmbGenre.SelectedItem = null;
+        ApplyFilters();
     }
 
     private void BtnToggleFolders_Click(object? sender, RoutedEventArgs e)
@@ -144,7 +198,7 @@ public partial class LibraryWindow : Window
         {
             await _libraryService.RemoveFolderAsync(selectedFolder);
             RefreshFoldersList();
-            await LoadTracksAsync(TxtSearch.Text);
+            await LoadTracksAsync();
         }
     }
 
