@@ -119,7 +119,7 @@ public partial class LogsWindow : Window
             var recent = string.Join("\n", _allLines.TakeLast(20));
 
             string body = $"Describe el problema aquí:\n\n---\nInformación del Sistema:\n{systemInfo}\n\nLogs recientes:\n{recent}";
-            string mailto = $"mailto:?subject={WebUtility.UrlEncode($"Reporte de Error Ultraudio {AppInfo.VersionDisplay}")}&body={WebUtility.UrlEncode(body)}";
+            string mailto = $"mailto:esmesolutions0@gmail.com?subject={WebUtility.UrlEncode($"Reporte de Error Ultraudio {AppInfo.VersionDisplay}")}&body={WebUtility.UrlEncode(body)}";
 
             OpenUrl(mailto);
         }
