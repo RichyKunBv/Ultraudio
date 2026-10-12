@@ -2,8 +2,6 @@
 
 [![Versión](https://img.shields.io/badge/Versión-v1.3.0-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Status](https://img.shields.io/badge/Estado-Stable-green.svg)](https://github.com/RichyKunBv/Ultraudio)
-[![Licencia](https://img.shields.io/badge/Licencia-Apache-orange.svg)](https://github.com/RichyKunBv/Ultraudio/blob/main/LICENSE)
-[![Licencia](https://img.shields.io/badge/Licencia-BASS%20No%20Commercial-orange.svg)](https://www.un4seen.com/bass.html#license)
 [![Lenguaje](https://img.shields.io/badge/Lenguaje-C%23.NET-lightgrey.svg)](https://dotnet.microsoft.com/es-es/download/dotnet/10.0)
 [![GUI](https://img.shields.io/badge/GUI-Avalonia%20UI-purple.svg)](https://avaloniaui.net)
 
@@ -344,3 +342,14 @@ Se hizo lo que se pudo mi gente, pero Flathub no me aceptó por un poco de uso d
 Las capturas de pantalla fueron tomadas en macOS pero la estetica de la aplicacion es casi igual en los otros sistemas operativos al igual que la funcionalidad (bueno o eso intento xd).
 
 </details>
+
+---
+# Politica de Privacidad, Actualizaciones y Licencias
+
+[![PoliticaPriv](https://img.shields.io/badge/Politica%20de%20Privacidad-lightgrey.svg)](https://github.com/RichyKunBv/RichyKunBv/blob/main/politicas/priv.md)
+
+[![PoliticaAct](https://img.shields.io/badge/Politica%20de%20Actualizaciones-lightgrey.svg)](https://github.com/RichyKunBv/RichyKunBv/blob/main/politicas/act.md)
+
+[![Licencia](https://img.shields.io/badge/Licencia%20Apache-lightgrey.svg)](https://github.com/RichyKunBv/Ultraudio/blob/main/LICENSE)
+
+[![LicenciaBASS](https://img.shields.io/badge/Licencia%20BASS-lightgrey.svg)](https://github.com/RichyKunBv/Ultraudio/blob/main/lib/LICENSE-BASS.txt)
