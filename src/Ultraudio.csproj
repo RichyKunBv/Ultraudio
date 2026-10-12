@@ -44,7 +44,11 @@
     <PackageReference Include="ManagedBass.Wasapi" Version="4.0.2" />
     <PackageReference Include="ManagedBass.Asio" Version="4.0.2" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.12" />
-    <PackageReference Include="TagLibSharp" Version="2.3.0" />
+
+    <PackageReference Include="TagLibSharp" Version="2.3.0">
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </PackageReference>
+    
     <!-- Tmds.DBus for Linux MPRIS2 D-Bus integration -->
     <PackageReference Include="Tmds.DBus" Version="0.94.2" />
   </ItemGroup>
