@@ -219,13 +219,15 @@ public partial class MainWindow : Window
     private async void CheckForUpdatesAsync()
     {
         var version = UpdateService.GetCurrentVersion();
-        var (status, newVersion) = await UpdateService.CheckForUpdatesAsync(version);
-        if (status == UpdateStatus.Outdated)
+        var (status, newVersion, _) = await UpdateService.CheckForUpdatesAsync(version);
+        if (status is UpdateStatus.Outdated or UpdateStatus.MicrosoftStoreUpdateAvailable)
         {
             Dispatcher.UIThread.Post(() =>
             {
                 BtnUpdate.IsVisible = true;
-                ToolTip.SetTip(BtnUpdate, $"Nueva versión disponible: {newVersion}");
+                ToolTip.SetTip(BtnUpdate, status == UpdateStatus.MicrosoftStoreUpdateAvailable
+                    ? "Actualización disponible en Microsoft Store"
+                    : $"Nueva versión disponible: {newVersion}");
             });
         }
     }
@@ -794,22 +796,10 @@ public partial class MainWindow : Window
         });
     }
 
-    private void BtnUpdate_Click(object? sender, RoutedEventArgs e)
+    private async void BtnUpdate_Click(object? sender, RoutedEventArgs e)
     {
-        var uri = UpdateService.GetDirectDownloadUrl();
-        try
-        {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = uri, UseShellExecute = true });
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                System.Diagnostics.Process.Start("xdg-open", uri);
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                System.Diagnostics.Process.Start("open", uri);
-        }
-        catch (Exception ex)
-        {
-            Log.Error("Update", "Could not open update URL", ex);
-        }
+        var updateWindow = new UpdateWindow();
+        await updateWindow.ShowDialog(this);
     }
 
     // ─── Favorite ─────────────────────────────────────────────────────────

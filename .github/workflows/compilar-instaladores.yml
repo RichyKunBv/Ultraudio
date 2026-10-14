@@ -186,9 +186,16 @@ jobs:
 
 
       # --- EMPAQUETADO MACOS ---
-      - name: Preparar App Bundle (macOS)
+      - name: Crear y firmar App Bundle (macOS)
         if: runner.os == 'macOS'
+        env:
+          MACOS_CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE_BASE64 }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+          MACOS_CODESIGN_IDENTITY: ${{ secrets.MACOS_CODESIGN_IDENTITY }}
+          IS_RELEASE: ${{ github.event_name == 'release' }}
         run: |
+          set -euo pipefail
+
           APP_DIR="Ultraudio.app"
           mkdir -p "$APP_DIR/Contents/MacOS"
           mkdir -p "$APP_DIR/Contents/Resources"
@@ -203,9 +210,51 @@ jobs:
           plutil -replace CFBundleExecutable -string "Ultraudio" "$APP_DIR/Contents/Info.plist"
           plutil -replace CFBundleIconFile -string "icon.icns" "$APP_DIR/Contents/Info.plist"
           plutil -replace CFBundleIdentifier -string "com.esmesolutions.ultraudio" "$APP_DIR/Contents/Info.plist"
-          
+
           xattr -cr "$APP_DIR"
-          codesign --force --deep --sign - "$APP_DIR"
+
+          if [[ -z "$MACOS_CERTIFICATE_BASE64" && -z "$MACOS_CERTIFICATE_PASSWORD" && -z "$MACOS_CODESIGN_IDENTITY" ]]; then
+            if [[ "$IS_RELEASE" == "true" ]]; then
+              echo "::error::Para publicar un release de macOS configura MACOS_CERTIFICATE_BASE64, MACOS_CERTIFICATE_PASSWORD y MACOS_CODESIGN_IDENTITY. La firma ad-hoc no conserva una identidad estable entre actualizaciones."
+              exit 1
+            fi
+
+            echo "::warning::Sin certificado configurado: esta compilación manual usará firma ad-hoc y macOS podría volver a solicitar permisos."
+            codesign --force --deep --sign - --identifier com.esmesolutions.ultraudio "$APP_DIR"
+            codesign --verify --deep --strict --verbose=2 "$APP_DIR"
+            exit 0
+          fi
+
+          if [[ -z "$MACOS_CERTIFICATE_BASE64" || -z "$MACOS_CERTIFICATE_PASSWORD" || -z "$MACOS_CODESIGN_IDENTITY" ]]; then
+            echo "::error::Configura los tres secretos de firma macOS o elimina los tres para usar firma ad-hoc en una ejecución manual."
+            exit 1
+          fi
+
+          CERTIFICATE_PATH="$RUNNER_TEMP/ultraudio-signing.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/ultraudio-signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -base64 24)"
+          cleanup_signing_material() {
+            security delete-keychain "$KEYCHAIN_PATH" >/dev/null 2>&1 || true
+            rm -f "$CERTIFICATE_PATH"
+          }
+          trap cleanup_signing_material EXIT
+
+          printf '%s' "$MACOS_CERTIFICATE_BASE64" | base64 -D > "$CERTIFICATE_PATH"
+          chmod 600 "$CERTIFICATE_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH"
+
+          if ! security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep -F "$MACOS_CODESIGN_IDENTITY"; then
+            echo "::error::No se encontró la identidad de firma '$MACOS_CODESIGN_IDENTITY' en el certificado importado."
+            exit 1
+          fi
+
+          codesign --force --deep --sign "$MACOS_CODESIGN_IDENTITY" --keychain "$KEYCHAIN_PATH" --identifier com.esmesolutions.ultraudio "$APP_DIR"
+          codesign --verify --deep --strict --verbose=2 "$APP_DIR"
 
       - name: Generar DMG (macOS)
         if: runner.os == 'macOS'

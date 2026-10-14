@@ -6,7 +6,7 @@
 [![GUI](https://img.shields.io/badge/GUI-Avalonia%20UI-purple.svg)](https://avaloniaui.net)
 
 ---
-![Versión](https://img.shields.io/badge/Versión%20Beta-v1.3.0-red.svg)
+![Versión](https://img.shields.io/badge/Versión%20Beta-v1.3.1-red.svg)
 ![Status](https://img.shields.io/badge/Estado-Unstable-red.svg)
 ![Instalación](https://img.shields.io/badge/Instalación-Clonar%20y%20compilar-black.svg)
 ---
@@ -106,11 +106,38 @@ Desde **Registro y reporte de errores** puedes consultar los logs de la sesión,
 ### Notificación de Actualizaciones
 <img src="res/docs/actualizaciones.png" width="762" alt="Aviso de Actualización"/>
 
+En Windows, las instalaciones de Microsoft Store consultan las actualizaciones con la API oficial de Store y las instalan desde ese canal; nunca se redirigen al instalador `.exe` de GitHub. Las instalaciones normales siguen usando los instaladores de GitHub. El `.msix` generado para una publicación no se instala directamente desde el actualizador porque el paquete distribuido por GitHub no lleva la firma final de Microsoft Store.
+
 ### Integración con macOS (Barra de Menú y Teclas Multimedia)
 <img src="res/docs/barra de menu macos.png" width="762" alt="Barra de Menú en macOS"/>
 
 > [!IMPORTANT]
 > **Teclas Multimedia en macOS:** Para que las teclas de control multimedia (Play/Pausa, Siguiente, Anterior) funcionen correctamente y no abran la aplicación "Música" por defecto, Ultraudio utiliza un *Event Tap* nativo de CoreGraphics. Es **obligatorio** conceder permisos a la aplicación en **Ajustes del Sistema > Privacidad y seguridad > Accesibilidad**. Una vez otorgado el permiso, reinicia Ultraudio.
+
+### Firma de macOS y conservación de permisos
+
+El workflow mantiene el identificador `com.esmesolutions.ultraudio` y firma el `.app` de cada release con el mismo certificado autofirmado. Esto da una identidad de firma consistente entre versiones y no concede a Ultraudio acceso al llavero: el certificado solo se importa temporalmente en el runner de GitHub Actions para firmar el paquete. La primera versión con la nueva firma podría pedir el permiso de Accesibilidad una vez más; después, usar la misma clave evita cambiar la identidad en cada actualización. Una firma autofirmada es gratuita, pero Apple no la notariza; macOS puede mostrar advertencias al abrir la aplicación y no se puede garantizar el mismo comportamiento en todas las versiones de macOS.
+
+Para configurar la firma una sola vez, crea un certificado autofirmado en tu Mac (OpenSSL no usa el llavero):
+
+```sh
+openssl req -x509 -newkey rsa:3072 -sha256 -days 3650 -nodes \
+  -keyout ultraudio-signing.key -out ultraudio-signing.crt \
+  -subj "/CN=Ultraudio Local Signing" \
+  -addext "keyUsage=critical,digitalSignature" \
+  -addext "extendedKeyUsage=codeSigning"
+openssl pkcs12 -export -out ultraudio-signing.p12 \
+  -inkey ultraudio-signing.key -in ultraudio-signing.crt \
+  -name "Ultraudio Local Signing"
+```
+
+Guarda la contraseña que elijas al exportar el `.p12`. En **Settings → Secrets and variables → Actions** del repositorio, crea estos secretos:
+
+- `MACOS_CERTIFICATE_BASE64`: contenido de `base64 -i ultraudio-signing.p12 | tr -d '\n'`.
+- `MACOS_CERTIFICATE_PASSWORD`: contraseña del archivo `.p12`.
+- `MACOS_CODESIGN_IDENTITY`: `Ultraudio Local Signing` (el nombre usado en el certificado).
+
+Conserva `ultraudio-signing.key`, el `.p12` y su contraseña en un lugar seguro; no los regeneres para futuras versiones ni los subas al repositorio. Los releases de macOS fallarán si faltan los secretos para evitar publicar accidentalmente una actualización con una identidad distinta. `workflow_dispatch` aún permite compilar sin ellos, pero esa compilación usa firma ad-hoc y puede volver a requerir permisos.
 
 > [!NOTE]
 > **Teclas Multimedia en Linux:** Ultraudio implementa la especificación **MPRIS2** sobre D-Bus, permitiendo control nativo desde la barra del sistema, atajos del entorno gráfico (GNOME, KDE, XFCE) y la herramienta `playerctl`.
@@ -131,6 +158,8 @@ Puedes descargar los binarios precompilados listos para usar desde la sección d
 Están disponibles para todos los sistemas operativos principales (**Windows, macOS y Linux**) en las arquitecturas más utilizadas:
 - **x64** (Procesadores Intel y AMD)
 - **arm64** (Apple Silicon y procesadores ARM)
+
+El actualizador integrado descarga el instalador correspondiente dentro de Ultraudio, muestra el progreso y lo inicia al terminar. Las instalaciones de Microsoft Store usan su propio canal de actualización.
 
 ```sh
 # Para macOS, quitar el atributo de cuarentena si no se puede abrir la app
