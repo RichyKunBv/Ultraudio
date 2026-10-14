@@ -1,6 +1,6 @@
 # Ultraudio 🎵
 
-[![Versión](https://img.shields.io/badge/Versión-v1.3.1-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Versión](https://img.shields.io/badge/Versión-v1.3.0-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Status](https://img.shields.io/badge/Estado-Stable-green.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Lenguaje](https://img.shields.io/badge/Lenguaje-C%23.NET-lightgrey.svg)](https://dotnet.microsoft.com/es-es/download/dotnet/10.0)
 [![GUI](https://img.shields.io/badge/GUI-Avalonia%20UI-purple.svg)](https://avaloniaui.net)
@@ -116,28 +116,7 @@ En Windows, las instalaciones de Microsoft Store consultan las actualizaciones c
 
 ### Firma de macOS y conservación de permisos
 
-El workflow mantiene el identificador `com.esmesolutions.ultraudio` y firma el `.app` de cada release con el mismo certificado autofirmado. Esto da una identidad de firma consistente entre versiones y no concede a Ultraudio acceso al llavero: el certificado solo se importa temporalmente en el runner de GitHub Actions para firmar el paquete. La primera versión con la nueva firma podría pedir el permiso de Accesibilidad una vez más; después, usar la misma clave evita cambiar la identidad en cada actualización. Una firma autofirmada es gratuita, pero Apple no la notariza; macOS puede mostrar advertencias al abrir la aplicación y no se puede garantizar el mismo comportamiento en todas las versiones de macOS.
-
-Para configurar la firma una sola vez, crea un certificado autofirmado en tu Mac (OpenSSL no usa el llavero):
-
-```sh
-openssl req -x509 -newkey rsa:3072 -sha256 -days 3650 -nodes \
-  -keyout ultraudio-signing.key -out ultraudio-signing.crt \
-  -subj "/CN=Ultraudio Local Signing" \
-  -addext "keyUsage=critical,digitalSignature" \
-  -addext "extendedKeyUsage=codeSigning"
-openssl pkcs12 -export -out ultraudio-signing.p12 \
-  -inkey ultraudio-signing.key -in ultraudio-signing.crt \
-  -name "Ultraudio Local Signing"
-```
-
-Guarda la contraseña que elijas al exportar el `.p12`. En **Settings → Secrets and variables → Actions** del repositorio, crea estos secretos:
-
-- `MACOS_CERTIFICATE_BASE64`: contenido de `base64 -i ultraudio-signing.p12 | tr -d '\n'`.
-- `MACOS_CERTIFICATE_PASSWORD`: contraseña del archivo `.p12`.
-- `MACOS_CODESIGN_IDENTITY`: `Ultraudio Local Signing` (el nombre usado en el certificado).
-
-Conserva `ultraudio-signing.key`, el `.p12` y su contraseña en un lugar seguro; no los regeneres para futuras versiones ni los subas al repositorio. Los releases de macOS fallarán si faltan los secretos para evitar publicar accidentalmente una actualización con una identidad distinta. `workflow_dispatch` aún permite compilar sin ellos, pero esa compilación usa firma ad-hoc y puede volver a requerir permisos.
+El identificador de la aplicación es `com.esmesolutions.ultraudio`. Los paquetes publicados actualmente usan firma ad-hoc; macOS puede mostrar advertencias y volver a solicitar permisos de Accesibilidad después de una actualización.
 
 > [!NOTE]
 > **Teclas Multimedia en Linux:** Ultraudio implementa la especificación **MPRIS2** sobre D-Bus, permitiendo control nativo desde la barra del sistema, atajos del entorno gráfico (GNOME, KDE, XFCE) y la herramienta `playerctl`.

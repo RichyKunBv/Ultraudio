@@ -215,11 +215,11 @@ jobs:
 
           if [[ -z "$MACOS_CERTIFICATE_BASE64" && -z "$MACOS_CERTIFICATE_PASSWORD" && -z "$MACOS_CODESIGN_IDENTITY" ]]; then
             if [[ "$IS_RELEASE" == "true" ]]; then
-              echo "::error::Para publicar un release de macOS configura MACOS_CERTIFICATE_BASE64, MACOS_CERTIFICATE_PASSWORD y MACOS_CODESIGN_IDENTITY. La firma ad-hoc no conserva una identidad estable entre actualizaciones."
-              exit 1
+              echo "::warning::No hay certificado configurado. El release usará firma ad-hoc; macOS puede mostrar advertencias y volver a solicitar permisos en futuras actualizaciones."
+            else
+              echo "::warning::Sin certificado configurado: esta compilación manual usará firma ad-hoc y macOS podría volver a solicitar permisos."
             fi
 
-            echo "::warning::Sin certificado configurado: esta compilación manual usará firma ad-hoc y macOS podría volver a solicitar permisos."
             codesign --force --deep --sign - --identifier com.esmesolutions.ultraudio "$APP_DIR"
             codesign --verify --deep --strict --verbose=2 "$APP_DIR"
             exit 0
