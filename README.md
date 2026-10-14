@@ -1,6 +1,6 @@
 # Ultraudio 🎵
 
-[![Versión](https://img.shields.io/badge/Versión-v1.3.0-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
+[![Versión](https://img.shields.io/badge/Versión-v1.3.1-blue.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Status](https://img.shields.io/badge/Estado-Stable-green.svg)](https://github.com/RichyKunBv/Ultraudio)
 [![Lenguaje](https://img.shields.io/badge/Lenguaje-C%23.NET-lightgrey.svg)](https://dotnet.microsoft.com/es-es/download/dotnet/10.0)
 [![GUI](https://img.shields.io/badge/GUI-Avalonia%20UI-purple.svg)](https://avaloniaui.net)
