@@ -191,7 +191,6 @@ jobs:
         env:
           MACOS_CERTIFICATE_BASE64: ${{ secrets.MACOS_CERTIFICATE_BASE64 }}
           MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
-          MACOS_CODESIGN_IDENTITY: ${{ secrets.MACOS_CODESIGN_IDENTITY }}
           IS_RELEASE: ${{ github.event_name == 'release' }}
         run: |
           set -euo pipefail
@@ -213,7 +212,7 @@ jobs:
 
           xattr -cr "$APP_DIR"
 
-          if [[ -z "$MACOS_CERTIFICATE_BASE64" && -z "$MACOS_CERTIFICATE_PASSWORD" && -z "$MACOS_CODESIGN_IDENTITY" ]]; then
+          if [[ -z "$MACOS_CERTIFICATE_BASE64" && -z "$MACOS_CERTIFICATE_PASSWORD" ]]; then
             if [[ "$IS_RELEASE" == "true" ]]; then
               echo "::warning::No hay certificado configurado. El release usará firma ad-hoc; macOS puede mostrar advertencias y volver a solicitar permisos en futuras actualizaciones."
             else
@@ -225,8 +224,8 @@ jobs:
             exit 0
           fi
 
-          if [[ -z "$MACOS_CERTIFICATE_BASE64" || -z "$MACOS_CERTIFICATE_PASSWORD" || -z "$MACOS_CODESIGN_IDENTITY" ]]; then
-            echo "::error::Configura los tres secretos de firma macOS o elimina los tres para usar firma ad-hoc en una ejecución manual."
+          if [[ -z "$MACOS_CERTIFICATE_BASE64" || -z "$MACOS_CERTIFICATE_PASSWORD" ]]; then
+            echo "::error::Configura los secretos MACOS_CERTIFICATE_BASE64 y MACOS_CERTIFICATE_PASSWORD, o elimina ambos para usar firma ad-hoc."
             exit 1
           fi
 
@@ -248,12 +247,15 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security list-keychains -d user -s "$KEYCHAIN_PATH"
 
-          if ! security find-identity -v -p codesigning "$KEYCHAIN_PATH" | grep -F "$MACOS_CODESIGN_IDENTITY"; then
-            echo "::error::No se encontró la identidad de firma '$MACOS_CODESIGN_IDENTITY' en el certificado importado."
+          IDENTITY_OUTPUT="$(security find-identity -p codesigning "$KEYCHAIN_PATH" 2>&1)"
+          printf '%s\n' "$IDENTITY_OUTPUT"
+          IDENTITY_HASH="$(printf '%s\n' "$IDENTITY_OUTPUT" | awk '/^[[:space:]]*[0-9]+\)/ { if (count == 0) first = $2; count++ } END { if (count == 1) print first }')"
+          if [[ -z "$IDENTITY_HASH" ]]; then
+            echo "::error::Se esperaba exactamente una identidad de firma en el certificado importado. Revisa la salida de 'security find-identity' arriba."
             exit 1
           fi
 
-          codesign --force --deep --sign "$MACOS_CODESIGN_IDENTITY" --keychain "$KEYCHAIN_PATH" --identifier com.esmesolutions.ultraudio "$APP_DIR"
+          codesign --force --deep --sign "$IDENTITY_HASH" --keychain "$KEYCHAIN_PATH" --identifier com.esmesolutions.ultraudio "$APP_DIR"
           codesign --verify --deep --strict --verbose=2 "$APP_DIR"
 
       - name: Generar DMG (macOS)
